@@ -2,6 +2,11 @@
 .DS_Store
 .env
 /database/database.sqlite
+CLAUDE.md
+/storage/app/public/apar/
+/storage/app/public/aset/
+/storage/app/public/kendaraan/
+/storage/app/public/ruangan/
 .env.backup
 .env.production
 .phpactor.json
