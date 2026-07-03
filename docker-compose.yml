@@ -1,0 +1,98 @@
+services:
+
+  # ─── Database ───────────────────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: "${DB_PASSWORD:?DB_PASSWORD wajib diset di .env}"
+      MYSQL_DATABASE: "${DB_DATABASE:-manajemen-aset}"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - simaster
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # ─── PHP-FPM App ────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      target: runtime
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # Override DB_HOST: service name, bukan 127.0.0.1
+      DB_HOST: mysql
+    volumes:
+      # Storage di-persist di named volume agar file upload tidak hilang
+      - storage_data:/var/www/html/storage
+    networks:
+      - simaster
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  # ─── Nginx (web server + static files) ──────────────────────
+  nginx:
+    build:
+      context: .
+      target: nginx-stage
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8000}:80"
+    volumes:
+      # Nginx serve file upload langsung dari volume (tanpa lewat PHP)
+      - storage_data:/var/www/html/storage:ro
+    networks:
+      - simaster
+    depends_on:
+      - app
+
+  # ─── Queue Worker ────────────────────────────────────────────
+  worker:
+    build:
+      context: .
+      target: runtime
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DB_HOST: mysql
+    command: ["php", "artisan", "queue:listen", "--tries=1", "--timeout=90"]
+    volumes:
+      - storage_data:/var/www/html/storage
+    networks:
+      - simaster
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  # ─── Scheduler (rekap:bulanan tiap tgl 1 jam 00:00) ─────────
+  scheduler:
+    build:
+      context: .
+      target: runtime
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DB_HOST: mysql
+    command: ["php", "artisan", "schedule:work"]
+    volumes:
+      - storage_data:/var/www/html/storage
+    networks:
+      - simaster
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+volumes:
+  mysql_data:
+  storage_data:
+
+networks:
+  simaster:
+    driver: bridge

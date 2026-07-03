@@ -1,0 +1,106 @@
+
+  GET|HEAD        / .................................................................................................. 
+  GET|HEAD        apar ............................................................. apar.index › AparController@index
+  POST            apar ............................................................. apar.store › AparController@store
+  GET|HEAD        apar/create .................................................... apar.create › AparController@create
+  GET|HEAD        apar/{apar} ........................................................ apar.show › AparController@show
+  PUT|PATCH       apar/{apar} .................................................... apar.update › AparController@update
+  DELETE          apar/{apar} .................................................. apar.destroy › AparController@destroy
+  GET|HEAD        apar/{apar}/edit ................................................... apar.edit › AparController@edit
+  GET|HEAD        api/apar/ruangan-by-gedung/{id} .................................. AparController@getRuanganByGedung
+  GET|HEAD        api/jenis-barang/{kategori} .......................................... AsetController@getJenisBarang
+  GET|HEAD        api/ruangan-by-gedung/{id} ........................................... RuanganController@getByGedung
+  GET|HEAD        aset ............................................................. aset.index › AsetController@index
+  POST            aset ............................................................. aset.store › AsetController@store
+  GET|HEAD        aset/by-ruangan/{id} ................................................... AsetController@getByRuangan
+  GET|HEAD        aset/create .................................................... aset.create › AsetController@create
+  GET|HEAD        aset/gedung/{id} ........................................... aset.byGedung › AsetController@byGedung
+  GET|HEAD        aset/generate-kode .......................... aset.generateKode › JenisBarangController@generateKode
+  GET|HEAD        aset/peralatan-kantor ....................... aset.peralatan_kantor › AsetController@peralatanKantor
+  GET|HEAD        aset/{aset} ........................................................ aset.show › AsetController@show
+  PUT|PATCH       aset/{aset} .................................................... aset.update › AsetController@update
+  DELETE          aset/{aset} .................................................. aset.destroy › AsetController@destroy
+  GET|HEAD        aset/{aset}/edit ................................................... aset.edit › AsetController@edit
+  GET|HEAD        dashboard .................................................... dashboard › DashboardController@index
+  POST            divisi ....................................................... divisi.store › DivisiController@store
+  GET|HEAD        form-permintaan-barang ........... form-permintaan-barang.create › PermintaanBarangController@create
+  POST            form-permintaan-barang ............. form-permintaan-barang.store › PermintaanBarangController@store
+  GET|HEAD        gedung ....................................................... gedung.index › GedungController@index
+  POST            gedung ....................................................... gedung.store › GedungController@store
+  GET|HEAD        gedung/create .............................................. gedung.create › GedungController@create
+  GET|HEAD        gedung/{gedung} ................................................ gedung.show › GedungController@show
+  PUT|PATCH       gedung/{gedung} ............................................ gedung.update › GedungController@update
+  DELETE          gedung/{gedung} .......................................... gedung.destroy › GedungController@destroy
+  GET|HEAD        gedung/{gedung}/edit ........................................... gedung.edit › GedungController@edit
+  GET|HEAD        gedung/{id}/dashboard ................................ gedung.dashboard › GedungController@dashboard
+  GET|HEAD        gedung/{id}/ruangan .................................. ruangan.byGedung › RuanganController@byGedung
+  GET|HEAD        gudang ....................................................... gudang.index › GudangController@index
+  POST            gudang ....................................................... gudang.store › GudangController@store
+  GET|HEAD        gudang/create .............................................. gudang.create › GudangController@create
+  GET|HEAD        gudang/dashboard ..................................... gudang.dashboard › GudangController@dashboard
+  GET|HEAD        gudang/laporan_opname ...................... gudang.laporan_opname › GudangController@laporan_opname
+  GET|HEAD        gudang/laporan_transaksi ............. gudang.laporan_transaksi › GudangController@laporan_transaksi
+  GET|HEAD        gudang/transaksi/create ..................... gudang.transaksi_form › GudangController@transaksiForm
+  GET|HEAD        gudang/{gudang} ................................................ gudang.show › GudangController@show
+  PUT|PATCH       gudang/{gudang} ............................................ gudang.update › GudangController@update
+  DELETE          gudang/{gudang} .......................................... gudang.destroy › GudangController@destroy
+  GET|HEAD        gudang/{gudang}/edit ........................................... gudang.edit › GudangController@edit
+  GET|HEAD        jenis-barang/{kategori} ........................................ JenisBarangController@getByKategori
+  GET|HEAD        kendaraan .............................................. kendaraan.index › KendaraanController@index
+  POST            kendaraan .............................................. kendaraan.store › KendaraanController@store
+  GET|HEAD        kendaraan/create ..................................... kendaraan.create › KendaraanController@create
+  GET|HEAD        kendaraan/{kendaraan} .................................... kendaraan.show › KendaraanController@show
+  PUT|PATCH       kendaraan/{kendaraan} ................................ kendaraan.update › KendaraanController@update
+  DELETE          kendaraan/{kendaraan} .............................. kendaraan.destroy › KendaraanController@destroy
+  GET|HEAD        kendaraan/{kendaraan}/edit ............................... kendaraan.edit › KendaraanController@edit
+  GET|HEAD        laporan-tahunan ............................. laporan_tahunan.index › LaporanTahunanController@index
+  GET|HEAD        laporan-tahunan/create .................... laporan_tahunan.create › LaporanTahunanController@create
+  GET|HEAD        laporan-tahunan/edit/{id} ..................... laporan_tahunan.edit › LaporanTahunanController@edit
+  POST            laporan-tahunan/store ....................... laporan_tahunan.store › LaporanTahunanController@store
+  PUT             laporan-tahunan/update/{id} ............... laporan_tahunan.update › LaporanTahunanController@update
+  DELETE          laporan-tahunan/{id} .................... laporan_tahunan.destroy › LaporanTahunanController@destroy
+  GET|HEAD        laporan_pemusnahan .................... laporan_pemusnahan.index › LaporanPemusnahanController@index
+  POST            laporan_pemusnahan .................... laporan_pemusnahan.store › LaporanPemusnahanController@store
+  GET|HEAD        laporan_pemusnahan/create ........... laporan_pemusnahan.create › LaporanPemusnahanController@create
+  GET|HEAD        laporan_pemusnahan/{laporan_pemusnahan} . laporan_pemusnahan.show › LaporanPemusnahanController@show
+  PUT|PATCH       laporan_pemusnahan/{laporan_pemusnahan} laporan_pemusnahan.update › LaporanPemusnahanController@upd…
+  DELETE          laporan_pemusnahan/{laporan_pemusnahan} laporan_pemusnahan.destroy › LaporanPemusnahanController@de…
+  GET|HEAD        laporan_pemusnahan/{laporan_pemusnahan}/edit laporan_pemusnahan.edit › LaporanPemusnahanController@…
+  GET|HEAD        maintenance ........................................ maintenance.index › MaintenanceController@index
+  POST            maintenance ........................................ maintenance.store › MaintenanceController@store
+  GET|HEAD        maintenance/create ............................... maintenance.create › MaintenanceController@create
+  GET|HEAD        maintenance/laporan ............................ maintenance.laporan › MaintenanceController@laporan
+  GET|HEAD        maintenance/{maintenance} ............................ maintenance.show › MaintenanceController@show
+  PUT|PATCH       maintenance/{maintenance} ........................ maintenance.update › MaintenanceController@update
+  DELETE          maintenance/{maintenance} ...................... maintenance.destroy › MaintenanceController@destroy
+  GET|HEAD        maintenance/{maintenance}/edit ....................... maintenance.edit › MaintenanceController@edit
+  GET|HEAD        menu-form ................................................................................ menu.form
+  GET|HEAD        permintaan-barang ....................... permintaan-barang.index › PermintaanBarangController@index
+  POST            permintaan-barang/store ........................ permintaan.store › PermintaanBarangController@store
+  GET|HEAD        permintaan-barang/{id} .................... permintaan-barang.show › PermintaanBarangController@show
+  GET|HEAD        roles .......................................................... roles.index › RolesController@index
+  GET|HEAD        roles/create ................................................. roles.create › RolesController@create
+  GET|HEAD        roles/edit/{id} .................................................. roles.edit › RolesController@edit
+  POST            roles/store .................................................... roles.store › RolesController@store
+  PUT             roles/update/{id} ............................................ roles.update › RolesController@update
+  DELETE          roles/{id} ................................................. roles.destroy › RolesController@destroy
+  GET|HEAD        ruangan .................................................... ruangan.index › RuanganController@index
+  POST            ruangan .................................................... ruangan.store › RuanganController@store
+  GET|HEAD        ruangan/by-gedung/{id} ............................................... RuanganController@getByGedung
+  GET|HEAD        ruangan/create ........................................... ruangan.create › RuanganController@create
+  GET|HEAD        ruangan/{id}/dashboard ............................. ruangan.dashboard › RuanganController@dashboard
+  GET|HEAD        ruangan/{ruangan} ............................................ ruangan.show › RuanganController@show
+  PUT|PATCH       ruangan/{ruangan} ........................................ ruangan.update › RuanganController@update
+  DELETE          ruangan/{ruangan} ...................................... ruangan.destroy › RuanganController@destroy
+  GET|HEAD        ruangan/{ruangan}/edit ....................................... ruangan.edit › RuanganController@edit
+  GET|HEAD        storage/{path} ....................................................................... storage.local
+  GET|HEAD        up ................................................................................................. 
+  GET|HEAD        users ........................................................... users.index › UserController@index
+  GET|HEAD        users/create .................................................. users.create › UserController@create
+  GET|HEAD        users/edit/{id} ................................................... users.edit › UserController@edit
+  POST            users/store ..................................................... users.store › UserController@store
+  PUT             users/update/{id} ............................................. users.update › UserController@update
+  DELETE          users/{id} .................................................. users.destroy › UserController@destroy
+
+                                                                                                  Showing [102] routes
+

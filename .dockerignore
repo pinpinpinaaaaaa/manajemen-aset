@@ -1,0 +1,67 @@
+# Version control
+.git/
+
+# Dependencies (diinstall ulang saat build)
+node_modules/
+vendor/
+
+# Secrets (diinject via env_file saat runtime, jangan masuk image)
+.env
+.env.backup
+.env.production
+
+# Vite output (direbuild saat Docker build)
+public/hot
+public/build/
+
+# SQLite (tidak dipakai di Docker)
+database/*.sqlite
+
+# Runtime cache & sessions (dibuat ulang saat container start)
+storage/framework/cache/data/
+storage/framework/sessions/
+storage/framework/views/*.php
+storage/framework/testing/
+storage/logs/
+storage/pail/
+
+# File upload dari dev lokal — di Docker disimpan di named volume, bukan di image.
+# Hanya default placeholder (seed untuk volume kosong) yang perlu masuk image.
+storage/app/public/aset/
+storage/app/public/ruangan/
+storage/app/public/gedung/
+storage/app/public/apar/
+storage/app/public/kendaraan/
+storage/app/public/maintenance/
+storage/app/public/maintenance_after/
+storage/app/public/maintenance_before/
+storage/app/public/ekspedisi/
+storage/app/public/pengadaan_files/
+storage/app/public/pengaduan_kerusakan/
+storage/app/public/vendor/
+# Re-include default placeholder (dipakai sebagai seed saat volume pertama kali naik)
+!storage/app/public/aset/default.jpg
+!storage/app/public/ruangan/default.jpg
+!storage/app/public/gedung/default.jpg
+!storage/app/public/apar/default.jpg
+!storage/app/public/kendaraan/mobil/default.jpg
+!storage/app/public/kendaraan/motor/default.jpg
+
+# Test & dev files
+tests/
+phpunit.xml
+.phpunit.cache/
+.phpunit.result.cache
+REVIEW*.md
+
+# Data SQL dump (tidak perlu di image)
+INSERT SQL/
+
+# Dokumentasi & local config
+*.md
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+Homestead.json
+Homestead.yaml

@@ -1,0 +1,75 @@
+# Production compose — database eksternal via Cloudflare Zero Trust tunnel.
+# Jalankan: docker compose -f docker-compose.prod.yml up -d --build
+#
+# Wajib ada di .env di server:
+#   DB_CONNECTION=mysql
+#   DB_HOST=127.0.0.1
+#   DB_PORT=3306
+#   DB_DATABASE=management-aset
+#   DB_USERNAME=...
+#   DB_PASSWORD=...
+#   CF_ACCESS_HOSTNAME=dbsiumaslm-prod.milikasetlm.online
+#   CF_ACCESS_CLIENT_ID=...        ← minta ke tim infrastruktur
+#   CF_ACCESS_CLIENT_SECRET=...    ← minta ke tim infrastruktur
+
+services:
+
+  # ─── PHP-FPM App ────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      target: runtime
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - storage_data:/var/www/html/storage
+    networks:
+      - simaster
+
+  # ─── Nginx (web server + static files) ──────────────────────
+  nginx:
+    build:
+      context: .
+      target: nginx-stage
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8000}:80"
+    volumes:
+      - storage_data:/var/www/html/storage:ro
+    networks:
+      - simaster
+    depends_on:
+      - app
+
+  # ─── Queue Worker ────────────────────────────────────────────
+  worker:
+    build:
+      context: .
+      target: runtime
+    restart: unless-stopped
+    env_file: .env
+    command: ["php", "artisan", "queue:listen", "--tries=1", "--timeout=90"]
+    volumes:
+      - storage_data:/var/www/html/storage
+    networks:
+      - simaster
+
+  # ─── Scheduler (rekap:bulanan tiap tgl 1 jam 00:00) ─────────
+  scheduler:
+    build:
+      context: .
+      target: runtime
+    restart: unless-stopped
+    env_file: .env
+    command: ["php", "artisan", "schedule:work"]
+    volumes:
+      - storage_data:/var/www/html/storage
+    networks:
+      - simaster
+
+volumes:
+  storage_data:
+
+networks:
+  simaster:
+    driver: bridge
