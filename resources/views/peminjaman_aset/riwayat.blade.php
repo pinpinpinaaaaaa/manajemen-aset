@@ -109,7 +109,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="9" class="text-center text-muted">
+                                <td colspan="8" class="text-center text-muted">
                                     Belum ada riwayat peminjaman
                                 </td>
                             </tr>

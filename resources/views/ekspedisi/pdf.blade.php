@@ -171,7 +171,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="9" style="text-align:center;">
+                    <td colspan="10" style="text-align:center;">
                         Tidak ada data riwayat ekspedisi
                     </td>
                 </tr>

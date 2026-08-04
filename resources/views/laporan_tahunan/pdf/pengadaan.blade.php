@@ -2,8 +2,6 @@
 
 @section('content')
 
-    @include('pdf.header')
-
     <h2 style="margin-bottom:5px;">
         Laporan Pengadaan Barang dan Jasa
     </h2>

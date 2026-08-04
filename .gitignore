@@ -7,6 +7,14 @@ CLAUDE.md
 /storage/app/public/aset/
 /storage/app/public/kendaraan/
 /storage/app/public/ruangan/
+/storage/app/public/gedung/
+/storage/app/public/maintenance/
+/storage/app/public/maintenance_after/
+/storage/app/public/maintenance_before/
+/storage/app/public/ekspedisi/
+/storage/app/public/pengadaan_files/
+/storage/app/public/pengaduan_kerusakan/
+/storage/app/public/vendor/
 .env.backup
 .env.production
 .phpactor.json

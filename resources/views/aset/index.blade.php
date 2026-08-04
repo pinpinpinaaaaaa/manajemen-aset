@@ -187,7 +187,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="10">
+                                    <td colspan="11">
                                         @include('components.empty', [
                                             'title' => 'Belum ada aset',
                                             'message' => 'Tambahkan aset untuk ditampilkan pada daftar.',

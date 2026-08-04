@@ -216,7 +216,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="10" class="text-center text-muted">
+                                <td colspan="9" class="text-center text-muted">
                                     Belum ada permintaan
                                 </td>
                             </tr>

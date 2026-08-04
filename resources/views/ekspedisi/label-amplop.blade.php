@@ -1,4 +1,4 @@
-@extends('pdf.layout')
+@extends('pdf.layout-surat')
 
 @section('content')
     <div style="
