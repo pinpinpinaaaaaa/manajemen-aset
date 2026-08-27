@@ -187,8 +187,6 @@ Route::middleware(['auth', 'menu.access'])->group(function () {
     Route::delete('/pengaduan-kerusakan/{id}',[PengaduanKerusakanController::class, 'destroy'] )->name('pengaduan-kerusakan.destroy');
     Route::post('/pengaduan-kerusakan/{id}/approve',[PengaduanKerusakanController::class, 'approve'])->name('pengaduan-kerusakan.approve');
     Route::post('/pengaduan-kerusakan/{id}/reject',[PengaduanKerusakanController::class, 'reject'])->name('pengaduan-kerusakan.reject');
-    Route::post('/pengaduan-kerusakan/{id}/process',[PengaduanKerusakanController::class, 'process'])->name('pengaduan-kerusakan.process');
-    Route::post('/pengaduan-kerusakan/{id}/complete',[PengaduanKerusakanController::class, 'complete'])->name('pengaduan-kerusakan.complete');
     Route::get('/pengaduan-kerusakan/riwayat/export-pdf',[PengaduanKerusakanController::class, 'exportPdfRiwayat'])->name('pengaduan-kerusakan.riwayat.pdf');
     Route::get('/pengaduan-kerusakan/riwayat/export-excel',[PengaduanKerusakanController::class, 'exportExcelRiwayat'])->name('pengaduan-kerusakan.riwayat.excel');
 

@@ -245,8 +245,26 @@
                                     </td>
 
                                     {{-- AKSI --}}
-                                    <td>
-                                        ...
+                                    <td style="white-space:nowrap">
+                                        @if ($detail->status_pengembalian == 'menunggu' && $data->decision_status == 'disetujui')
+                                            <form method="POST" action="{{ route('peminjaman_aset.serahkanItem', $detail->id) }}" style="display:inline;">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-primary"
+                                                        onclick="return confirm('Serahkan aset ini ke peminjam?')">
+                                                    Serahkan
+                                                </button>
+                                            </form>
+                                        @elseif ($detail->status_pengembalian == 'dipinjam')
+                                            <button type="button" class="btn btn-sm btn-success"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#kembalikanModal{{ $detail->id }}">
+                                                Kembalikan
+                                            </button>
+                                        @elseif ($detail->status_pengembalian == 'dikembalikan')
+                                            <span class="badge bg-success">Dikembalikan</span>
+                                        @else
+                                            <span class="badge bg-secondary">Menunggu persetujuan</span>
+                                        @endif
                                     </td>
 
                                 </tr>
