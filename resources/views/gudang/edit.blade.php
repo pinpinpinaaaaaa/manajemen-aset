@@ -129,6 +129,9 @@
 
             if (satuanDasar.includes(value)) {
                 konversiOptions.style.display = 'none';
+                // Set otomatis agar form ngirim nilai yang benar
+                document.querySelector('[name="satuan_dasar"]').value = value;
+                document.querySelector('[name="konversi_satuan"]').value = 1;
             } else {
                 konversiOptions.style.display = 'block';
             }

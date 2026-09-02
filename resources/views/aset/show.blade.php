@@ -67,6 +67,15 @@
             background: #f3f4f6;
             z-index: 2;
         }
+
+        .stats-grid .stat-number {
+            overflow-wrap: anywhere;
+        }
+
+        /* Kode aset di h2 bisa panjang tanpa spasi — cegah overflow */
+        .compact-text-info h2 {
+            overflow-wrap: anywhere;
+        }
     </style>
     <main class="main-content">
         <div class="content-padding">
@@ -91,7 +100,7 @@
                     </div>
 
                     <div class="compact-text-info">
-                        <h2>{{ $aset->nama_aset }}</h2>
+                        <h2>{{ $aset->kode_aset }}</h2>
 
                         <p class="building-description">
                             Lokasi:
@@ -102,8 +111,8 @@
                         <div class="stats-grid">
 
                             <div class="stat-card">
-                                <div class="stat-number">{{ strtoupper($aset->kode_aset) }}</div>
-                                <div class="stat-label">Kode Aset</div>
+                                <div class="stat-number">{{ $aset->nama_aset }}</div>
+                                <div class="stat-label">Nama Aset</div>
                             </div>
 
                             <div class="stat-card">

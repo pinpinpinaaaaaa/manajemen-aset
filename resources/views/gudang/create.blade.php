@@ -90,9 +90,6 @@
 
                     </div>
 
-                    {{-- Hidden default untuk pcs / lembar --}}
-                    <input type="hidden" name="auto_satuan_dasar" id="autoSatuanDasar" value="pcs">
-
                     {{-- Limit Stok --}}
                     <div class="form-group mb-3">
                         <label class="form-label">Limit Stok Minimum</label>
@@ -137,6 +134,9 @@
 
             if (satuanDasar.includes(value)) {
                 konversiOptions.style.display = 'none';
+                // Set otomatis agar form ngirim nilai yang benar
+                document.querySelector('[name="satuan_dasar"]').value = value;
+                document.getElementById('konversiInput').value = 1;
             } else {
                 konversiOptions.style.display = 'block';
             }

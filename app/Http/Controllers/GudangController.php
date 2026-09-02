@@ -182,13 +182,18 @@ class GudangController extends Controller
             'nama_barang' => 'required',
             'jenis' => 'required|in:atk,rt',
             'satuan' => 'required|string',
-            'konversi_satuan' => 'required|integer|min:1',
-            'satuan_dasar' => 'required|string',
+            'konversi_satuan' => 'nullable|integer|min:1',
+            'satuan_dasar' => 'nullable|string',
             'limit_stok' => 'nullable|integer|min:0',
             'keterangan' => 'nullable|string',
             'permintaan_id' => 'nullable',
             'detail_id' => 'nullable'
         ]);
+
+        // Satuan = satuan dasar (misal lembar/lembar): konversi otomatis 1,
+        // satuan_dasar otomatis diisi satuan itu sendiri.
+        $satuanDasar    = $request->satuan_dasar    ?: $request->satuan;
+        $konversiSatuan = $request->konversi_satuan ?: 1;
 
         DB::beginTransaction();
 
@@ -201,8 +206,8 @@ class GudangController extends Controller
                 'nama_barang' => $request->nama_barang,
                 'jenis' => $request->jenis,
                 'satuan' => $request->satuan,
-                'konversi_satuan' => $request->konversi_satuan,
-                'satuan_dasar' => $request->satuan_dasar,
+                'konversi_satuan' => $konversiSatuan,
+                'satuan_dasar' => $satuanDasar,
                 'limit_stok' => $request->limit_stok ?? 0,
                 'stok_awal' => 0,
                 'stok_masuk' => 0,
@@ -265,18 +270,21 @@ class GudangController extends Controller
             'nama_barang' => 'required',
             'jenis' => 'required|in:atk,rt',
             'satuan' => 'required|string',
-            'konversi_satuan' => 'required|integer|min:1',
-            'satuan_dasar' => 'required|string',
+            'konversi_satuan' => 'nullable|integer|min:1',
+            'satuan_dasar' => 'nullable|string',
             'limit_stok' => 'nullable|integer|min:0',
             'keterangan' => 'nullable|string',
         ]);
+
+        $satuanDasar    = $request->satuan_dasar    ?: $request->satuan;
+        $konversiSatuan = $request->konversi_satuan ?: 1;
 
         $barang->update([
             'nama_barang' => $request->nama_barang,
             'jenis' => $request->jenis,
             'satuan' => $request->satuan,
-            'konversi_satuan' => $request->konversi_satuan,
-            'satuan_dasar' => $request->satuan_dasar,
+            'konversi_satuan' => $konversiSatuan,
+            'satuan_dasar' => $satuanDasar,
             'limit_stok' => $request->limit_stok ?? 0,
             'keterangan' => $request->keterangan,
         ]);
