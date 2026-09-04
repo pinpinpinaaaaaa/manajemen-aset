@@ -14,6 +14,8 @@
     @endif
     <style>
         .barang-row {
+            display: block;
+            /* override global styles.css yang set display:flex — di sini barang-row adalah wrapper, bukan flex row */
             background: #fff;
             border: 1px solid #e9ecef;
             border-radius: 16px;
@@ -39,7 +41,7 @@
         .detail-row {
             display: flex;
             flex-wrap: nowrap;
-            gap: 10px;
+            gap: 16px;
             align-items: flex-end;
         }
 
@@ -103,6 +105,9 @@
             border-radius: 10px;
             font-size: 14px;
             width: 100%;
+            min-width: 0;
+            /* override global styles.css: .barang-row .form-select { min-width: 300px }
+               yang dibuat untuk form lama — di sini kolom sudah ada flex-sizing sendiri */
             box-sizing: border-box;
         }
 
@@ -128,6 +133,8 @@
         /* Info konversi — SELALU di luar detail-row */
         .info-konversi {
             display: block;
+            width: 100%;
+            overflow-wrap: break-word;
             font-size: 12px;
             color: #6c757d;
             margin-top: 8px;
@@ -135,7 +142,7 @@
             line-height: 1.4;
         }
 
-        @media (max-width: 992px) {
+        @media (max-width: 1200px) {
             .detail-row {
                 flex-wrap: wrap;
             }
@@ -374,6 +381,32 @@
 
 
         /* =====================
+           TIPE PENYESUAIAN DIGANTI
+           (tambah ↔ kurang) — perlu update max tanpa resetRow
+        ===================== */
+        document.getElementById('tipe_penyesuaian').addEventListener('change', function() {
+            document.querySelectorAll('.barang-row').forEach(row => {
+                const barangSel = row.querySelector('.barang-select');
+                if (!barangSel.value) return;
+
+                const opt       = barangSel.options[barangSel.selectedIndex];
+                const konversi  = parseInt(opt.dataset.konversi) || 1;
+                const stok      = parseInt(opt.dataset.stok) || 0;
+                const satuanDasar  = opt.dataset.satuanDasar;
+                const satuanPilih  = row.querySelector('.satuan-select').value;
+                const jumlah    = row.querySelector('.jumlah');
+
+                if (this.value === 'kurang') {
+                    jumlah.max = satuanPilih === satuanDasar
+                        ? stok
+                        : Math.floor(stok / konversi);
+                } else {
+                    jumlah.removeAttribute('max');
+                }
+            });
+        });
+
+        /* =====================
            BARANG DIPILIH
         ===================== */
         document.addEventListener('change', function(e) {
@@ -414,10 +447,18 @@
 
                 row.querySelector('.jumlah').disabled = false;
                 const jumlah = row.querySelector('.jumlah');
-                // default pertama pakai satuan utama
-                jumlah.max = konversi > 1 ?
-                    Math.floor(stok / konversi) :
-                    stok;
+
+                // Cap max hanya untuk transaksi yang mengurangi stok
+                const jenis    = getJenis();
+                const tipe     = document.getElementById('tipe_penyesuaian').value;
+                const isKeluar = jenis === 'keluar' ||
+                    (jenis === 'penyesuaian' && tipe === 'kurang');
+
+                if (isKeluar) {
+                    jumlah.max = konversi > 1 ? Math.floor(stok / konversi) : stok;
+                } else {
+                    jumlah.removeAttribute('max');
+                }
 
                 row.querySelector('.info-konversi').innerText =
                     `1 ${satuan} = ${konversi} ${satuanDasar} | Stok tersedia: ${stok} ${satuanDasar}`;
@@ -442,14 +483,20 @@
 
             const jumlah = row.querySelector('.jumlah');
 
-            // kalau pakai satuan dasar
-            if (e.target.value === satuanDasar) {
-                jumlah.max = stok;
-            }
+            // Cap max hanya untuk transaksi yang mengurangi stok
+            const jenis    = getJenis();
+            const tipe     = document.getElementById('tipe_penyesuaian').value;
+            const isKeluar = jenis === 'keluar' ||
+                (jenis === 'penyesuaian' && tipe === 'kurang');
 
-            // kalau pakai satuan besar
-            else {
-                jumlah.max = Math.floor(stok / konversi);
+            if (isKeluar) {
+                if (e.target.value === satuanDasar) {
+                    jumlah.max = stok;
+                } else {
+                    jumlah.max = Math.floor(stok / konversi);
+                }
+            } else {
+                jumlah.removeAttribute('max');
             }
         });
 

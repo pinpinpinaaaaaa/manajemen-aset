@@ -62,15 +62,31 @@
                             <option value="dus">
                             <option value="box">
                             <option value="roll">
+                            <option value="buah">
+                            <option value="unit">
+                            <option value="batang">
                         </datalist>
                     </div>
 
                     @php
-                        $satuanDasar = ['pcs', 'lembar', 'botol', 'meter', 'ml', 'gram'];
+                        // Barang lama punya konversi kalau satuan != satuan_dasar
+                        $punyaKonversi = $barang->satuan !== $barang->satuan_dasar;
                     @endphp
 
-                    {{-- OPSI KONVERSI --}}
-                    <div id="konversiOptions" style="{{ in_array($barang->satuan, $satuanDasar) ? 'display:none;' : '' }}">
+                    {{-- Checkbox konversi — pre-checked kalau barang lama punya konversi --}}
+                    <div class="form-group mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="adaKonversi"
+                                {{ $punyaKonversi ? 'checked' : '' }}>
+                            <label class="form-check-label" for="adaKonversi">
+                                Barang ini punya satuan konversi
+                                <small class="text-muted">(misal: 1 pack = 10 lembar)</small>
+                            </label>
+                        </div>
+                    </div>
+
+                    {{-- Section konversi — tampil kalau barang lama punya konversi --}}
+                    <div id="konversiOptions" style="{{ $punyaKonversi ? '' : 'display:none;' }}">
 
                         <div class="form-group mb-3">
                             <label class="form-label">Jumlah Isi</label>
@@ -81,7 +97,7 @@
                         <div class="form-group mb-3">
                             <label class="form-label">Satuan Dasar</label>
                             <input list="satuanList" name="satuan_dasar" class="form-control"
-                                value="{{ $barang->satuan_dasar }}" placeholder="pcs / lembar / botol">
+                                value="{{ $barang->satuan_dasar }}" placeholder="pcs / lembar / buah / dll">
                         </div>
                     </div>
 
@@ -112,35 +128,21 @@
     </main>
 
     <script>
-        const satuanSelect = document.getElementById('satuanSelect');
+        const adaKonversi     = document.getElementById('adaKonversi');
         const konversiOptions = document.getElementById('konversiOptions');
+        const satuanSelect    = document.getElementById('satuanSelect');
 
-        const satuanDasar = [
-            'pcs',
-            'lembar',
-            'botol',
-            'meter',
-            'ml',
-            'gram'
-        ];
-
-        function cekSatuan() {
-            let value = satuanSelect.value.toLowerCase();
-
-            if (satuanDasar.includes(value)) {
-                konversiOptions.style.display = 'none';
-                // Set otomatis agar form ngirim nilai yang benar
-                document.querySelector('[name="satuan_dasar"]').value = value;
-                document.querySelector('[name="konversi_satuan"]').value = 1;
-            } else {
+        adaKonversi.addEventListener('change', function() {
+            if (this.checked) {
                 konversiOptions.style.display = 'block';
+            } else {
+                konversiOptions.style.display = 'none';
+                // Auto-set: satuan dasar = satuan utama, konversi = 1
+                document.querySelector('[name="satuan_dasar"]').value =
+                    satuanSelect.value.trim();
+                document.querySelector('[name="konversi_satuan"]').value = 1;
             }
-        }
-
-        satuanSelect.addEventListener('input', cekSatuan);
-
-        // cek saat halaman pertama dibuka
-        cekSatuan();
+        });
     </script>
 
 @endsection

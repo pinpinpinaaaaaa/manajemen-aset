@@ -61,7 +61,7 @@
                     <div class="form-group mb-3">
                         <label class="form-label">Satuan</label>
                         <input list="satuanList" name="satuan" id="satuanSelect" class="form-control"
-                            placeholder="pcs / pack / dus / box / dll" required>
+                            placeholder="pcs / pack / dus / lembar / buah / dll" required>
 
                         <datalist id="satuanList">
                             <option value="pcs">
@@ -70,10 +70,24 @@
                             <option value="dus">
                             <option value="box">
                             <option value="roll">
+                            <option value="buah">
+                            <option value="unit">
+                            <option value="batang">
                         </datalist>
                     </div>
 
-                    {{-- Jika pack --}}
+                    {{-- Checkbox konversi --}}
+                    <div class="form-group mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="adaKonversi">
+                            <label class="form-check-label" for="adaKonversi">
+                                Barang ini punya satuan konversi
+                                <small class="text-muted">(misal: 1 pack = 10 lembar)</small>
+                            </label>
+                        </div>
+                    </div>
+
+                    {{-- Section konversi — tersembunyi secara default --}}
                     <div id="konversiOptions" style="display:none;">
 
                         <div class="form-group mb-3">
@@ -85,7 +99,7 @@
                         <div class="form-group mb-3">
                             <label class="form-label">Satuan Dasar</label>
                             <input list="satuanList" name="satuan_dasar" class="form-control"
-                                placeholder="pcs / lembar / botol">
+                                placeholder="pcs / lembar / buah / dll">
                         </div>
 
                     </div>
@@ -116,31 +130,20 @@
     </main>
 
     <script>
-        const satuanSelect = document.getElementById('satuanSelect');
+        const adaKonversi   = document.getElementById('adaKonversi');
         const konversiOptions = document.getElementById('konversiOptions');
+        const satuanSelect  = document.getElementById('satuanSelect');
 
-        const satuanDasar = [
-            'pcs',
-            'lembar',
-            'botol',
-            'meter',
-            'ml',
-            'gram'
-        ];
-
-        satuanSelect.addEventListener('change', function() {
-
-            let value = this.value.toLowerCase();
-
-            if (satuanDasar.includes(value)) {
-                konversiOptions.style.display = 'none';
-                // Set otomatis agar form ngirim nilai yang benar
-                document.querySelector('[name="satuan_dasar"]').value = value;
-                document.getElementById('konversiInput').value = 1;
-            } else {
+        adaKonversi.addEventListener('change', function() {
+            if (this.checked) {
                 konversiOptions.style.display = 'block';
+            } else {
+                konversiOptions.style.display = 'none';
+                // Auto-set: satuan dasar = satuan utama, konversi = 1
+                document.querySelector('[name="satuan_dasar"]').value =
+                    satuanSelect.value.trim();
+                document.getElementById('konversiInput').value = 1;
             }
-
         });
     </script>
 
