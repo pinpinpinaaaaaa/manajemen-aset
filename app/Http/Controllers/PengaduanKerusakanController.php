@@ -12,6 +12,7 @@ use App\Models\PengaduanKerusakanDetail;
 use App\Models\Maintenance;
 use App\Models\MaintenanceDetail;
 use App\Models\Aset;
+use App\Services\AsetLogService;
 use App\Models\Divisi;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Maatwebsite\Excel\Facades\Excel;
@@ -293,6 +294,12 @@ class PengaduanKerusakanController extends Controller
 
                 if ($detail->id_aset) {
                     Aset::where('id_aset', $detail->id_aset)->update(['status' => 'maintenance']);
+                    AsetLogService::log(
+                        $detail->id_aset,
+                        'maintenance_baru',
+                        $maintenanceId,
+                        'Maintenance dibuat dari pengaduan kerusakan'
+                    );
                 }
             }
 
