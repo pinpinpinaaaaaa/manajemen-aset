@@ -10,6 +10,7 @@ use Intervention\Image\Drivers\Gd\Driver;
 use App\Models\PengaduanKerusakan;
 use App\Models\PengaduanKerusakanDetail;
 use App\Models\Maintenance;
+use App\Models\MaintenanceDetail;
 use App\Models\Aset;
 use App\Models\Divisi;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -251,81 +252,53 @@ class PengaduanKerusakanController extends Controller
     {
         DB::transaction(function() use($id){
 
-            $pengaduan=
-                PengaduanKerusakan::with(
-                    'details'
-                )->findOrFail($id);
-
+            $pengaduan = PengaduanKerusakan::with('details.aset')->findOrFail($id);
 
             $pengaduan->update([
-
-                'decision_status'=>'disetujui',
-
-                'decided_by'=>auth()->user()->id_user ?? null,
-
-                'decided_at'=>now()
-
+                'decision_status' => 'disetujui',
+                'decided_by'      => auth()->user()->id_user ?? null,
+                'decided_at'      => now(),
             ]);
 
+            foreach ($pengaduan->details as $detail) {
 
-            foreach(
-                $pengaduan->details as $detail
-            ){
+                $aset = $detail->aset;
+                $maintenanceId = $this->generateMaintenanceId();
 
+                // Header maintenance — hanya field yang ada di tabel/fillable
                 Maintenance::create([
-
-                    'id_maintenance'=>
-                        $this->generateMaintenanceId(),
-
-                    'id_aset'=>$detail->id_aset,
-
-                    'id_ruangan' => $detail->aset->id_ruangan ?? null,
-                    'id_gedung' => $detail->aset->id_gedung ?? null,
-
+                    'id_maintenance'  => $maintenanceId,
+                    'id_ruangan'      => $aset->id_ruangan ?? null,
+                    'id_gedung'       => $aset->id_gedung  ?? null,
                     'tanggal_laporan' => $pengaduan->created_at,
-
-                    'kerusakan'=>
-                        $detail->keluhan,
-
-                    'status'=>
-                        'Perlu Perbaikan',
-
-                    'decision_status'=>
-                        'disetujui',
-
-                    'foto_before' => $detail->foto,
-
-                    'requested_by'=>
-                        auth()->user()->id_user ?? null,
-
-                    'decided_by'=>
-                        auth()->user()->id_user ?? null,
-                    'decided_at' => now(),
-
+                    'decision_status' => 'disetujui',
+                    'requested_by'    => auth()->user()->id_user ?? null,
+                    'decided_by'      => auth()->user()->id_user ?? null,
+                    'decided_at'      => now(),
                 ]);
 
+                // Detail per-aset — harus dibuat agar tiket muncul di Maintenance Berjalan
+                // (index() filter: whereHas('details', status Perlu Perbaikan/Sedang Diperbaiki))
+                MaintenanceDetail::create([
+                    'id_maintenance'   => $maintenanceId,
+                    'id_aset'          => $detail->id_aset,
+                    'kerusakan'        => $detail->keluhan,
+                    'status'           => 'Perlu Perbaikan',
+                    'foto_before'      => $detail->foto,
+                    // Simpan status aset SEBELUM diubah ke maintenance
+                    'status_aset_awal' => $aset->status,
+                    'kelayakan_awal'   => $aset->kelayakan,
+                    'keterangan_awal'  => $aset->keterangan_kelayakan,
+                ]);
 
-                if($detail->id_aset){
-
-                    Aset::where(
-                        'id_aset',
-                        $detail->id_aset
-                    )->update([
-
-                        'status'=>'maintenance'
-
-                    ]);
-
+                if ($detail->id_aset) {
+                    Aset::where('id_aset', $detail->id_aset)->update(['status' => 'maintenance']);
                 }
-
             }
 
         });
 
-        return back()->with(
-            'success',
-            'Pengaduan disetujui & masuk maintenance'
-        );
+        return back()->with('success', 'Pengaduan disetujui & masuk maintenance');
     }
 
 
