@@ -293,7 +293,11 @@ class PengaduanKerusakanController extends Controller
                 ]);
 
                 if ($detail->id_aset) {
-                    Aset::where('id_aset', $detail->id_aset)->update(['status' => 'maintenance']);
+                    Aset::where('id_aset', $detail->id_aset)->update([
+                        'status'                => 'maintenance',
+                        'kelayakan'             => 4,
+                        'keterangan_kelayakan'  => 'Perlu perbaikan',
+                    ]);
                     AsetLogService::log(
                         $detail->id_aset,
                         'maintenance_baru',
