@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Intervention\Image\ImageManager;
@@ -184,14 +185,6 @@ class MaintenanceController extends Controller
 
     public function store(Request $r)
     {
-        $r->merge([
-            'details' => collect($r->details)
-                ->filter(function ($detail) {
-                    return isset($detail['dipilih']);
-                })
-                ->values()
-                ->toArray()
-        ]);
         $r->validate([
             'pelaksana_type' => 'nullable|in:vendor,internal,lainnya',
             'id_vendor' => 'required_if:pelaksana_type,vendor|nullable|exists:vendors,id_vendor',
@@ -202,6 +195,17 @@ class MaintenanceController extends Controller
 
             'details.*.foto_before' => 'required|image',
             'details.*.lampiran' => 'nullable|file|max:5120',
+        ], [
+            'details.required'           => 'Minimal 1 aset harus ditambahkan.',
+            'details.min'                => 'Minimal 1 aset harus ditambahkan.',
+            'details.*.id_aset.required' => 'Aset wajib dipilih pada setiap item.',
+            'details.*.id_aset.exists'   => 'Aset yang dipilih tidak valid.',
+            'details.*.kerusakan.required' => 'Deskripsi kerusakan wajib diisi.',
+            'details.*.foto_before.required' => 'Foto kondisi awal wajib diunggah.',
+            'details.*.foto_before.image'    => 'Foto kondisi awal harus berupa gambar.',
+            'details.*.lampiran.max'         => 'Ukuran lampiran maksimal 5 MB.',
+            'id_vendor.required_if'          => 'Vendor wajib dipilih jika pelaksana adalah Vendor.',
+            'id_vendor.exists'               => 'Vendor yang dipilih tidak valid.',
         ]);
 
         foreach($r->details as $detail)

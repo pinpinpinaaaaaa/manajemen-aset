@@ -168,6 +168,24 @@ class PermintaanKendaraanController extends Controller
 
             'jumlah' => 'required|integer|min:1',
             'catatan' => 'nullable|string',
+        ], [
+            'nama_pengaju.required'            => 'Nama pengaju wajib diisi.',
+            'email.email'                      => 'Format email tidak valid.',
+            'id_divisi.required'               => 'Divisi wajib dipilih.',
+            'id_divisi.exists'                 => 'Divisi yang dipilih tidak valid.',
+            'tanggal_mulai.required'           => 'Tanggal mulai wajib diisi.',
+            'tanggal_mulai.date'               => 'Tanggal mulai tidak valid.',
+            'tanggal_selesai.required'         => 'Tanggal selesai wajib diisi.',
+            'tanggal_selesai.date'             => 'Tanggal selesai tidak valid.',
+            'tanggal_selesai.after_or_equal'   => 'Tanggal selesai tidak boleh sebelum tanggal mulai.',
+            'jam_mulai.required'               => 'Jam mulai wajib diisi.',
+            'jam_selesai.required'             => 'Jam selesai wajib diisi.',
+            'keperluan.required'               => 'Keperluan/tujuan kegiatan wajib diisi.',
+            'tempat_jemput.required'           => 'Tempat jemput wajib diisi.',
+            'tempat_tujuan.required'           => 'Tempat tujuan wajib diisi.',
+            'jumlah.required'                  => 'Jumlah kendaraan wajib diisi.',
+            'jumlah.integer'                   => 'Jumlah kendaraan harus berupa angka.',
+            'jumlah.min'                       => 'Jumlah kendaraan minimal 1.',
         ]);
 
         DB::transaction(function () use ($request) {

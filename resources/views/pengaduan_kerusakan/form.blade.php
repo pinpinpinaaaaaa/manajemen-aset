@@ -348,6 +348,13 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* ================= ERROR DISPLAY ================= */
+        .field-error { color:#dc2626; font-size:.8rem; display:block; margin-top:4px; }
+        input.is-invalid, select.is-invalid, textarea.is-invalid {
+            border-color:#f87171 !important;
+            background:#fff5f5 !important;
+        }
     </style>
 
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -391,32 +398,68 @@
             </script>
         @endif
 
+        @if ($errors->any())
+            <div style="background:#fff0f0;border:1px solid #f87171;border-radius:10px;padding:14px 18px;margin-bottom:1.4rem;color:#842029;">
+                <strong style="display:block;margin-bottom:8px;">&#9888; Ada yang perlu diperbaiki:</strong>
+                <ul style="margin:0;padding-left:1.25rem;">
+                    @foreach ($errors->all() as $error)
+                        <li style="margin-bottom:3px;font-size:.88rem;">{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <form action="{{ route('form-pengaduan-kerusakan.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
             <div class="form-grid">
                 <div>
                     <label>Nama Pelapor</label>
-                    <input type="text" name="nama_pelapor" required>
+                    <input type="text" name="nama_pelapor" required
+                           value="{{ old('nama_pelapor') }}"
+                           class="{{ $errors->has('nama_pelapor') ? 'is-invalid' : '' }}">
+                    @error('nama_pelapor')
+                        <span class="field-error">{{ $message }}</span>
+                    @enderror
                 </div>
                 <div>
                     <label>Divisi</label>
-                    <select name="id_divisi" required>
-                        <option value="">-- Pilih Divisi --</option>
+                    <select name="id_divisi" required
+                            class="{{ $errors->has('id_divisi') ? 'is-invalid' : '' }}">
+                        <option value="" {{ !old('id_divisi') ? 'selected' : '' }}>-- Pilih Divisi --</option>
                         @foreach ($divisi as $d)
-                            <option value="{{ $d->id_divisi }}">{{ $d->nama_divisi }}</option>
+                            <option value="{{ $d->id_divisi }}" {{ old('id_divisi') == $d->id_divisi ? 'selected' : '' }}>
+                                {{ $d->nama_divisi }}
+                            </option>
                         @endforeach
                     </select>
+                    @error('id_divisi')
+                        <span class="field-error">{{ $message }}</span>
+                    @enderror
                 </div>
             </div>
 
             <div>
                 <label>Email</label>
-                <input type="email" name="email_pelapor">
+                <input type="email" name="email_pelapor"
+                       value="{{ old('email_pelapor') }}"
+                       class="{{ $errors->has('email_pelapor') ? 'is-invalid' : '' }}">
+                @error('email_pelapor')
+                    <span class="field-error">{{ $message }}</span>
+                @enderror
             </div>
 
             {{-- ================= ITEM KERUSAKAN ================= --}}
             <label style="margin-top:14px;">Detail Kerusakan</label>
+
+            @if ($errors->has('items') || $errors->has('items.*') || $errors->hasAny(collect(range(0,9))->map(fn($i) => "items.$i.id_aset")->toArray()))
+                <div style="color:#dc2626;font-size:.85rem;margin-top:4px;margin-bottom:8px;">
+                    &#9888; Periksa kembali setiap item kerusakan di bawah.
+                </div>
+            @endif
+            @error('items')
+                <span class="field-error">{{ $message }}</span>
+            @enderror
 
             <div id="itemContainer"></div>
 
@@ -432,49 +475,44 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
     <script>
-        flatpickr("#tanggal_kebutuhan", {
-            dateFormat: "Y-m-d",
-            minDate: "today"
-        });
+        // Opsi gedung di-embed dari server agar tersedia saat addItem() dipanggil tanpa AJAX
+        const gedungOptions = @json($gedung->map(fn($g) => ['id' => $g->id_gedung, 'nama' => $g->nama_gedung]));
 
-        function addItem() {
+        async function addItem(oldData = null) {
             const container = document.getElementById("itemContainer");
             const index = document.querySelectorAll(".item-card").length;
 
             const el = document.createElement("div");
             el.className = "item-card";
 
+            const gedungOptionsHtml = gedungOptions
+                .map(g => `<option value="${g.id}">${g.nama}</option>`)
+                .join('');
+
             el.innerHTML = `
                 <div class="row-top">
-
                     <div>
                         <label>Gedung</label>
                         <select name="items[${index}][id_gedung]" class="gedungItem" required>
                             <option value="">-- Pilih Gedung --</option>
-                            @foreach ($gedung as $g)
-                                <option value="{{ $g->id_gedung }}">{{ $g->nama_gedung }}</option>
-                            @endforeach
+                            ${gedungOptionsHtml}
                         </select>
                     </div>
-
                     <div>
                         <label>Ruangan</label>
                         <select name="items[${index}][id_ruangan]" class="ruanganItem" required disabled>
                             <option value="">-- Pilih Gedung dulu --</option>
                         </select>
                     </div>
-
                 </div>
 
                 <div class="row-top">
-
                     <div>
                         <label>Aset</label>
                         <select name="items[${index}][id_aset]" class="asetItem" required disabled>
                             <option value="">-- Pilih Ruangan dulu --</option>
                         </select>
                     </div>
-
                     <div>
                         <label>Kategori</label>
                         <select name="items[${index}][kategori_kerusakan]" required>
@@ -484,7 +522,6 @@
                             <option value="berat">Berat</option>
                         </select>
                     </div>
-
                 </div>
 
                 <div class="item-catatan">
@@ -503,13 +540,56 @@
             `;
 
             container.appendChild(el);
-
             initDynamicSelect(el);
+
+            if (!oldData) return;
+
+            // Restore textarea dan select sederhana
+            const keluhanEl = el.querySelector(`[name="items[${index}][keluhan]"]`);
+            const kategoriEl = el.querySelector(`[name="items[${index}][kategori_kerusakan]"]`);
+            if (keluhanEl)  keluhanEl.value  = oldData.keluhan             || '';
+            if (kategoriEl) kategoriEl.value = oldData.kategori_kerusakan  || '';
+
+            // Note bahwa foto harus diupload ulang
+            const uploadDiv = el.querySelector('.item-upload');
+            if (uploadDiv) {
+                uploadDiv.insertAdjacentHTML('beforeend',
+                    '<small style="color:#dc2626;font-size:.8rem;display:block;margin-top:6px;">&#9888; Foto harus di-upload ulang.</small>'
+                );
+            }
+
+            // Restore cascading: gedung → ruangan → aset
+            if (!oldData.id_gedung) return;
+            const gedungSel  = el.querySelector('.gedungItem');
+            const ruanganSel = el.querySelector('.ruanganItem');
+            const asetSel    = el.querySelector('.asetItem');
+            gedungSel.value  = oldData.id_gedung;
+
+            try {
+                const ruanganData = await fetch(`/get-ruangan/${oldData.id_gedung}`).then(r => r.json());
+                ruanganSel.disabled = false;
+                ruanganSel.innerHTML = '<option value="">-- Pilih Ruangan --</option>';
+                ruanganData.forEach(r => {
+                    ruanganSel.innerHTML += `<option value="${r.id_ruangan}">${r.nama_ruangan}</option>`;
+                });
+                if (oldData.id_ruangan) ruanganSel.value = oldData.id_ruangan;
+
+                if (!oldData.id_ruangan) return;
+                const asetData = await fetch(`/get-aset/${oldData.id_ruangan}`).then(r => r.json());
+                asetSel.disabled = false;
+                asetSel.innerHTML = '<option value="">-- Pilih Aset --</option>';
+                asetData.forEach(a => {
+                    asetSel.innerHTML += `<option value="${a.id_aset}">${a.nama_aset}</option>`;
+                });
+                if (oldData.id_aset) asetSel.value = oldData.id_aset;
+
+            } catch (e) {
+                console.error('Gagal restore item lama:', e);
+            }
         }
 
         function removeItem(btn) {
             const items = document.querySelectorAll(".item-card");
-
             if (items.length > 1) {
                 btn.closest(".item-card").remove();
             } else {
@@ -517,55 +597,31 @@
             }
         }
 
-        function loadAsetOptions(select) {
-            const id_ruangan = document.getElementById('ruanganSelect').value;
-
-            if (!id_ruangan) return;
-
-            fetch(`/get-aset/${id_ruangan}`)
-                .then(res => res.json())
-                .then(data => {
-                    data.forEach(a => {
-                        select.innerHTML += `<option value="${a.id_aset}">${a.nama_aset}</option>`;
-                    });
-                });
-        }
-
         function initDynamicSelect(card) {
-            const gedung = card.querySelector('.gedungItem');
+            const gedung  = card.querySelector('.gedungItem');
             const ruangan = card.querySelector('.ruanganItem');
-            const aset = card.querySelector('.asetItem');
+            const aset    = card.querySelector('.asetItem');
 
-            // GEDUNG → RUANGAN
             gedung.addEventListener('change', function() {
-                const id = this.value;
-
-                fetch(`/get-ruangan/${id}`)
+                fetch(`/get-ruangan/${this.value}`)
                     .then(res => res.json())
                     .then(data => {
                         ruangan.disabled = false;
                         ruangan.innerHTML = '<option value="">-- Pilih Ruangan --</option>';
-
                         data.forEach(r => {
-                            ruangan.innerHTML +=
-                                `<option value="${r.id_ruangan}">${r.nama_ruangan}</option>`;
+                            ruangan.innerHTML += `<option value="${r.id_ruangan}">${r.nama_ruangan}</option>`;
                         });
-
                         aset.innerHTML = '<option value="">-- Pilih Ruangan dulu --</option>';
                         aset.disabled = true;
                     });
             });
 
-            // RUANGAN → ASET
             ruangan.addEventListener('change', function() {
-                const id = this.value;
-
-                fetch(`/get-aset/${id}`)
+                fetch(`/get-aset/${this.value}`)
                     .then(res => res.json())
                     .then(data => {
                         aset.disabled = false;
                         aset.innerHTML = '<option value="">-- Pilih Aset --</option>';
-
                         data.forEach(a => {
                             aset.innerHTML += `<option value="${a.id_aset}">${a.nama_aset}</option>`;
                         });
@@ -573,8 +629,17 @@
             });
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            addItem();
+        document.addEventListener('DOMContentLoaded', async function() {
+            const oldItemsRaw = @json(old('items', []));
+            const oldItems = Array.isArray(oldItemsRaw) ? oldItemsRaw : Object.values(oldItemsRaw);
+
+            if (oldItems.length === 0) {
+                addItem();
+            } else {
+                for (const item of oldItems) {
+                    await addItem(item);
+                }
+            }
         });
     </script>
 </body>

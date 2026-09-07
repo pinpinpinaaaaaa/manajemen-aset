@@ -176,7 +176,18 @@ class PengadaanBarangJasaController extends Controller
             'items.*.files' => 'nullable|array|max:5',
             'items.*.files.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048'
         ], [
-            'id_divisi.exists' => 'Divisi yang dipilih tidak valid.',
+            'nama_pengaju.required'       => 'Nama pengaju wajib diisi.',
+            'email_pengaju.required'      => 'Email pengaju wajib diisi.',
+            'email_pengaju.email'         => 'Format email tidak valid.',
+            'id_divisi.required'          => 'Divisi wajib dipilih.',
+            'id_divisi.exists'            => 'Divisi yang dipilih tidak valid.',
+            'tanggal_kebutuhan.required'  => 'Tanggal kebutuhan wajib diisi.',
+            'tanggal_kebutuhan.date'      => 'Format tanggal tidak valid.',
+            'items.required'              => 'Minimal 1 item pengadaan harus diisi.',
+            'items.min'                   => 'Minimal 1 item pengadaan harus diisi.',
+            'items.*.files.max'           => 'Setiap item maksimal 5 file pendukung.',
+            'items.*.files.*.mimes'       => 'File harus berformat PDF, JPG, atau PNG.',
+            'items.*.files.*.max'         => 'Ukuran file maksimal 2MB.',
         ]);
 
         DB::transaction(function () use ($request) {

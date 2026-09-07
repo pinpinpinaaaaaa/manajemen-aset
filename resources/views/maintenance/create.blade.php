@@ -17,6 +17,9 @@
             </div>
 
             <div class="card mt-4 p-4 shadow-sm rounded-lg">
+
+                <x-form-errors />
+
                 <form action="{{ route('maintenance.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
 
@@ -31,6 +34,19 @@
                         </button>
                     </div>
 
+                    @error('details')
+                        <div class="alert alert-warning py-2 mb-3">
+                            <i class="fas fa-exclamation-circle me-1"></i> {{ $message }}
+                        </div>
+                    @enderror
+
+                    @if ($errors->any())
+                        <div class="alert alert-info py-2 mb-3 small">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Daftar aset perlu diisi ulang setelah ada error — foto dan lampiran juga perlu diunggah ulang.
+                        </div>
+                    @endif
+
                     <div id="asetContainer">
 
                     </div>
@@ -42,24 +58,33 @@
 
                         <div class="col-md-6 form-group">
                             <label class="form-label">Pelaksana</label>
-                            <select name="pelaksana_type" id="pelaksanaSelect" class="form-select">
-                                <option value="" disabled selected>-- Pilih --</option>
-                                <option value="internal">Internal</option>
-                                <option value="vendor">Vendor</option>
-                                <option value="lainnya">Lainnya</option>
+                            <select name="pelaksana_type" id="pelaksanaSelect"
+                                class="form-select {{ $errors->has('pelaksana_type') ? 'is-invalid' : '' }}">
+                                <option value="" disabled {{ !old('pelaksana_type') ? 'selected' : '' }}>-- Pilih --</option>
+                                <option value="internal" {{ old('pelaksana_type') === 'internal' ? 'selected' : '' }}>Internal</option>
+                                <option value="vendor"   {{ old('pelaksana_type') === 'vendor'   ? 'selected' : '' }}>Vendor</option>
+                                <option value="lainnya"  {{ old('pelaksana_type') === 'lainnya'  ? 'selected' : '' }}>Lainnya</option>
                             </select>
+                            @error('pelaksana_type')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
-                        <div class="col-md-6 form-group" id="vendorBox" style="display:none;">
+                        <div class="col-md-6 form-group" id="vendorBox"
+                             style="display:{{ old('pelaksana_type') === 'vendor' ? 'block' : 'none' }};">
                             <label class="form-label">Vendor</label>
-                            <select name="id_vendor" class="form-select">
+                            <select name="id_vendor"
+                                class="form-select {{ $errors->has('id_vendor') ? 'is-invalid' : '' }}">
                                 <option value="" disabled selected>-- Pilih Vendor --</option>
                                 @foreach ($vendors ?? [] as $v)
-                                    <option value="{{ $v->id_vendor }}">
+                                    <option value="{{ $v->id_vendor }}" {{ old('id_vendor') == $v->id_vendor ? 'selected' : '' }}>
                                         {{ $v->nama_perusahaan }} ({{ $v->bidang_usaha }})
                                     </option>
                                 @endforeach
                             </select>
+                            @error('id_vendor')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
                     </div>
@@ -244,7 +269,6 @@
         const vendorSelect = document.querySelector('select[name="id_vendor"]');
 
         pelaksana.addEventListener("change", function() {
-
             if (this.value === "vendor") {
                 vendorBox.style.display = "block";
                 vendorSelect.required = true;
@@ -254,5 +278,10 @@
                 vendorSelect.value = "";
             }
         });
+
+        // Restore required state dari old input (vendorBox visibility sudah diset via Blade)
+        if (pelaksana.value === "vendor") {
+            vendorSelect.required = true;
+        }
     </script>
 @endsection

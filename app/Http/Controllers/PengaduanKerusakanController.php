@@ -178,11 +178,24 @@ class PengaduanKerusakanController extends Controller
             'items.*.foto' => 'required|image|mimes:jpg,jpeg,png',
 
         ], [
-            'id_divisi.exists'              => 'Divisi yang dipilih tidak valid.',
-            'items.max'                     => 'Laporan tidak boleh lebih dari 10 item kerusakan.',
-            'items.*.id_gedung.exists'      => 'Gedung yang dipilih tidak valid.',
-            'items.*.id_ruangan.exists'     => 'Ruangan yang dipilih tidak valid.',
-            'items.*.id_aset.exists'        => 'Aset yang dipilih tidak valid.',
+            'nama_pelapor.required'               => 'Nama pelapor wajib diisi.',
+            'id_divisi.required'                  => 'Divisi wajib dipilih.',
+            'id_divisi.exists'                    => 'Divisi yang dipilih tidak valid.',
+            'email_pelapor.email'                 => 'Format email tidak valid.',
+            'items.required'                      => 'Minimal 1 item kerusakan harus diisi.',
+            'items.min'                           => 'Minimal 1 item kerusakan harus diisi.',
+            'items.max'                           => 'Laporan tidak boleh lebih dari 10 item kerusakan.',
+            'items.*.id_gedung.required'          => 'Gedung wajib dipilih pada setiap item.',
+            'items.*.id_gedung.exists'            => 'Gedung yang dipilih tidak valid.',
+            'items.*.id_ruangan.required'         => 'Ruangan wajib dipilih pada setiap item.',
+            'items.*.id_ruangan.exists'           => 'Ruangan yang dipilih tidak valid.',
+            'items.*.id_aset.required'            => 'Aset wajib dipilih pada setiap item.',
+            'items.*.id_aset.exists'              => 'Aset yang dipilih tidak valid.',
+            'items.*.keluhan.required'            => 'Deskripsi kerusakan wajib diisi.',
+            'items.*.kategori_kerusakan.required' => 'Kategori kerusakan wajib dipilih.',
+            'items.*.foto.required'               => 'Foto kerusakan wajib diunggah.',
+            'items.*.foto.image'                  => 'Foto harus berupa file gambar.',
+            'items.*.foto.mimes'                  => 'Foto harus berformat JPG atau PNG.',
         ]);
 
         DB::transaction(function() use($request){

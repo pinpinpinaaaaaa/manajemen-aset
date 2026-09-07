@@ -348,6 +348,13 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* ================= ERROR DISPLAY ================= */
+        .field-error { color:#dc2626; font-size:.8rem; display:block; margin-top:4px; }
+        input.is-invalid, select.is-invalid, textarea.is-invalid {
+            border-color:#f87171 !important;
+            background:#fff5f5 !important;
+        }
     </style>
 
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -391,33 +398,68 @@
             </script>
         @endif
 
+        @if ($errors->any())
+            <div style="background:#fff0f0;border:1px solid #f87171;border-radius:10px;padding:14px 18px;margin-bottom:1.4rem;color:#842029;">
+                <strong style="display:block;margin-bottom:8px;">&#9888; Ada yang perlu diperbaiki:</strong>
+                <ul style="margin:0;padding-left:1.25rem;">
+                    @foreach ($errors->all() as $error)
+                        <li style="margin-bottom:3px;font-size:.88rem;">{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+            <div style="background:#fff8e1;border:1px solid #f0c040;border-radius:10px;padding:10px 14px;margin-bottom:1.2rem;font-size:.85rem;color:#7a5c00;">
+                &#9432; Periksa kembali item pengadaan di bawah — file lampiran perlu di-upload ulang.
+            </div>
+        @endif
+
         <form action="{{ route('form-pengadaan-barang.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
             <div class="form-grid">
                 <div>
                     <label>Nama Pengaju</label>
-                    <input type="text" name="nama_pengaju" required>
+                    <input type="text" name="nama_pengaju" required
+                           value="{{ old('nama_pengaju') }}"
+                           class="{{ $errors->has('nama_pengaju') ? 'is-invalid' : '' }}">
+                    @error('nama_pengaju')
+                        <span class="field-error">{{ $message }}</span>
+                    @enderror
                 </div>
                 <div>
                     <label>Divisi</label>
-                    <select name="id_divisi" required>
-                        <option value="">-- Pilih Divisi --</option>
+                    <select name="id_divisi" required
+                            class="{{ $errors->has('id_divisi') ? 'is-invalid' : '' }}">
+                        <option value="" {{ !old('id_divisi') ? 'selected' : '' }}>-- Pilih Divisi --</option>
                         @foreach ($divisi as $d)
-                            <option value="{{ $d->id_divisi }}">{{ $d->nama_divisi }}</option>
+                            <option value="{{ $d->id_divisi }}" {{ old('id_divisi') == $d->id_divisi ? 'selected' : '' }}>
+                                {{ $d->nama_divisi }}
+                            </option>
                         @endforeach
                     </select>
+                    @error('id_divisi')
+                        <span class="field-error">{{ $message }}</span>
+                    @enderror
                 </div>
             </div>
 
             <div class="form-grid">
                 <div>
                     <label>Email</label>
-                    <input type="email" name="email_pengaju" required>
+                    <input type="email" name="email_pengaju" required
+                           value="{{ old('email_pengaju') }}"
+                           class="{{ $errors->has('email_pengaju') ? 'is-invalid' : '' }}">
+                    @error('email_pengaju')
+                        <span class="field-error">{{ $message }}</span>
+                    @enderror
                 </div>
                 <div>
                     <label>Tanggal Kebutuhan</label>
-                    <input type="text" id="tanggal_kebutuhan" name="tanggal_kebutuhan" required>
+                    <input type="text" id="tanggal_kebutuhan" name="tanggal_kebutuhan" required
+                           value="{{ old('tanggal_kebutuhan') }}"
+                           class="{{ $errors->has('tanggal_kebutuhan') ? 'is-invalid' : '' }}">
+                    @error('tanggal_kebutuhan')
+                        <span class="field-error">{{ $message }}</span>
+                    @enderror
                 </div>
             </div>
 
@@ -429,33 +471,61 @@
                 <div class="item-card">
 
                     <div class="row-top">
-                        <select name="items[0][jenis]" onchange="toggleJenis(this)" required>
-                            <option value="" disabled selected>Pilih Jenis</option>
-                            <option value="barang">Barang</option>
-                            <option value="jasa">Jasa</option>
+                        @php $oldJenis0 = old('items.0.jenis') ?? old('items.0.jenis'); @endphp
+                        <select name="items[0][jenis]" onchange="toggleJenis(this)" required
+                                id="jenis_item_0">
+                            <option value="" disabled {{ !old('items.0.jenis') ? 'selected' : '' }}>Pilih Jenis</option>
+                            <option value="barang" {{ old('items.0.jenis') === 'barang' ? 'selected' : '' }}>Barang</option>
+                            <option value="jasa"   {{ old('items.0.jenis') === 'jasa'   ? 'selected' : '' }}>Jasa</option>
                         </select>
 
-                        <input type="text" class="input-nama" name="items[0][nama]" placeholder="Nama Barang"
-                            required>
+                        @if (old('items.0.jenis') === 'jasa')
+                            <input list="jasaList" class="input-nama" name="items[0][kategori_jasa]"
+                                   placeholder="Pilih / ketik jasa" required
+                                   value="{{ old('items.0.kategori_jasa') }}">
+                            <datalist id="jasaList">
+                                <option value="akomodasi hotel">
+                                <option value="akomodasi transportasi">
+                                <option value="surveyor">
+                                <option value="web_specialist">
+                            </datalist>
+                        @else
+                            <input type="text" class="input-nama" name="items[0][nama]"
+                                   placeholder="Nama Barang" required
+                                   value="{{ old('items.0.nama') }}">
+                        @endif
                     </div>
 
                     <div class="row-bottom">
-                        <input type="number" name="items[0][jumlah]" placeholder="Qty / Pax" min="1">
+                        <input type="number" name="items[0][jumlah]" placeholder="Qty / Pax" min="1"
+                               value="{{ old('items.0.jumlah') }}">
 
                         <input type="text" name="items[0][harga_satuan]" placeholder="Harga / Pax"
-                            oninput="hitungSubtotal(this)">
+                               oninput="hitungSubtotal(this)"
+                               value="{{ old('items.0.harga_satuan') }}">
 
-                        <input type="text" name="items[0][subtotal]" placeholder="Subtotal" readonly>
+                        <input type="text" name="items[0][subtotal]" placeholder="Subtotal" readonly
+                               value="{{ old('items.0.subtotal') }}">
 
                         <button type="button" class="btn-trash" onclick="removeItem(this)">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
 
-                    <div class="extra-barang"></div>
+                    <div class="extra-barang">
+                        @if (old('items.0.jenis') === 'barang')
+                            <div class="row-barang">
+                                <input type="text" name="items[0][merk]" placeholder="Merk"
+                                       value="{{ old('items.0.merk') }}">
+                                <input type="text" name="items[0][tipe_model]" placeholder="Tipe / Model"
+                                       value="{{ old('items.0.tipe_model') }}">
+                            </div>
+                            <textarea name="items[0][spesifikasi]" placeholder="Spesifikasi">{{ old('items.0.spesifikasi') }}</textarea>
+                        @endif
+                    </div>
 
                     <div class="item-catatan">
-                        <textarea name="items[0][catatan]" placeholder="Catatan item"></textarea>
+                        <textarea name="items[0][catatan]" placeholder="Catatan item">{{ old('items.0.catatan') }}</textarea>
                     </div>
 
                     <div class="item-upload">
@@ -471,7 +541,11 @@
 
             {{-- ================= ALASAN ================= --}}
             <label>Alasan</label>
-            <textarea name="alasan" required></textarea>
+            <textarea name="alasan" required
+                      class="{{ $errors->has('alasan') ? 'is-invalid' : '' }}">{{ old('alasan') }}</textarea>
+            @error('alasan')
+                <span class="field-error">{{ $message }}</span>
+            @enderror
 
             <button type="submit">Kirim Pengadaan</button>
         </form>

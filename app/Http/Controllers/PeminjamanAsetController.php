@@ -162,11 +162,29 @@ class PeminjamanAsetController extends Controller
             'alasan' => 'required',
             'items' => 'required|array|min:1',
             'items.*.id_jenis_barang' => 'required',
-
             'items.*.nama_aset' => 'required',
             'items.*.jumlah' => 'required|integer|min:1',
             'items.*.tanggal_pinjam' => 'required|date',
             'items.*.tanggal_jatuh_tempo' => 'required|date|after_or_equal:tanggal_pinjam',
+        ], [
+            'nama_pengaju.required'                      => 'Nama peminjam wajib diisi.',
+            'email_pengaju.required'                     => 'Email peminjam wajib diisi.',
+            'email_pengaju.email'                        => 'Format email tidak valid.',
+            'id_divisi.required'                         => 'Divisi wajib dipilih.',
+            'id_divisi.exists'                           => 'Divisi yang dipilih tidak valid.',
+            'alasan.required'                            => 'Keperluan/alasan peminjaman wajib diisi.',
+            'items.required'                             => 'Minimal 1 aset harus dipilih.',
+            'items.min'                                  => 'Minimal 1 aset harus dipilih.',
+            'items.*.id_jenis_barang.required'           => 'Aset wajib dipilih pada setiap baris.',
+            'items.*.nama_aset.required'                 => 'Nama aset wajib ada (pilih aset terlebih dahulu).',
+            'items.*.jumlah.required'                    => 'Jumlah unit wajib diisi.',
+            'items.*.jumlah.integer'                     => 'Jumlah unit harus berupa angka bulat.',
+            'items.*.jumlah.min'                         => 'Jumlah unit minimal 1.',
+            'items.*.tanggal_pinjam.required'            => 'Tanggal pinjam wajib diisi.',
+            'items.*.tanggal_pinjam.date'                => 'Format tanggal pinjam tidak valid.',
+            'items.*.tanggal_jatuh_tempo.required'       => 'Tanggal kembali wajib diisi.',
+            'items.*.tanggal_jatuh_tempo.date'           => 'Format tanggal kembali tidak valid.',
+            'items.*.tanggal_jatuh_tempo.after_or_equal' => 'Tanggal kembali tidak boleh sebelum tanggal pinjam.',
         ]);
 
         DB::transaction(function() use ($request){

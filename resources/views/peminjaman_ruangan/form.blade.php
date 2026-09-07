@@ -417,6 +417,13 @@
             font-weight: 600;
             color: #444;
         }
+
+        /* ================= ERROR DISPLAY ================= */
+        .field-error { color:#dc2626; font-size:.8rem; display:block; margin-top:4px; }
+        input.is-invalid, select.is-invalid, textarea.is-invalid {
+            border-color:#f87171 !important;
+            background:#fff5f5 !important;
+        }
     </style>
 
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -461,44 +468,87 @@
             </script>
         @endif
 
+        @if ($errors->any())
+            <div style="background:#fff0f0;border:1px solid #f87171;border-radius:10px;padding:14px 18px;margin-bottom:1.4rem;color:#842029;">
+                <strong style="display:block;margin-bottom:8px;">&#9888; Ada yang perlu diperbaiki:</strong>
+                <ul style="margin:0;padding-left:1.25rem;">
+                    @foreach ($errors->all() as $error)
+                        <li style="margin-bottom:3px;font-size:.88rem;">{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+            <div style="background:#fff8e1;border:1px solid #f0c040;border-radius:10px;padding:10px 14px;margin-bottom:1.2rem;font-size:.85rem;color:#7a5c00;">
+                &#9432; Ruangan dan konsumsi perlu diisi ulang setelah ada error.
+            </div>
+        @endif
+
         <form method="POST" action="{{ route('form-peminjaman-ruangan.store') }}">
             @csrf
 
             <div class="form-grid">
                 <div>
                     <label>Nama Peminjam</label>
-                    <input type="text" name="nama_pengaju" required>
+                    <input type="text" name="nama_pengaju" required
+                           value="{{ old('nama_pengaju') }}"
+                           class="{{ $errors->has('nama_pengaju') ? 'is-invalid' : '' }}">
+                    @error('nama_pengaju')
+                        <span class="field-error">{{ $message }}</span>
+                    @enderror
                 </div>
                 <div>
                     <label>Divisi</label>
-                    <select name="id_divisi" required>
-                        <option value="">-- Pilih Divisi --</option>
+                    <select name="id_divisi" required
+                            class="{{ $errors->has('id_divisi') ? 'is-invalid' : '' }}">
+                        <option value="" {{ !old('id_divisi') ? 'selected' : '' }}>-- Pilih Divisi --</option>
                         @foreach ($divisi as $d)
-                            <option value="{{ $d->id_divisi }}">{{ $d->nama_divisi }}</option>
+                            <option value="{{ $d->id_divisi }}" {{ old('id_divisi') == $d->id_divisi ? 'selected' : '' }}>
+                                {{ $d->nama_divisi }}
+                            </option>
                         @endforeach
                     </select>
+                    @error('id_divisi')
+                        <span class="field-error">{{ $message }}</span>
+                    @enderror
                 </div>
             </div>
 
             <div>
                 <label>Email</label>
-                <input type="email" name="email_pengaju" required>
+                <input type="email" name="email_pengaju" required
+                       value="{{ old('email_pengaju') }}"
+                       class="{{ $errors->has('email_pengaju') ? 'is-invalid' : '' }}">
+                @error('email_pengaju')
+                    <span class="field-error">{{ $message }}</span>
+                @enderror
             </div>
 
             <div class="form-grid">
                 <div>
                     <label>Jenis Kegiatan</label>
-                    <select name="jenis_kegiatan" id="jenis_kegiatan" required>
-                        <option value="rapat">Rapat</option>
-                        <option value="pelatihan">Pelatihan</option>
-                        <option value="asasmen">Asasmen</option>
-                        <option value="lainnya">Lainnya</option>
+                    <select name="jenis_kegiatan" id="jenis_kegiatan" required
+                            class="{{ $errors->has('jenis_kegiatan') ? 'is-invalid' : '' }}">
+                        <option value="rapat"     {{ old('jenis_kegiatan', 'rapat') === 'rapat'     ? 'selected' : '' }}>Rapat</option>
+                        <option value="pelatihan" {{ old('jenis_kegiatan') === 'pelatihan' ? 'selected' : '' }}>Pelatihan</option>
+                        <option value="asasmen"   {{ old('jenis_kegiatan') === 'asasmen'   ? 'selected' : '' }}>Asasmen</option>
+                        <option value="lainnya"   {{ old('jenis_kegiatan') === 'lainnya'   ? 'selected' : '' }}>Lainnya</option>
                     </select>
+                    @error('jenis_kegiatan')
+                        <span class="field-error">{{ $message }}</span>
+                    @enderror
                 </div>
 
                 <div>
                     <label id="label_nama_kegiatan">Nama Kegiatan</label>
-                    <input type="text" name="nama_kegiatan" id="nama_kegiatan">
+                    {{-- name diubah secara dinamis oleh JS berdasarkan jenis_kegiatan --}}
+                    <input type="text" name="nama_kegiatan" id="nama_kegiatan"
+                           value="{{ old('peserta_rapat') ?? old('nama_kegiatan') }}"
+                           class="{{ ($errors->has('nama_kegiatan') || $errors->has('peserta_rapat')) ? 'is-invalid' : '' }}">
+                    @error('nama_kegiatan')
+                        <span class="field-error">{{ $message }}</span>
+                    @enderror
+                    @error('peserta_rapat')
+                        <span class="field-error">{{ $message }}</span>
+                    @enderror
                 </div>
             </div>
 
@@ -612,15 +662,17 @@
     <script>
         const jenisKegiatan = document.getElementById('jenis_kegiatan');
         const labelNamaKegiatan = document.getElementById('label_nama_kegiatan');
+        const namaKegiatanInput = document.getElementById('nama_kegiatan');
 
         function updateLabelKegiatan() {
-
             if (jenisKegiatan.value === 'rapat') {
                 labelNamaKegiatan.textContent = 'Peserta Rapat';
+                // Ubah name agar field tersubmit sebagai 'peserta_rapat' (sesuai validasi controller)
+                namaKegiatanInput.name = 'peserta_rapat';
             } else {
                 labelNamaKegiatan.textContent = 'Nama Kegiatan';
+                namaKegiatanInput.name = 'nama_kegiatan';
             }
-
         }
 
         jenisKegiatan.addEventListener('change', updateLabelKegiatan);

@@ -372,10 +372,21 @@ class PeminjamanRuanganController extends Controller
             'ruangan.*.id_ruangan' => 'required|exists:ruangan,id_ruangan',
             'ruangan.*.id_gedung'  => 'required|exists:gedung,id_gedung',
         ], [
-            'id_divisi.exists'            => 'Divisi yang dipilih tidak valid.',
-            'ruangan.max'                 => 'Peminjaman tidak boleh lebih dari 5 ruangan sekaligus.',
-            'ruangan.*.id_ruangan.exists' => 'Ruangan yang dipilih tidak valid.',
-            'ruangan.*.id_gedung.exists'  => 'Gedung yang dipilih tidak valid.',
+            'nama_pengaju.required'              => 'Nama peminjam wajib diisi.',
+            'email_pengaju.required'             => 'Email peminjam wajib diisi.',
+            'email_pengaju.email'                => 'Format email tidak valid.',
+            'id_divisi.required'                 => 'Divisi wajib dipilih.',
+            'id_divisi.exists'                   => 'Divisi yang dipilih tidak valid.',
+            'jenis_kegiatan.required'            => 'Jenis kegiatan wajib dipilih.',
+            'nama_kegiatan.required_unless'      => 'Nama kegiatan wajib diisi.',
+            'peserta_rapat.required_if'          => 'Daftar/nama peserta rapat wajib diisi.',
+            'ruangan.required'                   => 'Minimal 1 ruangan harus ditambahkan.',
+            'ruangan.min'                        => 'Minimal 1 ruangan harus ditambahkan.',
+            'ruangan.max'                        => 'Peminjaman tidak boleh lebih dari 5 ruangan sekaligus.',
+            'ruangan.*.id_ruangan.required'      => 'Ruangan wajib dipilih.',
+            'ruangan.*.id_ruangan.exists'        => 'Ruangan yang dipilih tidak valid.',
+            'ruangan.*.id_gedung.required'       => 'Gedung wajib dipilih.',
+            'ruangan.*.id_gedung.exists'         => 'Gedung yang dipilih tidak valid.',
         ]);
 
 

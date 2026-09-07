@@ -284,6 +284,13 @@
         .ts-dropdown .option {
             padding: 10px 14px;
         }
+
+        /* ================= ERROR DISPLAY ================= */
+        .field-error { color:#dc2626; font-size:.8rem; display:block; margin-top:4px; }
+        input.is-invalid, select.is-invalid, textarea.is-invalid {
+            border-color:#f87171 !important;
+            background:#fff5f5 !important;
+        }
     </style>
 
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -328,27 +335,54 @@
             </script>
         @endif
 
+        @if ($errors->any())
+            <div style="background:#fff0f0;border:1px solid #f87171;border-radius:10px;padding:14px 18px;margin-bottom:1.4rem;color:#842029;">
+                <strong style="display:block;margin-bottom:8px;">&#9888; Ada yang perlu diperbaiki:</strong>
+                <ul style="margin:0;padding-left:1.25rem;">
+                    @foreach ($errors->all() as $error)
+                        <li style="margin-bottom:3px;font-size:.88rem;">{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <form action="{{ route('form_peminjaman_aset.store') }}" method="POST">
             @csrf
 
             <div class="form-grid">
                 <div>
                     <label>Nama Peminjam</label>
-                    <input type="text" name="nama_pengaju" required>
+                    <input type="text" name="nama_pengaju" required
+                           value="{{ old('nama_pengaju') }}"
+                           class="{{ $errors->has('nama_pengaju') ? 'is-invalid' : '' }}">
+                    @error('nama_pengaju')
+                        <span class="field-error">{{ $message }}</span>
+                    @enderror
                 </div>
                 <div>
                     <label>Divisi</label>
-                    <select name="id_divisi" required>
-                        <option value="">-- Pilih Divisi --</option>
+                    <select name="id_divisi" required
+                            class="{{ $errors->has('id_divisi') ? 'is-invalid' : '' }}">
+                        <option value="" {{ !old('id_divisi') ? 'selected' : '' }}>-- Pilih Divisi --</option>
                         @foreach ($divisi as $d)
-                            <option value="{{ $d->id_divisi }}">{{ $d->nama_divisi }}</option>
+                            <option value="{{ $d->id_divisi }}" {{ old('id_divisi') == $d->id_divisi ? 'selected' : '' }}>
+                                {{ $d->nama_divisi }}
+                            </option>
                         @endforeach
                     </select>
+                    @error('id_divisi')
+                        <span class="field-error">{{ $message }}</span>
+                    @enderror
                 </div>
             </div>
 
             <label>Email Peminjam</label>
-            <input type="email" name="email_pengaju" required>
+            <input type="email" name="email_pengaju" required
+                   value="{{ old('email_pengaju') }}"
+                   class="{{ $errors->has('email_pengaju') ? 'is-invalid' : '' }}">
+            @error('email_pengaju')
+                <span class="field-error">{{ $message }}</span>
+            @enderror
 
             <label>Daftar Aset yang Dipinjam</label>
 
@@ -356,7 +390,8 @@
 
                 <div class="aset-row">
 
-                    <select class="asetSelect" name="items[0][id_jenis_barang]" required>
+                    <select class="asetSelect" name="items[0][id_jenis_barang]" required
+                            data-old="{{ old('items.0.id_jenis_barang') }}">
 
                         <option value="">-- Pilih Aset --</option>
 
@@ -375,16 +410,19 @@
                         @endforeach
                     </select>
 
+                    <input type="hidden" name="items[0][nama_aset]" class="nama_aset_hidden"
+                           value="{{ old('items.0.nama_aset') }}">
 
-                    <input type="hidden" name="items[0][nama_aset]" class="nama_aset_hidden">
-
-                    <input type="number" name="items[0][jumlah]" min="1" placeholder="Jumlah" required>
+                    <input type="number" name="items[0][jumlah]" min="1" placeholder="Jumlah" required
+                           value="{{ old('items.0.jumlah') }}">
 
                     <input type="text" name="items[0][tanggal_pinjam]" class="tanggal_pinjam"
-                        placeholder="Tanggal Pinjam" required>
+                        placeholder="Tanggal Pinjam" required
+                        value="{{ old('items.0.tanggal_pinjam') }}">
 
                     <input type="text" name="items[0][tanggal_jatuh_tempo]" class="tanggal_kembali"
-                        placeholder="Tanggal Kembali" required>
+                        placeholder="Tanggal Kembali" required
+                        value="{{ old('items.0.tanggal_jatuh_tempo') }}">
 
                     <button type="button" class="btn-trash" onclick="removeItem(this)">
                         <i class="fa-solid fa-trash"></i>
@@ -400,7 +438,11 @@
             <div class="btn-add" onclick="addItem()">+ Tambah Aset</div>
 
             <label>Keperluan</label>
-            <textarea name="alasan" required></textarea>
+            <textarea name="alasan" required
+                      class="{{ $errors->has('alasan') ? 'is-invalid' : '' }}">{{ old('alasan') }}</textarea>
+            @error('alasan')
+                <span class="field-error">{{ $message }}</span>
+            @enderror
 
             <button type="submit">Kirim Permintaan</button>
 
@@ -424,76 +466,84 @@
                 option.dataset.nama || '';
         });
 
+        // Embed aset options dari server agar tersedia di addItem() tanpa Blade
+        const asetGroupedOptions = @json($asetGrouped->map(fn($items, $kat) => $items->map(fn($it) => [
+            'id'    => $it['id_jenis_barang'],
+            'nama'  => $it['nama_aset'],
+            'jenis' => $it['jenis_barang'],
+            'stok'  => $it['total_unit'],
+            'kat'   => $kat,
+        ]))->flatten(1)->values());
+
+        function buildAsetOptions() {
+            // Group by kategori
+            const groups = {};
+            asetGroupedOptions.forEach(item => {
+                if (!groups[item.kat]) groups[item.kat] = [];
+                groups[item.kat].push(item);
+            });
+            return Object.entries(groups).map(([kat, items]) =>
+                `<optgroup label="${kat}">${items.map(it =>
+                    `<option value="${it.id}" data-nama="${it.nama}" data-stok="${it.stok}">${it.nama} - ${it.jenis} (${it.stok} unit)</option>`
+                ).join('')}</optgroup>`
+            ).join('');
+        }
+
         function initTS(el) {
             return new TomSelect(el, {
                 searchField: ["text"],
                 allowEmptyOption: true,
             });
         }
-        document.querySelectorAll(".asetSelect").forEach(initTS);
+        // Init TomSelect pada select pertama (hardcoded di HTML)
+        document.querySelectorAll("#asetContainer .asetSelect").forEach(initTS);
 
         let index = 1;
 
-        function initDatePicker(el) {
-            flatpickr(el, {
-                dateFormat: "Y-m-d"
-            });
-        }
-
-        function addItem() {
+        function addItem(oldData = null) {
 
             const container = document.getElementById("asetContainer");
 
             const row = document.createElement("div");
             row.className = "aset-row";
 
+            const oldJumlah    = oldData ? (oldData.jumlah             || '') : '';
+            const oldTglPinjam = oldData ? (oldData.tanggal_pinjam     || '') : '';
+            const oldTglKembali= oldData ? (oldData.tanggal_jatuh_tempo|| '') : '';
+
             row.innerHTML = `
                 <select class="asetSelect"
                         name="items[${index}][id_jenis_barang]"
                         required>
-
                     <option value="">-- Pilih Aset --</option>
-
-                    @foreach ($asetGrouped as $kategori => $items)
-                        <optgroup label="{{ $kategori }}">
-                            @foreach ($items as $item)
-                                <option
-                                    value="{{ $item['id_jenis_barang'] }}"
-                                    data-nama="{{ $item['nama_aset'] }}"
-                                    data-jenis="{{ $item['jenis_barang'] }}"
-                                    data-stok="{{ $item['total_unit'] }}">
-
-                                    {{ $item['nama_aset'] }}
-                                    - {{ $item['jenis_barang'] }}
-                                    ({{ $item['total_unit'] }} unit)
-
-                                </option>
-                            @endforeach
-                        </optgroup>
-                    @endforeach
+                    ${buildAsetOptions()}
                 </select>
 
                 <input type="hidden"
-                name="items[${index}][nama_aset]"
-                class="nama_aset_hidden">
+                    name="items[${index}][nama_aset]"
+                    class="nama_aset_hidden"
+                    value="${oldData ? (oldData.nama_aset || '') : ''}">
 
                 <input type="number"
                     name="items[${index}][jumlah]"
                     min="1"
                     placeholder="Jumlah"
-                    required>
+                    required
+                    value="${oldJumlah}">
 
                 <input type="text"
                     name="items[${index}][tanggal_pinjam]"
                     class="tanggal_pinjam"
                     placeholder="Tanggal Pinjam"
-                    required>
+                    required
+                    value="${oldTglPinjam}">
 
                 <input type="text"
                     name="items[${index}][tanggal_jatuh_tempo]"
                     class="tanggal_kembali"
                     placeholder="Tanggal Kembali"
-                    required>
+                    required
+                    value="${oldTglKembali}">
 
                 <button type="button" class="btn-trash" onclick="removeItem(this)">
                     <i class="fa-solid fa-trash"></i>
@@ -506,9 +556,18 @@
             container.appendChild(row);
 
             initDateRange(row);
-            initTS(row.querySelector(".asetSelect"));
+            const ts = initTS(row.querySelector(".asetSelect"));
             initStokLimit(row);
             initAvailability(row);
+
+            // Restore TomSelect + hidden field nilai lama
+            if (oldData && oldData.id_jenis_barang) {
+                ts.setValue(oldData.id_jenis_barang, true);
+                const sel = row.querySelector('.asetSelect');
+                const opt = sel.options[sel.selectedIndex];
+                const hidden = row.querySelector('.nama_aset_hidden');
+                if (opt && hidden && !hidden.value) hidden.value = opt.dataset.nama || '';
+            }
 
             index++;
         }
@@ -550,6 +609,30 @@
             initDateRange(row);
             initStokLimit(row);
             initAvailability(row);
+        });
+
+        // Restore old items setelah TomSelect sudah di-init di atas
+        document.addEventListener('DOMContentLoaded', function() {
+            // Restore TomSelect item 0 — gunakan el.tomselect (sudah di-init, jangan init ulang)
+            document.querySelectorAll(".asetSelect").forEach(function(el) {
+                const ts = el.tomselect;
+                if (!ts) return;
+                const oldVal = el.dataset.old;
+                if (oldVal) {
+                    ts.setValue(oldVal, true);
+                    const opt = el.options[el.selectedIndex];
+                    const row = el.closest('.aset-row');
+                    const hidden = row ? row.querySelector('.nama_aset_hidden') : null;
+                    if (opt && hidden && !hidden.value) hidden.value = opt.dataset.nama || '';
+                }
+            });
+
+            // Tambah item lama dari index 1 ke atas
+            const oldItemsRaw = @json(old('items', []));
+            const oldItems = Array.isArray(oldItemsRaw) ? oldItemsRaw : Object.values(oldItemsRaw);
+            for (let i = 1; i < oldItems.length; i++) {
+                addItem(oldItems[i]);
+            }
         });
 
         function initStokLimit(row) {

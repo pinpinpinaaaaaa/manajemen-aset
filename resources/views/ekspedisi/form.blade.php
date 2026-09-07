@@ -439,6 +439,41 @@
                 align-items: flex-start;
             }
         }
+
+        /* ================= ERROR DISPLAY ================= */
+        .error-banner {
+            background: #fff0f0;
+            border: 1px solid #f87171;
+            border-radius: 14px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            color: #991b1b;
+        }
+        .error-banner strong {
+            display: block;
+            margin-bottom: 8px;
+            font-size: .95rem;
+        }
+        .error-banner ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+        .error-banner li {
+            margin-bottom: 3px;
+            font-size: .88rem;
+        }
+        .field-error {
+            color: #dc2626;
+            font-size: .8rem;
+            display: block;
+            margin-top: 4px;
+        }
+        input.is-invalid,
+        select.is-invalid,
+        textarea.is-invalid {
+            border-color: #f87171 !important;
+            background: #fff5f5 !important;
+        }
     </style>
 
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -482,6 +517,17 @@
             </script>
         @endif
 
+        @if ($errors->any())
+            <div class="error-banner">
+                <strong>Ada yang perlu diperbaiki:</strong>
+                <ul>
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <form action="{{ route('form-ekspedisi.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
@@ -489,22 +535,30 @@
             <div class="form-grid">
                 <div>
                     <label>Nama Pengaju</label>
-                    <input type="text" id="nama_pengaju" name="nama_pengaju" required>
+                    <input type="text" id="nama_pengaju" name="nama_pengaju" required
+                        value="{{ old('nama_pengaju') }}"
+                        class="{{ $errors->has('nama_pengaju') ? 'is-invalid' : '' }}">
+                    @error('nama_pengaju') <span class="field-error">{{ $message }}</span> @enderror
                 </div>
                 <div>
                     <label>Divisi Pengaju</label>
-                    <select id="divisi_pengaju" name="id_divisi_pengaju" required>
+                    <select id="divisi_pengaju" name="id_divisi_pengaju" required
+                        class="{{ $errors->has('id_divisi_pengaju') ? 'is-invalid' : '' }}">
                         <option value="">-- Pilih Divisi --</option>
                         @foreach ($divisi as $d)
-                            <option value="{{ $d->id_divisi }}">{{ $d->nama_divisi }}</option>
+                            <option value="{{ $d->id_divisi }}" {{ old('id_divisi_pengaju') == $d->id_divisi ? 'selected' : '' }}>{{ $d->nama_divisi }}</option>
                         @endforeach
                     </select>
+                    @error('id_divisi_pengaju') <span class="field-error">{{ $message }}</span> @enderror
                 </div>
             </div>
 
             <div>
                 <label>Email Pengaju</label>
-                <input type="email" id="email_pengaju" name="email_pengaju" required>
+                <input type="email" id="email_pengaju" name="email_pengaju" required
+                    value="{{ old('email_pengaju') }}"
+                    class="{{ $errors->has('email_pengaju') ? 'is-invalid' : '' }}">
+                @error('email_pengaju') <span class="field-error">{{ $message }}</span> @enderror
             </div>
 
             <div class="checkbox-wrapper">
@@ -518,29 +572,38 @@
             <div class="form-grid">
                 <div>
                     <label>Nama Pengirim</label>
-                    <input type="text" id="nama_pengirim" name="nama_pengirim" required>
+                    <input type="text" id="nama_pengirim" name="nama_pengirim" required
+                        value="{{ old('nama_pengirim') }}"
+                        class="{{ $errors->has('nama_pengirim') ? 'is-invalid' : '' }}">
+                    @error('nama_pengirim') <span class="field-error">{{ $message }}</span> @enderror
                 </div>
                 <div>
                     <label>Divisi Pengirim</label>
-                    <select id="divisi_pengirim" name="id_divisi_pengirim" required>
+                    <select id="divisi_pengirim" name="id_divisi_pengirim" required
+                        class="{{ $errors->has('id_divisi_pengirim') ? 'is-invalid' : '' }}">
                         <option value="">-- Pilih Divisi --</option>
                         @foreach ($divisi as $d)
-                            <option value="{{ $d->id_divisi }}">{{ $d->nama_divisi }}</option>
+                            <option value="{{ $d->id_divisi }}" {{ old('id_divisi_pengirim') == $d->id_divisi ? 'selected' : '' }}>{{ $d->nama_divisi }}</option>
                         @endforeach
                     </select>
+                    @error('id_divisi_pengirim') <span class="field-error">{{ $message }}</span> @enderror
                 </div>
             </div>
 
             <div class="form-grid">
                 <div>
                     <label>Email Pengirim</label>
-                    <input type="email" id="email_pengirim" name="email_pengirim" required>
+                    <input type="email" id="email_pengirim" name="email_pengirim" required
+                        value="{{ old('email_pengirim') }}"
+                        class="{{ $errors->has('email_pengirim') ? 'is-invalid' : '' }}">
+                    @error('email_pengirim') <span class="field-error">{{ $message }}</span> @enderror
                 </div>
 
                 <div>
                     <label>No HP Pengirim</label>
                     <input type="text" id="no_hp_pengirim" name="no_hp_pengirim" placeholder="08xxxxxxxxxx"
-                        inputmode="numeric" pattern="[0-9]*" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                        inputmode="numeric" pattern="[0-9]*" oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                        value="{{ old('no_hp_pengirim') }}">
                 </div>
             </div>
 
@@ -548,59 +611,81 @@
 
             <div>
                 <label>Judul Kegiatan</label>
-                <input type="text" name="judul_kegiatan" required>
+                <input type="text" name="judul_kegiatan" required
+                    value="{{ old('judul_kegiatan') }}"
+                    class="{{ $errors->has('judul_kegiatan') ? 'is-invalid' : '' }}">
+                @error('judul_kegiatan') <span class="field-error">{{ $message }}</span> @enderror
             </div>
 
             <h4 style="margin-bottom:10px;">Data Penerima</h4>
             <div class="form-grid">
                 <div>
                     <label>Instansi Tujuan</label>
-                    <input type="text" name="instansi_penerima" required>
+                    <input type="text" name="instansi_penerima" required
+                        value="{{ old('instansi_penerima') }}"
+                        class="{{ $errors->has('instansi_penerima') ? 'is-invalid' : '' }}">
+                    @error('instansi_penerima') <span class="field-error">{{ $message }}</span> @enderror
                 </div>
                 <div>
                     <label>Nama Penerima</label>
-                    <input type="text" name="nama_penerima" required>
+                    <input type="text" name="nama_penerima" required
+                        value="{{ old('nama_penerima') }}"
+                        class="{{ $errors->has('nama_penerima') ? 'is-invalid' : '' }}">
+                    @error('nama_penerima') <span class="field-error">{{ $message }}</span> @enderror
                 </div>
             </div>
 
             <div class="form-grid">
                 <div>
                     <label>Email Penerima</label>
-                    <input type="email" name="email_penerima" placeholder="email@tujuan.com">
+                    <input type="email" name="email_penerima" placeholder="email@tujuan.com"
+                        value="{{ old('email_penerima') }}"
+                        class="{{ $errors->has('email_penerima') ? 'is-invalid' : '' }}">
+                    @error('email_penerima') <span class="field-error">{{ $message }}</span> @enderror
                 </div>
 
                 <div>
                     <label>No HP Penerima</label>
                     <input type="text" name="no_hp_penerima" placeholder="08xxxxxxxxxx" inputmode="numeric"
-                        pattern="[0-9]*" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                        pattern="[0-9]*" oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                        value="{{ old('no_hp_penerima') }}">
                 </div>
             </div>
 
             <div>
                 <label>Alamat Tujuan</label>
-                <textarea name="alamat_penerima" required></textarea>
+                <textarea name="alamat_penerima" required
+                    class="{{ $errors->has('alamat_penerima') ? 'is-invalid' : '' }}">{{ old('alamat_penerima') }}</textarea>
+                @error('alamat_penerima') <span class="field-error">{{ $message }}</span> @enderror
             </div>
 
             <label class="label-section">Isi Kiriman</label>
 
+            @php $oldItems = old('items', [null]); @endphp
             <div id="itemContainer">
 
+                @foreach($oldItems as $i => $oldItem)
                 <div class="item-card">
 
                     <div class="row-top">
-                        <select name="items[0][jenis]" required>
-                            <option value="" disabled selected>Pilih Jenis</option>
-                            <option value="dokumen">Dokumen</option>
-                            <option value="barang">Barang</option>
+                        <select name="items[{{ $i }}][jenis]" required
+                            class="{{ $errors->has("items.$i.jenis") ? 'is-invalid' : '' }}">
+                            <option value="" disabled {{ !($oldItem['jenis'] ?? '') ? 'selected' : '' }}>Pilih Jenis</option>
+                            <option value="dokumen" {{ ($oldItem['jenis'] ?? '') === 'dokumen' ? 'selected' : '' }}>Dokumen</option>
+                            <option value="barang" {{ ($oldItem['jenis'] ?? '') === 'barang' ? 'selected' : '' }}>Barang</option>
                         </select>
 
-                        <input type="text" name="items[0][nama]" placeholder="Nama Dokumen / Barang" required>
+                        <input type="text" name="items[{{ $i }}][nama]" placeholder="Nama Dokumen / Barang" required
+                            value="{{ $oldItem['nama'] ?? '' }}"
+                            class="{{ $errors->has("items.$i.nama") ? 'is-invalid' : '' }}">
                     </div>
 
                     <div class="row-bottom">
-                        <input type="number" name="items[0][jumlah]" placeholder="Jumlah" min="1">
+                        <input type="number" name="items[{{ $i }}][jumlah]" placeholder="Jumlah" min="1"
+                            value="{{ $oldItem['jumlah'] ?? '' }}">
 
-                        <input type="text" name="items[0][keterangan]" placeholder="Keterangan">
+                        <input type="text" name="items[{{ $i }}][keterangan]" placeholder="Keterangan"
+                            value="{{ $oldItem['keterangan'] ?? '' }}">
 
                         <div></div>
 
@@ -611,17 +696,21 @@
 
                     <div class="item-upload">
                         <label>File (Opsional)</label>
-                        <input type="file" name="items[0][files][]" multiple>
+                        <input type="file" name="items[{{ $i }}][files][]" multiple>
+                        @if($oldItem)
+                            <small style="color:#64748b;font-size:.8rem;">File harus di-upload ulang jika form disubmit kembali.</small>
+                        @endif
                     </div>
 
                 </div>
+                @endforeach
 
             </div>
 
             <div class="btn-add" onclick="addItem()">+ Tambah Item</div>
 
             <label>Catatan</label>
-            <textarea name="keterangan"></textarea>
+            <textarea name="keterangan">{{ old('keterangan') }}</textarea>
 
             <button type="submit">Kirim Ekspedisi</button>
         </form>

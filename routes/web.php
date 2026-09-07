@@ -71,6 +71,13 @@ Route::post('/vendor', [VendorController::class, 'store'])->name('vendor.store')
 
 
 // =======================================
+// ENDPOINT AJAX PUBLIK (dipakai form-form publik tanpa login)
+// Harus di sini — sebelum auth group — agar AJAX dari form publik bisa jalan
+// =======================================
+Route::get('/get-ruangan/{id}', [\App\Http\Controllers\LaporanPemusnahanController::class, 'getRuangan'])->name('public.get-ruangan');
+Route::get('/get-aset/{id}',    [\App\Http\Controllers\LaporanPemusnahanController::class, 'getAset'])->name('public.get-aset');
+
+// =======================================
 // AUTH DEFAULT LARAVEL
 // =======================================
 Auth::routes();

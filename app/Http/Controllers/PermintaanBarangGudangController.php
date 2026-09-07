@@ -303,8 +303,20 @@ class PermintaanBarangGudangController extends Controller
             'items.*.jumlah' => 'required|numeric|min:1',
             'catatan' => 'nullable|string|max:500',
         ], [
-            'id_divisi.exists'         => 'Divisi yang dipilih tidak valid.',
-            'items.*.id_barang.exists' => 'Barang yang dipilih tidak valid.',
+            'nama_pengaju.required'          => 'Nama pengaju wajib diisi.',
+            'email_pengaju.required'         => 'Email pengaju wajib diisi.',
+            'email_pengaju.email'            => 'Format email tidak valid.',
+            'id_divisi.required'             => 'Divisi wajib dipilih.',
+            'id_divisi.exists'               => 'Divisi yang dipilih tidak valid.',
+            'tanggal_kebutuhan.required'     => 'Tanggal kebutuhan wajib diisi.',
+            'tanggal_kebutuhan.date'         => 'Format tanggal tidak valid.',
+            'items.required'                 => 'Minimal 1 barang harus dipilih.',
+            'items.min'                      => 'Minimal 1 barang harus dipilih.',
+            'items.*.id_barang.required'     => 'Barang wajib dipilih pada setiap baris.',
+            'items.*.id_barang.exists'       => 'Barang yang dipilih tidak valid.',
+            'items.*.jumlah.required'        => 'Jumlah barang wajib diisi.',
+            'items.*.jumlah.numeric'         => 'Jumlah harus berupa angka.',
+            'items.*.jumlah.min'             => 'Jumlah minimal 1.',
         ]);
 
         DB::transaction(function () use ($request) {

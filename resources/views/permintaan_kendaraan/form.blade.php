@@ -364,6 +364,34 @@
             gap: 14px;
             align-items: stretch;
         }
+
+        .field-error {
+            color: #dc2626;
+            font-size: .82rem;
+            margin-top: 4px;
+            display: block;
+        }
+
+        input.is-invalid,
+        select.is-invalid,
+        textarea.is-invalid {
+            border-color: #f87171 !important;
+            background: #fff5f5 !important;
+        }
+
+        .error-banner {
+            background: #fef2f2;
+            border: 1px solid #fca5a5;
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 20px;
+            color: #b91c1c;
+            font-size: .9rem;
+        }
+
+        .error-banner ul {
+            margin: 8px 0 0 18px;
+        }
     </style>
 
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -407,28 +435,46 @@
             </script>
         @endif
 
+        @if ($errors->any())
+            <div class="error-banner">
+                <strong>Mohon periksa kembali isian Anda:</strong>
+                <ul>
+                    @foreach ($errors->all() as $e)
+                        <li>{{ $e }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <form action="{{ route('form-permintaan-kendaraan.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
             <div class="form-grid">
                 <div>
                     <label>Nama Pengaju</label>
-                    <input type="text" name="nama_pengaju" required>
+                    <input type="text" name="nama_pengaju" value="{{ old('nama_pengaju') }}"
+                           class="{{ $errors->has('nama_pengaju') ? 'is-invalid' : '' }}" required>
+                    @error('nama_pengaju')<span class="field-error">{{ $message }}</span>@enderror
                 </div>
                 <div>
                     <label>Divisi</label>
-                    <select name="id_divisi" required>
+                    <select name="id_divisi" class="{{ $errors->has('id_divisi') ? 'is-invalid' : '' }}" required>
                         <option value="">-- Pilih Divisi --</option>
                         @foreach ($divisi as $d)
-                            <option value="{{ $d->id_divisi }}">{{ $d->nama_divisi }}</option>
+                            <option value="{{ $d->id_divisi }}" {{ old('id_divisi') == $d->id_divisi ? 'selected' : '' }}>
+                                {{ $d->nama_divisi }}
+                            </option>
                         @endforeach
                     </select>
+                    @error('id_divisi')<span class="field-error">{{ $message }}</span>@enderror
                 </div>
             </div>
 
             <div style="margin-top:10px;">
                 <label>Email</label>
-                <input type="email" name="email">
+                <input type="email" name="email" value="{{ old('email') }}"
+                       class="{{ $errors->has('email') ? 'is-invalid' : '' }}">
+                @error('email')<span class="field-error">{{ $message }}</span>@enderror
             </div>
 
             {{-- ================= DETAIL ================= --}}
@@ -441,12 +487,16 @@
 
                         <div>
                             <label>Tanggal Mulai</label>
-                            <input type="text" name="tanggal_mulai" class="tglMulai" required>
+                            <input type="text" name="tanggal_mulai" class="tglMulai {{ $errors->has('tanggal_mulai') ? 'is-invalid' : '' }}"
+                                   value="{{ old('tanggal_mulai') }}" required>
+                            @error('tanggal_mulai')<span class="field-error">{{ $message }}</span>@enderror
                         </div>
 
                         <div>
                             <label>Tanggal Selesai</label>
-                            <input type="text" name="tanggal_selesai" class="tglSelesai" required>
+                            <input type="text" name="tanggal_selesai" class="tglSelesai {{ $errors->has('tanggal_selesai') ? 'is-invalid' : '' }}"
+                                   value="{{ old('tanggal_selesai') }}" required>
+                            @error('tanggal_selesai')<span class="field-error">{{ $message }}</span>@enderror
                         </div>
 
                     </div>
@@ -456,12 +506,16 @@
 
                     <div>
                         <label>Jam Mulai</label>
-                        <input type="time" name="jam_mulai" class="jamMulai" required>
+                        <input type="time" name="jam_mulai" class="jamMulai {{ $errors->has('jam_mulai') ? 'is-invalid' : '' }}"
+                               value="{{ old('jam_mulai') }}" required>
+                        @error('jam_mulai')<span class="field-error">{{ $message }}</span>@enderror
                     </div>
 
                     <div>
                         <label>Jam Selesai</label>
-                        <input type="time" name="jam_selesai" class="jamSelesai" required>
+                        <input type="time" name="jam_selesai" class="jamSelesai {{ $errors->has('jam_selesai') ? 'is-invalid' : '' }}"
+                               value="{{ old('jam_selesai') }}" required>
+                        @error('jam_selesai')<span class="field-error">{{ $message }}</span>@enderror
                     </div>
 
                 </div>
@@ -471,14 +525,18 @@
                     <div>
                         <label>Jumlah Kendaraan</label>
 
-                        <input type="number" name="jumlah" class="jumlahInput" min="1" required>
+                        <input type="number" name="jumlah" class="jumlahInput {{ $errors->has('jumlah') ? 'is-invalid' : '' }}"
+                               min="1" value="{{ old('jumlah') }}" required>
+                        @error('jumlah')<span class="field-error">{{ $message }}</span>@enderror
 
                         <small class="info-kendaraan text-muted"></small>
                     </div>
 
                     <div>
                         <label>Keperluan</label>
-                        <input type="text" name="keperluan" required>
+                        <input type="text" name="keperluan" value="{{ old('keperluan') }}"
+                               class="{{ $errors->has('keperluan') ? 'is-invalid' : '' }}" required>
+                        @error('keperluan')<span class="field-error">{{ $message }}</span>@enderror
                     </div>
 
                 </div>
@@ -489,12 +547,16 @@
 
                         <div>
                             <label>Tempat Jemput</label>
-                            <input type="text" name="tempat_jemput" required>
+                            <input type="text" name="tempat_jemput" value="{{ old('tempat_jemput') }}"
+                                   class="{{ $errors->has('tempat_jemput') ? 'is-invalid' : '' }}" required>
+                            @error('tempat_jemput')<span class="field-error">{{ $message }}</span>@enderror
                         </div>
 
                         <div>
                             <label>Tempat Tujuan</label>
-                            <input type="text" name="tempat_tujuan" required>
+                            <input type="text" name="tempat_tujuan" value="{{ old('tempat_tujuan') }}"
+                                   class="{{ $errors->has('tempat_tujuan') ? 'is-invalid' : '' }}" required>
+                            @error('tempat_tujuan')<span class="field-error">{{ $message }}</span>@enderror
                         </div>
 
                     </div>
@@ -503,7 +565,7 @@
             </div>
 
             <label>Catatan (Opsional)</label>
-            <textarea name="catatan"></textarea>
+            <textarea name="catatan">{{ old('catatan') }}</textarea>
 
             <button type="submit">Kirim Pengadaan</button>
         </form>
@@ -666,6 +728,11 @@
                     });
                 }
             });
+
+        // Jika ada nilai lama (setelah validasi gagal), jalankan cek ketersediaan otomatis
+        if (tglMulai.value && tglSelesai.value && jamMulai.value && jamSelesai.value) {
+            cekKetersediaan();
+        }
     </script>
 </body>
 
