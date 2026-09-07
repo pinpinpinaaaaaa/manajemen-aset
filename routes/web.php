@@ -74,8 +74,13 @@ Route::post('/vendor', [VendorController::class, 'store'])->name('vendor.store')
 // ENDPOINT AJAX PUBLIK (dipakai form-form publik tanpa login)
 // Harus di sini — sebelum auth group — agar AJAX dari form publik bisa jalan
 // =======================================
-Route::get('/get-ruangan/{id}', [\App\Http\Controllers\LaporanPemusnahanController::class, 'getRuangan'])->name('public.get-ruangan');
-Route::get('/get-aset/{id}',    [\App\Http\Controllers\LaporanPemusnahanController::class, 'getAset'])->name('public.get-aset');
+Route::get('/get-ruangan/{id}',      [\App\Http\Controllers\LaporanPemusnahanController::class, 'getRuangan'])->name('public.get-ruangan');
+Route::get('/get-aset/{id}',         [\App\Http\Controllers\LaporanPemusnahanController::class, 'getAset'])->name('public.get-aset');
+// Dipakai form peminjaman ruangan publik (cek ruangan/aset tersedia berdasarkan tanggal)
+Route::get('/get-ruangan-available', [PeminjamanRuanganController::class, 'getRuanganAvailable']);
+Route::get('/get-aset-tersedia',     [PeminjamanRuanganController::class, 'getAsetTersedia']);
+// Dipakai form peminjaman aset publik (cek kuota unit tersedia)
+Route::post('/cek-ketersediaan',     [PeminjamanAsetController::class, 'cekKetersediaan']);
 
 // =======================================
 // AUTH DEFAULT LARAVEL
@@ -152,12 +157,10 @@ Route::middleware(['auth', 'menu.access'])->group(function () {
     Route::get('/pengadaan-barang/riwayat/export-excel',[PengadaanBarangJasaController::class, 'exportExcelRiwayat'])->name('pengadaan-barang.riwayat.excel');
 
     // === PEMINJAMAN RUANGAN
-    Route::get('/get-ruangan-available',[PeminjamanRuanganController::class, 'getRuanganAvailable']);
+    // (get-ruangan-available, get-aset-tersedia dipindah ke publik)
     Route::post('/cek-ketersediaan-ruangan',[PeminjamanRuanganController::class, 'cekKetersediaanRuangan']);
     Route::get('/peminjaman-ruangan/riwayat',[PeminjamanRuanganController::class, 'riwayat'])->name('peminjaman-ruangan.riwayat');
-    Route::get('/get-ruangan/{id}', [PeminjamanRuanganController::class, 'getRuanganByGedung']);
     Route::get('/get-tanggal-available/{id}', [PeminjamanRuanganController::class, 'getTanggalAvailable']);
-    Route::get('/get-aset-tersedia', [PeminjamanRuanganController::class, 'getAsetTersedia']);
     Route::get('/peminjaman-ruangan',[PeminjamanRuanganController::class, 'index'])->name('peminjaman-ruangan.index');
     Route::get('/peminjaman-ruangan/{id}',[PeminjamanRuanganController::class, 'show'])->name('peminjaman-ruangan.show');
     Route::get('/peminjaman-ruangan/{id}/edit',[PeminjamanRuanganController::class, 'edit'])->name('peminjaman-ruangan.edit');
@@ -172,7 +175,7 @@ Route::middleware(['auth', 'menu.access'])->group(function () {
     Route::get('/peminjaman-ruangan/riwayat/export-excel',[PeminjamanRuanganController::class, 'exportExcelRiwayat'])->name('peminjaman-ruangan.riwayat.excel');
 
     // === PEMINJAMAN ASET
-    Route::post('/cek-ketersediaan', [PeminjamanAsetController::class, 'cekKetersediaan']);
+    // (cek-ketersediaan dipindah ke publik)
     Route::get('/peminjaman_aset/riwayat', [PeminjamanAsetController::class, 'riwayat'])->name('peminjaman_aset.riwayat');
     Route::get('/peminjaman_aset', [PeminjamanAsetController::class, 'index'])->name('peminjaman_aset.index');
     Route::get('/peminjaman_aset/{id}', [PeminjamanAsetController::class, 'show'])->name('peminjaman_aset.show');
@@ -330,8 +333,7 @@ Route::middleware(['auth', 'menu.access'])->group(function () {
     Route::get('/laporan-pemusnahan/laporan',[LaporanPemusnahanController::class,'laporan'])->name('laporan_pemusnahan.laporan');
     Route::get('/laporan-pemusnahan/export-pdf',[LaporanPemusnahanController::class, 'exportPdf'])->name('laporan_pemusnahan.exportPdf');
     Route::get('/laporan-pemusnahan/export-excel',[LaporanPemusnahanController::class, 'exportExcel'])->name('laporan_pemusnahan.exportExcel');
-    Route::get('/get-ruangan/{id}', [LaporanPemusnahanController::class, 'getRuangan']);
-    Route::get('/get-aset/{id}', [LaporanPemusnahanController::class, 'getAset']);
+    // get-ruangan & get-aset sudah di-handle route publik (sebelum auth group) — duplikat dihapus
     Route::post('/laporan_pemusnahan/{id}/approve',[LaporanPemusnahanController::class,'approve'])->name('laporan_pemusnahan.approve');
     Route::post('/laporan_pemusnahan/{id}/tolak',[LaporanPemusnahanController::class,'tolak'])->name('laporan_pemusnahan.tolak');
     Route::post('/laporan_pemusnahan/{id}/proses',[LaporanPemusnahanController::class,'proses'])->name('laporan_pemusnahan.proses');
