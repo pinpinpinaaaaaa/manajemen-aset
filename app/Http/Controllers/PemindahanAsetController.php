@@ -147,18 +147,18 @@ public function store(Request $request)
         'id_aset.*' => 'exists:aset,id_aset',
 
         'to_gedung' => 'required|array',
-        'to_gedung.*' => 'required',
+        'to_gedung.*' => 'required|exists:gedung,id_gedung',
 
         'to_ruangan' => 'required|array',
-        'to_ruangan.*' => 'required',
+        'to_ruangan.*' => 'required|exists:ruangan,id_ruangan',
 
         'alasan' => 'required|string|max:1000',
 
         'biaya' => 'nullable|array',
         'biaya.*' => 'nullable|numeric|min:0',
 
-        'pelaksana_type' => 'required|array',
-        'pelaksana_type.*' => 'in:internal,vendor,lainnya',
+        'pelaksana_type' => 'nullable|array',
+        'pelaksana_type.*' => 'nullable|in:internal,vendor,lainnya',
 
         'id_vendor' => 'nullable|array',
         'id_vendor.*' => 'nullable|exists:vendors,id_vendor',

@@ -493,7 +493,7 @@
             <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
                 <div class="modal-content">
 
-                    <form action="{{ route('pemindahan_aset.store') }}" method="POST">
+                    <form action="{{ route('pemindahan_aset.store') }}" method="POST" id="formPindahAset">
                         @csrf
 
                         <div class="modal-header">
@@ -517,19 +517,15 @@
                                 <div class="card p-3 mb-3">
 
                                     <div class="form-check">
-                                        <input class="form-check-input aset-checkbox" type="checkbox"
+                                        <input class="form-check-input aset-checkbox-pindah" type="checkbox"
                                             data-target="pindah-detail-{{ $index }}"
-                                            name="details[{{ $index }}][dipilih]" value="1">
+                                            name="id_aset[]" value="{{ $aset->id_aset }}">
 
                                         <label class="form-check-label">
                                             <b>{{ $aset->nama_aset }}</b>
                                             ({{ $aset->kode_aset }})
                                         </label>
                                     </div>
-
-
-                                    <input type="hidden" name="details[{{ $index }}][id_aset]"
-                                        value="{{ $aset->id_aset }}">
 
 
                                     <div id="pindah-detail-{{ $index }}" class="detail-form"
@@ -541,7 +537,7 @@
                                         <div class="mb-3">
                                             <label>Gedung Tujuan</label>
 
-                                            <select class="form-control" name="details[{{ $index }}][id_gedung]">
+                                            <select class="form-control" name="to_gedung[]" disabled>
 
                                                 <option value="">
                                                     Pilih Gedung
@@ -560,7 +556,7 @@
                                         <div class="mb-3">
                                             <label>Ruangan Tujuan</label>
 
-                                            <select class="form-control" name="details[{{ $index }}][id_ruangan]">
+                                            <select class="form-control" name="to_ruangan[]" disabled>
 
                                                 <option value="">
                                                     Pilih Ruangan
@@ -576,14 +572,6 @@
                                             </select>
                                         </div>
 
-
-                                        <div class="mb-3">
-                                            <label>Alasan Pemindahan</label>
-
-                                            <textarea class="form-control" rows="3" name="details[{{ $index }}][alasan]">
-                                    </textarea>
-                                        </div>
-
                                     </div>
 
                                 </div>
@@ -592,10 +580,10 @@
 
                             <div class="mb-3">
 
-                                <label>Catatan Pemindahan</label>
+                                <label>Alasan Pemindahan <span class="text-danger">*</span></label>
 
-                                <textarea name="catatan" class="form-control" rows="3">
-                        </textarea>
+                                <textarea name="alasan" class="form-control" rows="3" required
+                                    placeholder="Tulis alasan pemindahan..."></textarea>
 
                             </div>
 
@@ -646,6 +634,34 @@
                 });
 
             });
+
+        document.querySelectorAll(".aset-checkbox-pindah")
+            .forEach(function(checkbox) {
+
+                checkbox.addEventListener("change", function() {
+
+                    const detail = document.getElementById(this.dataset.target);
+                    const selects = detail.querySelectorAll("select");
+
+                    if (this.checked) {
+                        detail.style.display = "block";
+                        selects.forEach(s => s.disabled = false);
+                    } else {
+                        detail.style.display = "none";
+                        selects.forEach(s => { s.disabled = true; s.value = ""; });
+                    }
+
+                });
+
+            });
+
+        document.getElementById("formPindahAset")?.addEventListener("submit", function(e) {
+            const checked = this.querySelectorAll(".aset-checkbox-pindah:checked");
+            if (checked.length === 0) {
+                e.preventDefault();
+                alert("Pilih minimal satu aset yang akan dipindahkan.");
+            }
+        });
 
         function setViewMode(mode) {
             const cards = document.getElementById('cardsView');
