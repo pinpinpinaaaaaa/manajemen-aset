@@ -86,31 +86,38 @@
                     @csrf
                     @method('PUT')
 
+                    <x-form-errors />
+
                     {{-- ================= PENGAJU ================= --}}
                     <div class="form-group mb-4">
                         <label class="form-label">Nama Pengaju</label>
 
-                        <input type="text" name="nama_pengaju" class="form-control"
+                        <input type="text" name="nama_pengaju"
+                            class="form-control @error('nama_pengaju') is-invalid @enderror"
                             value="{{ old('nama_pengaju', $data->nama_pengaju) }}" required>
+                        @error('nama_pengaju') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="form-group mb-4">
                         <label class="form-label">Email Pengaju</label>
 
-                        <input type="email" name="email_pengaju" class="form-control"
+                        <input type="email" name="email_pengaju"
+                            class="form-control @error('email_pengaju') is-invalid @enderror"
                             value="{{ old('email_pengaju', $data->email_pengaju) }}" required>
+                        @error('email_pengaju') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="form-group mb-4">
                         <label class="form-label">Divisi Pengaju</label>
 
-                        <select name="id_divisi_pengaju" class="form-select" required>
+                        <select name="id_divisi_pengaju"
+                            class="form-select @error('id_divisi_pengaju') is-invalid @enderror" required>
 
                             <option value="" disabled>-- Pilih Divisi --</option>
 
                             @foreach ($divisi as $d)
                                 <option value="{{ $d->id_divisi }}"
-                                    {{ $data->id_divisi_pengaju == $d->id_divisi ? 'selected' : '' }}>
+                                    {{ old('id_divisi_pengaju', $data->id_divisi_pengaju) == $d->id_divisi ? 'selected' : '' }}>
 
                                     {{ $d->nama_divisi }}
 
@@ -118,6 +125,7 @@
                             @endforeach
 
                         </select>
+                        @error('id_divisi_pengaju') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <hr class="my-4">
@@ -126,34 +134,41 @@
                     <div class="form-group mb-4">
                         <label class="form-label">Nama Pengirim</label>
 
-                        <input type="text" name="nama_pengirim" class="form-control"
+                        <input type="text" name="nama_pengirim"
+                            class="form-control @error('nama_pengirim') is-invalid @enderror"
                             value="{{ old('nama_pengirim', $data->nama_pengirim) }}" required>
+                        @error('nama_pengirim') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="form-group mb-4">
                         <label class="form-label">Email Pengirim</label>
 
-                        <input type="email" name="email_pengirim" class="form-control"
+                        <input type="email" name="email_pengirim"
+                            class="form-control @error('email_pengirim') is-invalid @enderror"
                             value="{{ old('email_pengirim', $data->email_pengirim) }}">
+                        @error('email_pengirim') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="form-group mb-4">
                         <label class="form-label">No HP Pengirim</label>
 
-                        <input type="text" name="no_hp_pengirim" class="form-control"
+                        <input type="text" name="no_hp_pengirim"
+                            class="form-control @error('no_hp_pengirim') is-invalid @enderror"
                             value="{{ old('no_hp_pengirim', $data->no_hp_pengirim) }}">
+                        @error('no_hp_pengirim') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="form-group mb-4">
                         <label class="form-label">Divisi Pengirim</label>
 
-                        <select name="id_divisi_pengirim" class="form-select" required>
+                        <select name="id_divisi_pengirim"
+                            class="form-select @error('id_divisi_pengirim') is-invalid @enderror" required>
 
                             <option value="" disabled>-- Pilih Divisi --</option>
 
                             @foreach ($divisi as $d)
                                 <option value="{{ $d->id_divisi }}"
-                                    {{ $data->id_divisi_pengirim == $d->id_divisi ? 'selected' : '' }}>
+                                    {{ old('id_divisi_pengirim', $data->id_divisi_pengirim) == $d->id_divisi ? 'selected' : '' }}>
 
                                     {{ $d->nama_divisi }}
 
@@ -161,6 +176,7 @@
                             @endforeach
 
                         </select>
+                        @error('id_divisi_pengirim') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <hr class="my-4">
@@ -176,28 +192,37 @@
                     <div class="form-group mb-4">
                         <label class="form-label">Nama Penerima</label>
 
-                        <input type="text" name="nama_penerima" class="form-control"
+                        <input type="text" name="nama_penerima"
+                            class="form-control @error('nama_penerima') is-invalid @enderror"
                             value="{{ old('nama_penerima', $data->nama_penerima) }}" required>
+                        @error('nama_penerima') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="form-group mb-4">
                         <label class="form-label">Email Penerima</label>
 
-                        <input type="email" name="email_penerima" class="form-control"
+                        <input type="email" name="email_penerima"
+                            class="form-control @error('email_penerima') is-invalid @enderror"
                             value="{{ old('email_penerima', $data->email_penerima) }}">
+                        @error('email_penerima') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="form-group mb-4">
                         <label class="form-label">No HP Penerima</label>
 
-                        <input type="text" name="no_hp_penerima" class="form-control"
+                        <input type="text" name="no_hp_penerima"
+                            class="form-control @error('no_hp_penerima') is-invalid @enderror"
                             value="{{ old('no_hp_penerima', $data->no_hp_penerima) }}">
+                        @error('no_hp_penerima') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="form-group mb-4">
                         <label class="form-label">Alamat Penerima</label>
 
-                        <textarea name="alamat_penerima" rows="4" class="form-control" required>{{ old('alamat_penerima', $data->alamat_penerima) }}</textarea>
+                        <textarea name="alamat_penerima" rows="4"
+                            class="form-control @error('alamat_penerima') is-invalid @enderror"
+                            required>{{ old('alamat_penerima', $data->alamat_penerima) }}</textarea>
+                        @error('alamat_penerima') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <hr class="my-4">
@@ -206,14 +231,18 @@
                     <div class="form-group mb-4">
                         <label class="form-label">Judul Kegiatan</label>
 
-                        <input type="text" name="judul_kegiatan" class="form-control"
+                        <input type="text" name="judul_kegiatan"
+                            class="form-control @error('judul_kegiatan') is-invalid @enderror"
                             value="{{ old('judul_kegiatan', $data->judul_kegiatan) }}" required>
+                        @error('judul_kegiatan') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="form-group mb-4">
                         <label class="form-label">Keterangan</label>
 
-                        <textarea name="keterangan" rows="4" class="form-control">{{ old('keterangan', $data->keterangan) }}</textarea>
+                        <textarea name="keterangan" rows="4"
+                            class="form-control @error('keterangan') is-invalid @enderror">{{ old('keterangan', $data->keterangan) }}</textarea>
+                        @error('keterangan') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <hr class="my-4">

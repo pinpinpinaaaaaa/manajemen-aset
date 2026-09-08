@@ -29,35 +29,46 @@
                     @csrf
                     @method('PUT')
 
+                    <x-form-errors />
+
                     <div class="form-group mb-3">
                         <label>Nama Pengaju</label>
-                        <input type="text" name="nama_pengaju" class="form-control"
+                        <input type="text" name="nama_pengaju"
+                            class="form-control @error('nama_pengaju') is-invalid @enderror"
                             value="{{ old('nama_pengaju', $peminjaman->nama_pengaju) }}" required>
+                        @error('nama_pengaju') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="form-group mb-3">
                         <label>Email Pengaju</label>
-                        <input type="email" name="email_pengaju" class="form-control"
+                        <input type="email" name="email_pengaju"
+                            class="form-control @error('email_pengaju') is-invalid @enderror"
                             value="{{ old('email_pengaju', $peminjaman->email_pengaju) }}" required>
+                        @error('email_pengaju') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="form-group mb-3">
                         <label>Divisi</label>
 
-                        <select name="id_divisi" class="form-select" required>
+                        <select name="id_divisi"
+                            class="form-select @error('id_divisi') is-invalid @enderror" required>
                             @foreach ($divisi as $d)
                                 <option value="{{ $d->id_divisi }}"
-                                    {{ $d->id_divisi == $peminjaman->id_divisi ? 'selected' : '' }}>
+                                    {{ old('id_divisi', $peminjaman->id_divisi) == $d->id_divisi ? 'selected' : '' }}>
                                     {{ $d->nama_divisi }}
                                 </option>
                             @endforeach
                         </select>
+                        @error('id_divisi') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="form-group mb-4">
                         <label>Alasan</label>
 
-                        <textarea name="alasan" class="form-control" rows="3" required>{{ old('alasan', $peminjaman->alasan) }}</textarea>
+                        <textarea name="alasan"
+                            class="form-control @error('alasan') is-invalid @enderror"
+                            rows="3" required>{{ old('alasan', $peminjaman->alasan) }}</textarea>
+                        @error('alasan') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <h5 class="mb-3">Detail Aset</h5>
@@ -81,7 +92,7 @@
                             $detail = $group->first();
                             $jumlah = $group->count();
                         @endphp
-                        <div class="border rounded p-3 mb-3">
+                        <div class="item-row border rounded p-3 mb-3">
 
                             <div class="mb-3">
                                 <label>Aset</label>
