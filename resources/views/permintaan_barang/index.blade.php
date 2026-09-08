@@ -105,7 +105,7 @@
                                         $color = match ($p->status) {
                                             'Belum Diproses' => 'secondary',
                                             'Sedang Diproses' => 'warning',
-                                            'Sudah Tersedia' => 'info',
+                                            'Tersedia' => 'info',
                                             'Selesai' => 'success',
                                             default => 'secondary',
                                         };
