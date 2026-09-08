@@ -442,6 +442,8 @@ public function pindahkan($id)
 
         foreach($p->details as $detail){
 
+            if($detail->status === 'Sudah dipindahkan') continue;
+
             $detail->aset->update([
                 'id_gedung' => $detail->to_gedung,
                 'id_ruangan' => $detail->to_ruangan,

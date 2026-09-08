@@ -232,6 +232,21 @@
 
             </div>
 
+            @php $belumDipindahBulk = $pemindahan->details->where('status', 'Belum dipindahkan')->count(); @endphp
+            @if ($pemindahan->decision_status === 'disetujui' && $belumDipindahBulk > 1)
+                <div class="text-end mb-3">
+                    <form method="POST"
+                          action="{{ route('pemindahan_aset.pindahkan', $pemindahan->id_pemindahan) }}"
+                          onsubmit="return confirm('Pindahkan SEMUA {{ $belumDipindahBulk }} aset sekaligus?\n\nSemua aset yang belum dipindahkan akan langsung direlokasi ke ruangan tujuan masing-masing.\n\nTindakan ini tidak dapat dibatalkan.')">
+                        @csrf
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-truck-moving"></i>
+                            Pindahkan Semua ({{ $belumDipindahBulk }} aset)
+                        </button>
+                    </form>
+                </div>
+            @endif
+
             <div class="show-detail-card">
                 <h5 class="fw-bold mb-3">
                     <i class="fas fa-check-circle text-success"></i> Approval Workflow
