@@ -285,8 +285,12 @@
                 <a href="{{ route('laporan_tahunan.index') }}" class="btn btn-outline-secondary">
                     Kembali
                 </a>
-                <a href="#" class="btn btn-primary" id="btnExportPdf">
-                    Export PDF
+                <a href="#" class="btn btn-outline-primary" id="btnExportPdf">
+                    <i class="fas fa-file-pdf"></i> Export PDF (Tab Aktif)
+                </a>
+                <a href="{{ route('laporan_tahunan.export', $laporan->id_laporan_tahunan) }}"
+                   class="btn btn-primary">
+                    <i class="fas fa-file-pdf"></i> Export PDF Lengkap
                 </a>
             </div>
 
