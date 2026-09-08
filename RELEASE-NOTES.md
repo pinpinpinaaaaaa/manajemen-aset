@@ -1,38 +1,187 @@
-# Catatan Rilis — Sistem Manajemen Aset (SIMASTER)
+# Catatan Rilis — SIMASTER V1 → V2
 
-**Versi:** Update Pertama pasca-deploy awal  
+**Versi:** V2 — Update Pertama Pasca-Deploy  
 **Tanggal:** September 2026  
-**Dari commit:** `3c90588` (initial commit)  
-**Hingga commit:** `beed7d3` (HEAD, main)  
-**Jumlah commit baru:** 20 commit
+**Titik awal V1:** `af5dab2` (commit terakhir yang sudah ter-deploy)  
+**HEAD V2:** `d767ffa` (main)  
+**Jumlah commit baru:** 21 commit  
 
 ---
 
-## ⚠️ LANGKAH DEPLOY (BACA DULU SEBELUM LANJUT)
+## BAGIAN A — Apa yang Berubah dari V1 ke V2
 
-> **Ini bukan fresh install.** Ikuti checklist ini **secara berurutan** setelah `git pull`.
-> **JANGAN jalankan `migrate:fresh`, `db:seed` (DatabaseSeeder), atau `db:wipe` — akan menghapus semua data produksi.**
+### 1. Bug Kritis — Alur yang Tidak Bisa Diselesaikan
 
-### Checklist Deploy Update
+#### Peminjaman Aset — Tombol Serahkan & Kembalikan
+**V1:** Kolom Aksi di halaman detail peminjaman menampilkan `...`. Admin tidak bisa menyerahkan atau menerima kembali aset dari UI — alur stuck setelah disetujui.  
+**V2:** Kolom Aksi menampilkan tombol kondisional sesuai status tiap item:
+- `menunggu` / `disetujui` → tombol **Serahkan**
+- `dipinjam` → tombol **Kembalikan** (buka modal konfirmasi)
+- `dikembalikan` → badge read-only
+
+Alur peminjaman aset sekarang bisa diselesaikan end-to-end dari UI.
+
+---
+
+#### Pengaduan Kerusakan → Maintenance
+**V1:** Menyetujui pengaduan kerusakan tidak membuat record maintenance. Akibatnya: tiket tidak muncul di Maintenance Berjalan, aset tidak berubah status/kelayakan, tidak ada AsetLog.  
+**V2:** `approve()` membuat `MaintenanceDetail` per aset, mengubah status aset ke `maintenance` dan kelayakan ke `4 (Perlu Perbaikan)`, mencatat AsetLog `maintenance_baru`. Tiket muncul di Maintenance Berjalan.
+
+---
+
+#### Modal Pemindahan Aset di Dashboard Ruangan
+**V1:** Modal "Pindahkan Aset" selalu gagal saat submit — form mengirim `details[n][id_gedung]` tapi controller mengharapkan `to_gedung[]`. Tidak ada pesan error yang jelas.  
+**V2:** Field name disesuaikan. Alasan dijadikan 1 input global. JS toggle enable/disable select tujuan saat checkbox aset dipilih.
+
+---
+
+#### Modal Maintenance di Dashboard Ruangan
+**V1:** Hidden input `id_aset` berada di luar div toggle → seluruh aset (termasuk yang tidak dicentang) selalu ikut submit → validasi gagal karena aset tidak dicentang tidak punya data kerusakan.  
+**V2:** Hidden input dipindah ke dalam `detail-form` div. Input diberi `disabled` awal; ter-enable hanya saat checkbox dicentang.
+
+---
+
+#### Form Publik — Endpoint AJAX Tidak Bisa Diakses
+**V1:** 3 endpoint AJAX (`/get-ruangan-available`, `/get-aset-tersedia`, `/cek-ketersediaan`) berada di dalam grup middleware `auth` → form publik mendapat 401, dropdown cascading dan cek ketersediaan tidak berfungsi.  
+**V2:** Ketiga endpoint dipindah ke luar grup `auth` (bersifat read-only). Form publik berfungsi normal.
+
+---
+
+### 2. RBAC & Sidebar
+
+**V1:** Beberapa menu tidak muncul di sidebar meski user punya akses:
+- 5 menu dengan route name mengandung `-` (dash) tidak terbaca karena helper hanya memeriksa `_` (underscore)
+- Guard section Maintenance dan Sarana salah kondisi
+- Tidak ada akses ke Manual Pengguna
+
+**V2:**
+- `canMenu()` diperbaiki untuk menangani route dengan dash maupun underscore
+- Guard section Maintenance dan Sarana difix
+- Tambah link **Manual Pengguna** di bagian bawah sidebar (mengarah ke file PDF)
+
+---
+
+### 3. Gudang
+
+**V1 → V2:**
+
+| Masalah V1 | Status V2 |
+|---|---|
+| Menu Transaksi Gudang & Stok Opname tidak muncul di sidebar | Menu didaftarkan via `AddGudangMenusSeeder` (aditif, tidak hapus data) |
+| Barang dengan satuan tunggal (`lembar/lembar`) selalu error validasi | `konversi_satuan` & `satuan_dasar` dijadikan nullable. Checkbox konversi → jika tidak dicentang, satuan dasar = satuan utama |
+| Layout form transaksi gudang rusak (kolom satuan meluap ke area qty) | Override CSS spesifik di halaman transaksi gudang |
+
+---
+
+### 4. Form — Error Display & Validasi
+
+**V1:** Jika form (publik maupun internal) gagal validasi server-side:
+- Tidak ada indikasi field mana yang salah
+- Data yang sudah diisi hilang / kembali ke nilai DB lama
+
+**V2 — 19 form diperbaiki:**
+
+**6 Form Publik** kini menampilkan pesan error Bahasa Indonesia + restore nilai terakhir diketik:
+
+| Form | Catatan Khusus |
+|---|---|
+| Peminjaman Aset | TomSelect restore + item loop |
+| Peminjaman Ruangan | **Bug kritis diperbaiki:** field `peserta_rapat` ↔ `nama_kegiatan` tertukar — data selama ini tersimpan ke kolom yang salah |
+| Pengaduan Kerusakan | Cascading gedung→ruangan→aset restore async |
+| Permintaan Barang | TomSelect restore + item loop |
+| Pengadaan Barang | Item restore per jenis (barang/jasa) |
+| Permintaan Kendaraan | Auto-trigger cek ketersediaan setelah restore |
+
+**13 Form Internal Edit** kini menampilkan kotak error ringkasan (`<x-form-errors />`), highlight merah per field, dan nilai terakhir diketik dikembalikan:  
+`maintenance/edit`, `ekspedisi/edit`, `peminjaman_aset/edit`, `pemindahan_aset/edit`, `laporan_pemusnahan/edit`, `pengadaan_barang/edit`, `permintaan_barang/edit`, `peminjaman_ruangan/edit`, `roles/create`, `roles/edit`, `gudang/create`, `gudang/edit`, `vendor/create`
+
+**Bug JS yang ditemukan & diperbaiki:**
+- `peminjaman_aset/edit`: Selector `.item-row` tidak ada di HTML → AJAX cek ketersediaan tidak pernah terpicu
+- `vendor/create`: Selector `.npwp-file` / `.pakta_integritas-file` tidak ada (div pakai `data-file=...` bukan `class=...`) → toggle radio Upload/Link tidak berfungsi untuk 2 dokumen
+
+---
+
+### 5. Data & Session
+
+**V1:** Session login menggunakan kolom `id_user` di tabel `sessions`. Setelah upgrade Laravel framework, nama kolom berubah menjadi `user_id` → semua login mendapat **error 500**.  
+**V2:** Migrasi `fix_sessions_rename_id_user_to_user_id` merename kolom (ALTER TABLE, tidak membuang data). Login kembali normal.
+
+**V1:** Catatan penolakan permintaan kendaraan tidak tersimpan (`reject()` tidak menerima `Request`).  
+**V2:** `reject()` memvalidasi dan menyimpan catatan admin. Halaman detail menampilkan "Alasan Penolakan" saat status ditolak.
+
+**V1:** Badge status "Tersedia" di permintaan barang selalu abu-abu (string `'Sudah Tersedia'` tidak cocok dengan nilai DB `'Tersedia'`).  
+**V2:** String disesuaikan → badge tampil biru (info).
+
+---
+
+### 6. Tampilan
+
+**V1 → V2:**
+- Layout PDF direfactor jadi 2 tipe: **Tipe A** (laporan biasa, logo atas) dan **Tipe B** (surat resmi, kop surat + footer per halaman)
+- Posisi logo geser diperbaiki di beberapa ekspor PDF
+- Colspan tabel kosong (`@empty`) diperbaiki di 7 halaman (pengadaan, ekspedisi, peminjaman, pemusnahan)
+- Halaman detail aset: kode aset (misal `A0025`) kini jadi judul utama — mudah dibaca saat buka banyak tab
+
+---
+
+### 7. Fitur Baru
+
+| Fitur | Deskripsi |
+|---|---|
+| **Menu Manual Pengguna** | Link ke PDF panduan di sidebar bawah. Perlu file `Manual-SIMASTER.pdf` diunggah ke server (lihat Bagian B Langkah 4) |
+| **Tombol Pindahkan Semua (bulk)** | Di detail pemindahan aset: pindahkan semua aset yang belum dipindah sekaligus, dengan konfirmasi eksplisit dan guard anti-duplikat AsetLog |
+| **Export PDF Lengkap** | Di laporan tahunan: tombol baru menghasilkan PDF semua section dalam satu file. Tombol lama berlabel "Export PDF (Tab Aktif)" |
+| **Seed menu gudang** | `AddGudangMenusSeeder` mendaftarkan menu Transaksi Gudang & Stok Opname secara aditif |
+
+---
+
+## BAGIAN B — Cara Upgrade dari V1
+
+> **Ini bukan fresh install. JANGAN jalankan `migrate:fresh`, `db:seed` (DatabaseSeeder), atau `db:wipe` — akan menghapus semua data produksi.**
+
+### Langkah Upgrade (ikuti berurutan)
 
 ```
 [ ] 1. git pull
-[ ] 2. composer install --no-dev (jika ada package baru)
-[ ] 3. npm ci && npm run build (rebuild asset frontend)
-[ ] 4. php artisan migrate          ← WAJIB (ada 1 migrasi baru)
-[ ] 5. php artisan db:seed --class=AddGudangMenusSeeder  ← WAJIB (menu gudang baru)
-[ ] 6. Upload file PDF manual       ← WAJIB (taruh manual di server)
+[ ] 2. composer install --no-dev --optimize-autoloader
+[ ] 3. npm ci && npm run build
+[ ] 4. php artisan migrate                               ← WAJIB KRITIS
+[ ] 5. php artisan db:seed --class=AddGudangMenusSeeder  ← WAJIB
+[ ] 6. Upload Manual-SIMASTER.pdf ke public/manual/      ← WAJIB (manual)
 [ ] 7. php artisan config:clear && php artisan view:clear && php artisan route:clear && php artisan cache:clear
-[ ] 8. (restart queue worker jika pakai supervisor)
+[ ] 8. Restart queue worker (supervisor / docker)
 ```
 
 ---
 
-### Detail Tiap Langkah
+#### Langkah 1 — `git pull` (aman, fast-forward)
 
-#### Langkah 4 — Migrasi Database (WAJIB)
+`git pull` dari V1 ke V2 berjalan **mulus sebagai fast-forward**.
 
-Ada **1 migrasi baru** yang harus dijalankan:
+Titik sambung antara V1 dan V2 adalah commit `af5dab2` — hash-nya **tidak berubah** selama proses update V2. Git cukup maju 21 commit ke depan tanpa konflik.
+
+```bash
+git pull
+```
+
+> **⚠️ Kasus tepi — jika `git pull` ditolak dengan pesan "rejected" atau "divergent branches":**  
+> Ini terjadi jika kamu sempat melakukan `git pull` di antara push pertama V2 dan force-push V2 final (hash commit berubah). Dalam kasus ini:
+> ```bash
+> # Simpan perubahan lokal dulu jika ada
+> git stash
+>
+> # Reset ke versi remote
+> git fetch origin
+> git reset --hard origin/main
+>
+> # Kembalikan perubahan lokal jika ada
+> git stash pop
+> ```
+> ⚠️ **`git reset --hard` akan menghapus semua perubahan lokal yang belum di-commit secara permanen.** Pastikan sudah `git stash` atau backup perubahan lokal sebelum menjalankan ini.
+
+---
+
+#### Langkah 4 — Migrasi Database (WAJIB KRITIS)
 
 ```bash
 php artisan migrate
@@ -40,62 +189,51 @@ php artisan migrate
 
 **Migrasi:** `2026_09_01_152443_fix_sessions_rename_id_user_to_user_id`  
 **Efek:** Rename kolom `id_user` → `user_id` di tabel `sessions`.  
-**Kenapa penting:** Tanpa migrasi ini, semua user mendapat **error 500 saat login**. Migrasi ini sudah diperbaiki di versi baru dan aman dijalankan pada data aktif (ALTER TABLE biasa, tidak membuang data).
+**Tanpa ini:** Semua user mendapat **error 500 saat login**. Aman dijalankan pada data aktif (ALTER TABLE biasa, tidak membuang data).
 
-> Cek status migrasi dulu jika ragu:
-> ```bash
-> php artisan migrate:status
-> ```
-> Migrasi `fix_sessions_rename_id_user_to_user_id` harus berstatus **Pending** sebelum dijalankan.
+```bash
+# Verifikasi status sebelum migrate:
+php artisan migrate:status
+# Migrasi di atas harus berstatus "Pending"
+```
 
 ---
 
-#### Langkah 5 — Jalankan Seeder Aditif (WAJIB)
+#### Langkah 5 — Seeder Aditif Menu Gudang (WAJIB)
 
 ```bash
 php artisan db:seed --class=AddGudangMenusSeeder
 ```
 
-**Efek:** Menambahkan 2 menu baru ke tabel `menus`:
-- **Transaksi Gudang** (`gudang.transaksi.index`)
-- **Stok Opname** (`gudang.stok_opname.index`)
+**Efek:** Menambah 2 menu ke tabel `menus`: **Transaksi Gudang** dan **Stok Opname**.  
+**Tanpa ini:** Dua halaman gudang tidak muncul di sidebar dan tidak bisa diakses via RBAC.  
+**Aman diulang:** Menggunakan `firstOrCreate` — tidak membuat duplikat jika dijalankan dua kali.
 
-**Kenapa aman:** Seeder ini menggunakan `firstOrCreate` — tidak akan membuat duplikat jika dijalankan dua kali. Tidak menyentuh menu lain atau assignment role yang sudah ada.
-
-Setelah seeder jalan, **assign menu ini ke role yang perlu akses gudang** via halaman Admin → Roles.
+Setelah seeder jalan, buka **Admin → Roles** dan tambahkan kedua menu ke role yang perlu akses gudang.
 
 ---
 
-#### Langkah 6 — Upload File Manual Pengguna (WAJIB)
+#### Langkah 6 — Upload File PDF Manual Pengguna (WAJIB, manual)
 
-File PDF manual **tidak ikut push ke git** (ukuran besar, konten statis). Taruh secara manual:
+File PDF tidak disertakan di git (21 MB). Sidebar menampilkan link "Manual Pengguna" yang mengarah ke file ini — jika file tidak ada, link mengembalikan 404.
 
 ```bash
-# Di server, pastikan folder sudah ada:
-mkdir -p public/manual
-
-# Upload file via scp/sftp dari mesin lokal:
+# Via SCP dari mesin lokal:
 scp "Manual-SIMASTER.pdf" user@server:/opt/manajemen-aset/public/manual/
 ```
 
-Atau jika pakai Docker:
-```bash
-docker cp "Manual-SIMASTER.pdf" app:/var/www/html/public/manual/
-```
+File harus bisa diakses di: `https://domain-kamu/manual/Manual-SIMASTER.pdf`
 
-File harus bisa diakses di URL: `https://domain-kamu/manual/Manual-SIMASTER.pdf`
-
-Sidebar akan menampilkan link "Manual Pengguna" yang mengarah ke file ini.
+> Minta file `Manual-SIMASTER.pdf` dari pemilik project jika belum punya.
 
 ---
 
-#### Jika pakai Docker
+#### Jika Pakai Docker Compose
 
 ```bash
 cd /opt/manajemen-aset
 git pull
 docker compose -f docker-compose.prod.yml up -d --build
-# Build otomatis menjalankan composer install + npm build
 
 # Setelah container jalan:
 docker compose -f docker-compose.prod.yml exec app php artisan migrate
@@ -110,203 +248,27 @@ docker cp "Manual-SIMASTER.pdf" app:/var/www/html/public/manual/
 
 ---
 
-## Ringkasan Perubahan
-
----
-
-### 1. Perbaikan Alur Inti
-
-#### Peminjaman Aset — Tombol Serahkan & Kembalikan
-**Sebelumnya:** Halaman detail peminjaman aset menampilkan `...` di kolom Aksi. Admin tidak bisa menyerahkan atau menerima kembali aset dari antarmuka — alur peminjaman stuck setelah disetujui.
-
-**Sekarang:** Kolom Aksi menampilkan tombol kondisional sesuai status tiap item:
-- Status `menunggu` atau `disetujui` → tombol **Serahkan**
-- Status `dipinjam` → tombol **Kembalikan** (buka modal konfirmasi)
-- Status `dikembalikan` → badge Dikembalikan (read-only)
-
-Alur peminjaman aset sekarang bisa diselesaikan end-to-end dari UI.
-
----
-
-#### Pengaduan Kerusakan → Maintenance (3 perbaikan sekaligus)
-**Sebelumnya:** Menyetujui (approve) pengaduan kerusakan tidak membuat record `MaintenanceDetail`. Akibatnya:
-- Tiket tidak muncul di halaman Maintenance Berjalan
-- Aset yang dilaporkan rusak tidak berubah status/kelayakan
-- Tidak ada riwayat aktivitas (AsetLog) untuk transisi ini
-
-**Sekarang:**
-- `approve()` membuat `MaintenanceDetail` per aset yang dilaporkan
-- Status aset otomatis berubah ke `maintenance`, kelayakan ke `4 (Perlu Perbaikan)`
-- AsetLog `maintenance_baru` dicatat otomatis (konsisten dengan jalur manual)
-- Tiket muncul di Maintenance Berjalan
-
----
-
-### 2. Perbaikan Bug Fungsional
-
-#### Modal Pemindahan Aset di Dashboard Ruangan — SELALU GAGAL
-**Sebelumnya:** Modal "Pindahkan Aset" di dashboard ruangan selalu gagal saat submit karena field name tidak cocok antara form dan controller:
-- Form mengirim `details[n][id_gedung]` tapi controller mengharapkan `to_gedung[]`
-
-**Sekarang:** Field name disesuaikan dengan ekspektasi controller. Field alasan dijadikan 1 input global (bukan per-aset). JS toggle enable/disable select tujuan saat checkbox aset dipilih.
-
----
-
-#### Modal Maintenance di Dashboard Ruangan — Aset Tak Dicentang Ikut Submit
-**Sebelumnya:** Hidden input `id_aset` berada di luar div yang di-toggle, sehingga seluruh aset (termasuk yang tidak dicentang) selalu ikut terkirim. Aset yang tidak dicentang tidak punya data kerusakan → validasi `required` gagal.
-
-**Sekarang:** Hidden input dipindah ke dalam `detail-form` div. Semua input (id_aset, kerusakan, foto_before) diberi `disabled` awal; hanya ter-enable saat checkbox dicentang → tidak ikut submit jika tidak dicentang.
-
----
-
-#### Form Publik — Endpoint AJAX Tidak Bisa Diakses
-**Sebelumnya:** 3 endpoint AJAX berada di dalam grup middleware `auth`, sehingga form publik (tanpa login) tidak bisa memanggil:
-- `/get-ruangan-available` — dropdown ruangan di form peminjaman ruangan
-- `/get-aset-tersedia` — filter aset di form pengaduan kerusakan
-- `/cek-ketersediaan` — cek kuota unit tersedia di form peminjaman aset
-
-**Sekarang:** Ketiga endpoint dipindah ke luar grup `auth` (bersifat read-only, tidak mutasi data). Form publik berfungsi normal.
-
----
-
-#### Konsumsi Peminjaman Ruangan — Jumlah Bisa Kosong Diam-diam
-**Sebelumnya:** Checkbox konsumsi (air mineral, makanan ringan, makanan berat) tidak punya atribut `name`. Server tidak bisa membedakan "tidak dicentang" vs "dicentang tapi jumlah dikosongkan". Kondisi lama (`empty(jumlah) → skip`) diam-diam membuang konsumsi yang diminta user.
-
-**Sekarang:** Tambah `name="konsumsi[n][dipilih]"` ke tiap checkbox. Controller memvalidasi: jika `dipilih=1` tapi jumlah kosong, kembalikan error spesifik per jenis (Bahasa Indonesia).
-
----
-
-#### Catatan Penolakan Permintaan Kendaraan Tidak Tersimpan
-**Sebelumnya:** Method `reject()` tidak menerima parameter `Request`, sehingga catatan yang diisi admin di modal Tolak tidak terbaca dan tidak tersimpan ke database.
-
-**Sekarang:** `reject()` menerima `Request $request`, memvalidasi field `catatan` (wajib diisi, max 1000 karakter), dan menyimpan catatan bersama status `ditolak`. Halaman detail menampilkan label "Alasan Penolakan" saat status ditolak.
-
----
-
-#### Badge Status "Tersedia" di Permintaan Barang Selalu Abu-abu
-**Sebelumnya:** Kondisi `match` memeriksa string `'Sudah Tersedia'`, padahal nilai aktual dari database adalah `'Tersedia'`. Badge jatuh ke default (warna abu-abu) untuk semua permintaan yang sudah tersedia.
-
-**Sekarang:** String disesuaikan dengan nilai enum aktual. Badge "Tersedia" tampil dengan warna biru (info).
-
----
-
-### 3. Perbaikan RBAC & Sidebar
-
-**Sebelumnya:** Beberapa menu tidak muncul di sidebar meskipun user punya akses:
-- 5 menu dengan nama route mengandung `-` (dash) tidak terbaca karena helper memeriksa `_` (underscore)
-- Guard section Maintenance dan Sarana salah kondisi
-
-**Sekarang:**
-- Perbaiki `canMenu()` untuk menangani route dengan dash maupun underscore
-- Fix guard section Maintenance dan Sarana di sidebar
-- Tambah link **Manual Pengguna** di bagian bawah sidebar (mengarah ke file PDF)
-
----
-
-### 4. Perbaikan Gudang
-
-#### Menu Transaksi Gudang & Stok Opname Tidak Muncul
-**Sebelumnya:** Menu Transaksi Gudang dan Stok Opname tidak pernah didaftarkan ke tabel `menus` saat deploy awal, sehingga tidak muncul di sidebar dan tidak bisa diakses via RBAC.
-
-**Sekarang:** `AddGudangMenusSeeder` mendaftarkan kedua menu secara aditif (tanpa menghapus data). Lihat Langkah 5 di atas.
-
----
-
-#### Satuan Barang Gudang Selalu Error Validasi
-**Sebelumnya:** Barang dengan satuan tunggal (misal: `lembar/lembar`) selalu gagal disimpan karena `konversi_satuan` dan `satuan_dasar` dianggap wajib oleh validasi.
-
-**Sekarang:** Kolom `konversi_satuan` dan `satuan_dasar` dijadikan nullable. Form menampilkan checkbox "Barang ini punya satuan konversi" — jika tidak dicentang, satuan dasar otomatis diisi sama dengan satuan utama (konversi = 1:1).
-
----
-
-#### Layout Form Transaksi Gudang Rusak
-**Sebelumnya:** CSS global (`styles.css`) men-set `display:flex` dan `min-width:300px` pada `.form-select` sehingga kolom satuan di form transaksi meluap ke area qty dan tata letak hancur.
-
-**Sekarang:** Override CSS spesifik di halaman transaksi gudang untuk mengembalikan layout yang benar.
-
----
-
-### 5. Perbaikan Form (Error Display & Validasi)
-
-#### 6 Form Publik — Tidak Ada Pesan Error & Data Hilang Setelah Submit Gagal
-Sebelumnya, jika form publik gagal validasi server-side (misalnya format email salah), user diarahkan ke halaman kosong atau data yang sudah diisi hilang semua.
-
-**Sekarang** — semua 6 form publik sudah diperbaiki:
-
-| Form | Perbaikan Kritis |
-|---|---|
-| Peminjaman Aset | TomSelect restore + item loop |
-| Peminjaman Ruangan | **Bug kritis:** nama field `peserta_rapat` ↔ `nama_kegiatan` tertukar → data tersimpan ke kolom salah. **Sudah diperbaiki.** |
-| Pengaduan Kerusakan | Cascading gedung→ruangan→aset restore async |
-| Permintaan Barang | TomSelect restore + item loop |
-| Pengadaan Barang | Item restore per jenis (barang/jasa) |
-| Permintaan Kendaraan | Auto-trigger cek ketersediaan setelah restore |
-
-Semua controller mendapat custom messages validasi Bahasa Indonesia.
-
----
-
-#### 10 Form Internal (Edit) — Tidak Ada Pesan Error & Data Reset Ke DB
-Sebelumnya, jika edit form gagal validasi, user tidak tahu field mana yang salah dan semua perubahan yang belum disimpan hilang (tampil nilai lama dari DB).
-
-**Sekarang** — 10 form internal edit sudah diperbaiki dengan:
-- Kotak error ringkasan di atas form (`<x-form-errors />`)
-- Highlight merah per field yang salah (`is-invalid` + pesan spesifik)
-- Nilai form kembali ke yang terakhir diketik (bukan reset ke DB)
-
-Form yang diperbaiki: `maintenance/edit`, `ekspedisi/edit`, `peminjaman_aset/edit`, `pemindahan_aset/edit`, `laporan_pemusnahan/edit`, `pengadaan_barang/edit`, `permintaan_barang/edit`, `peminjaman_ruangan/edit`, `roles/create`, `roles/edit`, `gudang/create`, `gudang/edit`, `vendor/create`.
-
-**Bug fungsional yang ditemukan & diperbaiki selama proses ini:**
-- `peminjaman_aset/edit`: Selector JS `.item-row` tidak ada di HTML → AJAX cek ketersediaan tidak pernah terpicu
-- `vendor/create`: Selector JS `.npwp-file` / `.pakta_integritas-file` tidak ada (div pakai `data-file=...` bukan `class=...`) → toggle radio Upload File/Link tidak berfungsi untuk 2 dokumen tersebut
-
----
-
-### 6. Perbaikan Tampilan
-
-#### Layout PDF
-- Refactor jadi 2 tipe: **Tipe A** (laporan biasa, logo di atas) dan **Tipe B** (surat resmi, kop surat + footer per halaman)
-- Fix posisi logo yang geser di beberapa ekspor PDF
-- Fix `colspan` pada tabel kosong di 7 halaman (pengadaan, ekspedisi, peminjaman, dll)
-
-#### Halaman Detail Aset
-- Kode aset (misal `A0025`) kini jadi judul utama besar — mudah dibaca saat membuka halaman
-- Nama aset jadi sub-judul di bawahnya
-
----
-
-### 7. Fitur Baru
-
-| Fitur | Deskripsi |
-|---|---|
-| **Manual Pengguna** | Link ke PDF panduan penggunaan di sidebar (bawah menu) |
-| **Tombol Pindahkan Semua** | Di halaman detail pemindahan aset: pindahkan semua aset yang belum dipindah sekaligus (bulk), dengan konfirmasi eksplisit dan guard anti-duplikat AsetLog |
-| **Export PDF Lengkap** | Di laporan tahunan: tombol baru "Export PDF Lengkap" menghasilkan PDF semua section (pengadaan, gudang, maintenance, pemusnahan) dalam satu file. Tombol lama sekarang berlabel "Export PDF (Tab Aktif)" |
-
----
-
-## Pemeriksaan Keamanan Sebelum Push
+## Pemeriksaan Keamanan
 
 | Pemeriksaan | Status | Catatan |
 |---|---|---|
-| `.env` tidak ter-commit | ✅ Aman | Ada di `.gitignore` |
+| `.env` tidak ter-commit | ✅ Aman | Ada di `.gitignore` akar |
 | `database/database.sqlite` tidak ter-commit | ✅ Aman | Ada di `database/.gitignore` (`*.sqlite*`) |
-| File upload tidak ter-commit | ✅ Aman | Folder `storage/app/public/*/` ada di `.gitignore` |
-| File `MANUAL PENGGUNA.docx` / `Manual-SIMASTER.pdf` | ✅ Aman | Untracked, upload manual ke server |
-| Tidak ada file debug/test tidak sengaja ter-commit | ✅ Aman | Cek via `git show --stat HEAD` tiap commit |
+| File upload tidak ter-commit | ✅ Aman | `storage/app/public/*/` ada di `.gitignore` |
+| `Manual-SIMASTER.pdf` tidak ter-commit | ✅ Aman | Untracked, upload manual ke server |
+| Tidak ada file debug/test tidak sengaja ter-commit | ✅ Aman | Seluruh 21 commit telah diperiksa |
 | `.env.example` ter-commit | ✅ Sengaja | Template konfigurasi, tidak berisi nilai sensitif |
 
 ---
 
-## Daftar File Berubah (Ringkasan)
+## Daftar File yang Berubah (Ringkasan)
 
-| Kategori | File Utama yang Berubah |
+| Kategori | File Utama |
 |---|---|
 | Controller | `PengaduanKerusakanController`, `PeminjamanRuanganController`, `PemindahanAsetController`, `PermintaanKendaraanController`, `GudangController`, + 5 controller form publik |
-| View (form) | 13 form internal edit + 6 form publik + `ruangan/dashboard.blade.php` |
-| View (laporan/show) | `peminjaman_aset/show`, `pemindahan_aset/show`, `laporan_tahunan/show` |
-| Database | 1 migrasi baru (`fix_sessions`), 1 seeder baru (`AddGudangMenusSeeder`) |
+| View — form | 13 form internal edit + 6 form publik + `ruangan/dashboard.blade.php` |
+| View — show/laporan | `peminjaman_aset/show`, `pemindahan_aset/show`, `laporan_tahunan/show` |
+| Database | 1 migrasi (`fix_sessions`), 1 seeder (`AddGudangMenusSeeder`) |
 | Layout/Partial | `sidebar.blade.php`, `pdf/layout.blade.php`, `pdf/layout-surat.blade.php` (baru) |
-| Routes | `routes/web.php` (pindah 3 endpoint ke publik, hapus 5 dead route) |
-| Komponen Baru | `resources/views/components/form-errors.blade.php` |
-| Infrastruktur | `DEPLOYMENT.md` (baru), `docker-compose.prod.yml` (diperbarui), `.env.example` (diperbarui) |
+| Routes | `web.php` — 3 endpoint dipindah ke publik, 5 dead route dihapus |
+| Komponen Blade | `resources/views/components/form-errors.blade.php` (baru) |
