@@ -21,15 +21,19 @@
             <form action="{{ route('roles.store') }}" method="POST">
                 @csrf
 
+                <x-form-errors />
+
                 <div class="form-group mb-4">
                     <label class="form-label">Nama Role</label>
                     <input
                         type="text"
                         name="nama_role"
-                        class="form-control"
+                        class="form-control @error('nama_role') is-invalid @enderror"
                         placeholder="Masukkan nama role"
+                        value="{{ old('nama_role') }}"
                         required
                     >
+                    @error('nama_role') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
 
                 <h3 class="mb-3" style="font-size:20px; font-weight:600;">
@@ -71,6 +75,7 @@
                                             type="checkbox"
                                             name="menus[]"
                                             value="{{ $menu->id }}"
+                                            {{ in_array($menu->id, old('menus', [])) ? 'checked' : '' }}
                                         >
                                         <span>{{ $menu->name }}</span>
                                     </label>
@@ -103,6 +108,7 @@
                                                         type="checkbox"
                                                         name="menus[]"
                                                         value="{{ $child->id }}"
+                                                        {{ in_array($child->id, old('menus', [])) ? 'checked' : '' }}
                                                     >
                                                     <span>{{ $child->name }}</span>
                                                 </label>

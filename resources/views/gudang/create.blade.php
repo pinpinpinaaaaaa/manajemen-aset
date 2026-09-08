@@ -21,6 +21,8 @@
                 <form action="{{ route('gudang.store') }}" method="POST">
                     @csrf
 
+                    <x-form-errors />
+
                     @if (isset($permintaanId))
                         <input type="hidden" name="permintaan_id" value="{{ $permintaanId }}">
                     @endif
@@ -33,18 +35,20 @@
                     {{-- Nama Barang --}}
                     <div class="form-group mb-3">
                         <label class="form-label">Nama Barang</label>
-                        <input type="text" name="nama_barang" class="form-control"
+                        <input type="text" name="nama_barang"
+                            class="form-control @error('nama_barang') is-invalid @enderror"
                             value="{{ old('nama_barang', $namaBarang ?? '') }}" required>
+                        @error('nama_barang') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     {{-- Jenis Barang --}}
                     <div class="form-group mb-3">
                         <label class="form-label">Jenis Barang</label>
-                        <select name="jenis" class="form-select" required>
+                        <select name="jenis" class="form-select @error('jenis') is-invalid @enderror" required>
                             <option value="">-- Pilih Jenis --</option>
 
                             @foreach ($enumValues as $j)
-                                <option value="{{ $j }}">
+                                <option value="{{ $j }}" {{ old('jenis') == $j ? 'selected' : '' }}>
                                     {{ strtoupper($j) }}
                                     @if ($j == 'atk')
                                         (Alat Tulis Kantor)
@@ -55,12 +59,15 @@
                                 </option>
                             @endforeach
                         </select>
+                        @error('jenis') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     {{-- Satuan --}}
                     <div class="form-group mb-3">
                         <label class="form-label">Satuan</label>
-                        <input list="satuanList" name="satuan" id="satuanSelect" class="form-control"
+                        <input list="satuanList" name="satuan" id="satuanSelect"
+                            class="form-control @error('satuan') is-invalid @enderror"
+                            value="{{ old('satuan') }}"
                             placeholder="pcs / pack / dus / lembar / buah / dll" required>
 
                         <datalist id="satuanList">
@@ -74,12 +81,19 @@
                             <option value="unit">
                             <option value="batang">
                         </datalist>
+                        @error('satuan') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
+
+                    @php
+                        // Tampilkan konversi kalau data lama menunjukkan satuan_dasar beda dengan satuan
+                        $oldKonversi = old('satuan') !== null && old('satuan_dasar') !== old('satuan');
+                    @endphp
 
                     {{-- Checkbox konversi --}}
                     <div class="form-group mb-3">
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="adaKonversi">
+                            <input class="form-check-input" type="checkbox" id="adaKonversi"
+                                {{ $oldKonversi ? 'checked' : '' }}>
                             <label class="form-check-label" for="adaKonversi">
                                 Barang ini punya satuan konversi
                                 <small class="text-muted">(misal: 1 pack = 10 lembar)</small>
@@ -88,17 +102,18 @@
                     </div>
 
                     {{-- Section konversi — tersembunyi secara default --}}
-                    <div id="konversiOptions" style="display:none;">
+                    <div id="konversiOptions" style="{{ $oldKonversi ? '' : 'display:none;' }}">
 
                         <div class="form-group mb-3">
                             <label class="form-label">Jumlah Isi</label>
                             <input type="number" name="konversi_satuan" id="konversiInput" class="form-control"
-                                min="1" value="1">
+                                min="1" value="{{ old('konversi_satuan', 1) }}">
                         </div>
 
                         <div class="form-group mb-3">
                             <label class="form-label">Satuan Dasar</label>
                             <input list="satuanList" name="satuan_dasar" class="form-control"
+                                value="{{ old('satuan_dasar') }}"
                                 placeholder="pcs / lembar / buah / dll">
                         </div>
 
@@ -107,13 +122,14 @@
                     {{-- Limit Stok --}}
                     <div class="form-group mb-3">
                         <label class="form-label">Limit Stok Minimum</label>
-                        <input type="number" name="limit_stok" class="form-control" min="0">
+                        <input type="number" name="limit_stok" class="form-control" min="0"
+                            value="{{ old('limit_stok') }}">
                     </div>
 
                     {{-- Keterangan --}}
                     <div class="form-group mb-3">
                         <label class="form-label">Keterangan</label>
-                        <textarea name="keterangan" class="form-control" rows="3"></textarea>
+                        <textarea name="keterangan" class="form-control" rows="3">{{ old('keterangan') }}</textarea>
                     </div>
 
                     <div class="text-end">

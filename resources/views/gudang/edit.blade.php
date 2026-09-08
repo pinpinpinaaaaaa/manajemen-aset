@@ -23,20 +23,25 @@
                     @csrf
                     @method('PUT')
 
+                    <x-form-errors />
+
                     {{-- Nama Barang --}}
                     <div class="form-group mb-3">
                         <label class="form-label">Nama Barang</label>
-                        <input type="text" name="nama_barang" class="form-control" value="{{ $barang->nama_barang }}"
-                            required>
+                        <input type="text" name="nama_barang"
+                            class="form-control @error('nama_barang') is-invalid @enderror"
+                            value="{{ old('nama_barang', $barang->nama_barang) }}" required>
+                        @error('nama_barang') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     {{-- Jenis Barang --}}
                     <div class="form-group mb-3">
                         <label class="form-label">Jenis Barang</label>
-                        <select name="jenis" class="form-select" required>
+                        <select name="jenis" class="form-select @error('jenis') is-invalid @enderror" required>
                             <option value="">-- Pilih Jenis --</option>
                             @foreach ($enumValues as $j)
-                                <option value="{{ $j }}" {{ $barang->jenis === $j ? 'selected' : '' }}>
+                                <option value="{{ $j }}"
+                                    {{ old('jenis', $barang->jenis) === $j ? 'selected' : '' }}>
                                     {{ strtoupper($j) }}
                                     @if ($j == 'atk')
                                         (Alat Tulis Kantor)
@@ -47,13 +52,15 @@
                                 </option>
                             @endforeach
                         </select>
+                        @error('jenis') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     {{-- Satuan --}}
                     <div class="form-group mb-3">
                         <label class="form-label">Satuan</label>
-                        <input list="satuanList" name="satuan" id="satuanSelect" class="form-control"
-                            value="{{ $barang->satuan }}" required>
+                        <input list="satuanList" name="satuan" id="satuanSelect"
+                            class="form-control @error('satuan') is-invalid @enderror"
+                            value="{{ old('satuan', $barang->satuan) }}" required>
 
                         <datalist id="satuanList">
                             <option value="pcs">
@@ -66,18 +73,23 @@
                             <option value="unit">
                             <option value="batang">
                         </datalist>
+                        @error('satuan') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     @php
                         // Barang lama punya konversi kalau satuan != satuan_dasar
                         $punyaKonversi = $barang->satuan !== $barang->satuan_dasar;
+                        // Setelah validation failure, override dari old() jika ada
+                        $konversiChecked = old('satuan') !== null
+                            ? (old('satuan_dasar') !== old('satuan'))
+                            : $punyaKonversi;
                     @endphp
 
                     {{-- Checkbox konversi — pre-checked kalau barang lama punya konversi --}}
                     <div class="form-group mb-3">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="adaKonversi"
-                                {{ $punyaKonversi ? 'checked' : '' }}>
+                                {{ $konversiChecked ? 'checked' : '' }}>
                             <label class="form-check-label" for="adaKonversi">
                                 Barang ini punya satuan konversi
                                 <small class="text-muted">(misal: 1 pack = 10 lembar)</small>
@@ -86,32 +98,34 @@
                     </div>
 
                     {{-- Section konversi — tampil kalau barang lama punya konversi --}}
-                    <div id="konversiOptions" style="{{ $punyaKonversi ? '' : 'display:none;' }}">
+                    <div id="konversiOptions" style="{{ $konversiChecked ? '' : 'display:none;' }}">
 
                         <div class="form-group mb-3">
                             <label class="form-label">Jumlah Isi</label>
                             <input type="number" name="konversi_satuan" class="form-control" min="1"
-                                value="{{ $barang->konversi_satuan }}">
+                                value="{{ old('konversi_satuan', $barang->konversi_satuan) }}">
                         </div>
 
                         <div class="form-group mb-3">
                             <label class="form-label">Satuan Dasar</label>
                             <input list="satuanList" name="satuan_dasar" class="form-control"
-                                value="{{ $barang->satuan_dasar }}" placeholder="pcs / lembar / buah / dll">
+                                value="{{ old('satuan_dasar', $barang->satuan_dasar) }}"
+                                placeholder="pcs / lembar / buah / dll">
                         </div>
                     </div>
 
                     {{-- Limit Stok --}}
                     <div class="form-group mb-3">
                         <label class="form-label">Limit Stok Minimum</label>
-                        <input type="number" name="limit_stok" class="form-control" value="{{ $barang->limit_stok }}"
-                            min="0">
+                        <input type="number" name="limit_stok" class="form-control"
+                            value="{{ old('limit_stok', $barang->limit_stok) }}" min="0">
                     </div>
 
                     {{-- Keterangan --}}
                     <div class="form-group mb-3">
                         <label class="form-label">Keterangan</label>
-                        <textarea name="keterangan" class="form-control" rows="3">{{ $barang->keterangan }}</textarea>
+                        <textarea name="keterangan" class="form-control"
+                            rows="3">{{ old('keterangan', $barang->keterangan) }}</textarea>
                     </div>
 
                     <div class="text-end">

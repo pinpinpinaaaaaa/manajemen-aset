@@ -534,50 +534,66 @@
             </div>
         @endif
 
+        @if ($errors->any())
+            <div style="background:#fee2e2;border:1px solid #f87171;color:#991b1b;padding:12px 16px;border-radius:8px;margin-bottom:16px;">
+                <strong>Ada yang perlu diperbaiki:</strong>
+                <ul style="margin:8px 0 0 16px;padding:0;">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <form id="vendorForm" class="form-container" action="{{ route('vendor.store') }}" method="POST"
             enctype="multipart/form-data">
             @csrf
             <div class="field-card" data-field="namaPerusahaan">
                 <label>Nama Perusahaan <span class="required">*</span></label>
-                <input type="text" name="nama_perusahaan" placeholder="Masukkan nama perusahaan">
-                <div class="error-message"></div>
+                <input type="text" name="nama_perusahaan" placeholder="Masukkan nama perusahaan"
+                    value="{{ old('nama_perusahaan') }}">
+                <div class="error-message">@error('nama_perusahaan'){{ $message }}@enderror</div>
             </div>
 
             <div class="field-card" data-field="bidangUsaha">
                 <label>Bidang Usaha <span class="required">*</span></label>
-                <input type="text" name="bidang_usaha" placeholder="Masukkan bidang usaha">
-                <div class="error-message"></div>
+                <input type="text" name="bidang_usaha" placeholder="Masukkan bidang usaha"
+                    value="{{ old('bidang_usaha') }}">
+                <div class="error-message">@error('bidang_usaha'){{ $message }}@enderror</div>
             </div>
 
             <div class="field-card" data-field="contactPerson">
                 <label>Contact Person <span class="required">*</span></label>
-                <input type="text" name="contact_person" placeholder="Masukkan nama contact person">
-                <div class="error-message"></div>
+                <input type="text" name="contact_person" placeholder="Masukkan nama contact person"
+                    value="{{ old('contact_person') }}">
+                <div class="error-message">@error('contact_person'){{ $message }}@enderror</div>
             </div>
 
             <div class="field-card" data-field="jabatan_cp">
                 <label>Jabatan Contact Person <span class="required">*</span></label>
-                <input type="text" name="jabatan_cp" placeholder="Manager Purchasing">
-                <div class="error-message"></div>
+                <input type="text" name="jabatan_cp" placeholder="Manager Purchasing"
+                    value="{{ old('jabatan_cp') }}">
+                <div class="error-message">@error('jabatan_cp'){{ $message }}@enderror</div>
             </div>
 
             <div class="field-card" data-field="no_telp_cp">
                 <label>No Telp Contact Person <span class="required">*</span></label>
                 <input type="tel" name="no_telp_cp" placeholder="628123456789" pattern="62[0-9]{8,15}"
-                    maxlength="16" required>
-                <div class="error-message"></div>
+                    maxlength="16" required value="{{ old('no_telp_cp') }}">
+                <div class="error-message">@error('no_telp_cp'){{ $message }}@enderror</div>
             </div>
 
             <div class="field-card" data-field="emailPerusahaan">
                 <label>Email Perusahaan <span class="required">*</span></label>
-                <input type="email" name="email_perusahaan" placeholder="email@perusahaan.com">
-                <div class="error-message"></div>
+                <input type="email" name="email_perusahaan" placeholder="email@perusahaan.com"
+                    value="{{ old('email_perusahaan') }}">
+                <div class="error-message">@error('email_perusahaan'){{ $message }}@enderror</div>
             </div>
 
             <div class="field-card" data-field="alamat">
                 <label>Alamat Perusahaan <span class="required">*</span></label>
-                <textarea name="alamat" placeholder="Masukkan alamat lengkap perusahaan"></textarea>
-                <div class="error-message"></div>
+                <textarea name="alamat" placeholder="Masukkan alamat lengkap perusahaan">{{ old('alamat') }}</textarea>
+                <div class="error-message">@error('alamat'){{ $message }}@enderror</div>
             </div>
 
             <div class="field-card" data-field="aktaPendirian">
@@ -656,7 +672,7 @@
                     </label>
                 </div>
 
-                <div class="file-upload-area" data-file="npwp-file">
+                <div class="file-upload-area npwp-file">
                     <label class="file-input-label">
                         <svg viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -686,7 +702,7 @@
                     </label>
                 </div>
 
-                <div class="file-upload-area" data-file="pakta_integritas-file">
+                <div class="file-upload-area pakta_integritas-file">
                     <label class="file-input-label">
                         <svg viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

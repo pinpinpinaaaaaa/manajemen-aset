@@ -22,15 +22,18 @@
                 @csrf
                 @method('PUT')
 
+                <x-form-errors />
+
                 <div class="form-group mb-4">
                     <label class="form-label">Nama Role</label>
                     <input
                         type="text"
                         name="nama_role"
-                        class="form-control"
-                        value="{{ $role->nama_role }}"
+                        class="form-control @error('nama_role') is-invalid @enderror"
+                        value="{{ old('nama_role', $role->nama_role) }}"
                         required
                     >
+                    @error('nama_role') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
 
                 <h3 class="mb-3" style="font-size:20px; font-weight:600;">
@@ -76,7 +79,7 @@
                                             type="checkbox"
                                             name="menus[]"
                                             value="{{ $menu->id }}"
-                                            {{ in_array($menu->id, $currentMenus) ? 'checked' : '' }}
+                                            {{ in_array($menu->id, old('menus', $currentMenus)) ? 'checked' : '' }}
                                         >
                                         <span>{{ $menu->name }}</span>
                                     </label>
@@ -109,7 +112,7 @@
                                                         type="checkbox"
                                                         name="menus[]"
                                                         value="{{ $child->id }}"
-                                                        {{ in_array($child->id, $currentMenus) ? 'checked' : '' }}
+                                                        {{ in_array($child->id, old('menus', $currentMenus)) ? 'checked' : '' }}
                                                     >
                                                     <span>{{ $child->name }}</span>
                                                 </label>
