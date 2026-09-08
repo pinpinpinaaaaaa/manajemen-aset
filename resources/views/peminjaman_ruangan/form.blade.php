@@ -595,7 +595,9 @@
                     <div class="konsumsi-item">
 
                         <div class="checkbox-wrapper">
-                            <input type="checkbox" id="konsumsi-air" onchange="toggleKonsumsi(this, 0)">
+                            <input type="checkbox" id="konsumsi-air"
+                                name="konsumsi[0][dipilih]" value="1"
+                                onchange="toggleKonsumsi(this, 0)">
 
                             <label for="konsumsi-air">
                                 Air Mineral
@@ -613,7 +615,9 @@
                     <div class="konsumsi-item">
 
                         <div class="checkbox-wrapper">
-                            <input type="checkbox" id="konsumsi-snack" onchange="toggleKonsumsi(this, 1)">
+                            <input type="checkbox" id="konsumsi-snack"
+                                name="konsumsi[1][dipilih]" value="1"
+                                onchange="toggleKonsumsi(this, 1)">
 
                             <label for="konsumsi-snack">
                                 Snack
@@ -631,7 +635,9 @@
                     <div class="konsumsi-item">
 
                         <div class="checkbox-wrapper">
-                            <input type="checkbox" id="konsumsi-berat" onchange="toggleKonsumsi(this, 2)">
+                            <input type="checkbox" id="konsumsi-berat"
+                                name="konsumsi[2][dipilih]" value="1"
+                                onchange="toggleKonsumsi(this, 2)">
 
                             <label for="konsumsi-berat">
                                 Makanan Berat

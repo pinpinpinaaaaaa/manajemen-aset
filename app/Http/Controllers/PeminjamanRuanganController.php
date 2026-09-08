@@ -389,6 +389,20 @@ class PeminjamanRuanganController extends Controller
             'ruangan.*.id_gedung.exists'         => 'Gedung yang dipilih tidak valid.',
         ]);
 
+        $jenisKonsumsiLabel = [
+            'air_mineral'    => 'Air Mineral',
+            'makanan_ringan' => 'Snack',
+            'makanan_berat'  => 'Makanan Berat',
+        ];
+        foreach ($request->konsumsi ?? [] as $k) {
+            if (empty($k['dipilih'])) continue;
+            $label = $jenisKonsumsiLabel[$k['jenis_konsumsi'] ?? ''] ?? 'Konsumsi';
+            if (empty($k['jumlah']) || (int) $k['jumlah'] < 1) {
+                return back()->withInput()->withErrors([
+                    'konsumsi' => "Jumlah {$label} wajib diisi dan harus lebih dari 0 jika dipilih.",
+                ]);
+            }
+        }
 
         try {
 
@@ -524,10 +538,7 @@ class PeminjamanRuanganController extends Controller
 
                     foreach ($request->konsumsi as $k) {
 
-                        if (
-                            empty($k['jenis_konsumsi']) ||
-                            empty($k['jumlah'])
-                        ) {
+                        if (empty($k['dipilih']) || empty($k['jenis_konsumsi'])) {
                             continue;
                         }
 
