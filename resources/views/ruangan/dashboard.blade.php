@@ -351,7 +351,8 @@
             <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
                 <div class="modal-content">
 
-                    <form action="{{ route('maintenance.store') }}" method="POST" enctype="multipart/form-data">
+                    <form action="{{ route('maintenance.store') }}" method="POST"
+                        enctype="multipart/form-data" id="formMaintenanceRuangan">
 
                         @csrf
 
@@ -405,9 +406,9 @@
                                 <div class="card p-3 mb-3">
 
                                     <div class="form-check">
-                                        <input class="form-check-input aset-checkbox" type="checkbox"
-                                            data-target="detail-{{ $index }}"
-                                            name="details[{{ $index }}][dipilih]" value="1">
+                                        <input class="form-check-input aset-checkbox-maintenance"
+                                            type="checkbox"
+                                            data-target="detail-{{ $index }}">
 
                                         <label>
                                             <b>{{ $aset->nama_aset }}</b>
@@ -416,25 +417,26 @@
                                     </div>
 
 
-                                    <input type="hidden" name="details[{{ $index }}][id_aset]"
-                                        value="{{ $aset->id_aset }}">
-
-
                                     <div id="detail-{{ $index }}" class="detail-form" style="display:none">
 
                                         <hr>
 
-                                        <label>Kerusakan</label>
-                                        <textarea class="form-control" name="details[{{ $index }}][kerusakan]">
-        </textarea>
+                                        <input type="hidden" name="details[{{ $index }}][id_aset]"
+                                            value="{{ $aset->id_aset }}" disabled>
+
+                                        <label>Kerusakan <span class="text-danger">*</span></label>
+                                        <textarea class="form-control"
+                                            name="details[{{ $index }}][kerusakan]"
+                                            disabled></textarea>
 
 
                                         <label class="mt-3">
-                                            Foto Sebelum Maintenance
+                                            Foto Sebelum Maintenance <span class="text-danger">*</span>
                                         </label>
 
                                         <input type="file" class="form-control"
-                                            name="details[{{ $index }}][foto_before]">
+                                            name="details[{{ $index }}][foto_before]"
+                                            accept="image/*" disabled>
 
 
                                         <label class="mt-3">
@@ -442,7 +444,8 @@
                                         </label>
 
                                         <input type="file" class="form-control"
-                                            name="details[{{ $index }}][lampiran]">
+                                            name="details[{{ $index }}][lampiran]"
+                                            disabled>
 
                                     </div>
 
@@ -660,6 +663,38 @@
             if (checked.length === 0) {
                 e.preventDefault();
                 alert("Pilih minimal satu aset yang akan dipindahkan.");
+            }
+        });
+
+        document.querySelectorAll(".aset-checkbox-maintenance")
+            .forEach(function(checkbox) {
+
+                checkbox.addEventListener("change", function() {
+
+                    const detail = document.getElementById(this.dataset.target);
+                    const inputs = detail.querySelectorAll("input, textarea, select");
+
+                    if (this.checked) {
+                        detail.style.display = "block";
+                        inputs.forEach(el => el.disabled = false);
+                    } else {
+                        detail.style.display = "none";
+                        inputs.forEach(el => {
+                            el.disabled = true;
+                            if (el.type === "file") { el.value = ""; }
+                            else if (el.tagName === "TEXTAREA") { el.value = ""; }
+                        });
+                    }
+
+                });
+
+            });
+
+        document.getElementById("formMaintenanceRuangan")?.addEventListener("submit", function(e) {
+            const checked = this.querySelectorAll(".aset-checkbox-maintenance:checked");
+            if (checked.length === 0) {
+                e.preventDefault();
+                alert("Pilih minimal satu aset yang akan di-maintenance.");
             }
         });
 
