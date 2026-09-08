@@ -75,15 +75,15 @@ File PDF manual **tidak ikut push ke git** (ukuran besar, konten statis). Taruh 
 mkdir -p public/manual
 
 # Upload file via scp/sftp dari mesin lokal:
-scp "MANUAL PENGGUNA.docx.pdf" user@server:/opt/manajemen-aset/public/manual/
+scp "Manual-SIMASTER.pdf" user@server:/opt/manajemen-aset/public/manual/
 ```
 
 Atau jika pakai Docker:
 ```bash
-docker cp "MANUAL PENGGUNA.docx.pdf" app:/var/www/html/public/manual/
+docker cp "Manual-SIMASTER.pdf" app:/var/www/html/public/manual/
 ```
 
-File harus bisa diakses di URL: `https://domain-kamu/manual/MANUAL%20PENGGUNA.docx.pdf`
+File harus bisa diakses di URL: `https://domain-kamu/manual/Manual-SIMASTER.pdf`
 
 Sidebar akan menampilkan link "Manual Pengguna" yang mengarah ke file ini.
 
@@ -105,7 +105,7 @@ docker compose -f docker-compose.prod.yml exec app php artisan view:clear
 docker compose -f docker-compose.prod.yml exec app php artisan route:clear
 
 # Upload file manual:
-docker cp "MANUAL PENGGUNA.docx.pdf" app:/var/www/html/public/manual/
+docker cp "Manual-SIMASTER.pdf" app:/var/www/html/public/manual/
 ```
 
 ---
@@ -292,7 +292,7 @@ Form yang diperbaiki: `maintenance/edit`, `ekspedisi/edit`, `peminjaman_aset/edi
 | `.env` tidak ter-commit | ✅ Aman | Ada di `.gitignore` |
 | `database/database.sqlite` tidak ter-commit | ✅ Aman | Ada di `database/.gitignore` (`*.sqlite*`) |
 | File upload tidak ter-commit | ✅ Aman | Folder `storage/app/public/*/` ada di `.gitignore` |
-| File `MANUAL PENGGUNA.docx` / `.pdf` | ✅ Aman | Untracked, tidak akan ikut push |
+| File `MANUAL PENGGUNA.docx` / `Manual-SIMASTER.pdf` | ✅ Aman | Untracked, upload manual ke server |
 | Tidak ada file debug/test tidak sengaja ter-commit | ✅ Aman | Cek via `git show --stat HEAD` tiap commit |
 | `.env.example` ter-commit | ✅ Sengaja | Template konfigurasi, tidak berisi nilai sensitif |
 
