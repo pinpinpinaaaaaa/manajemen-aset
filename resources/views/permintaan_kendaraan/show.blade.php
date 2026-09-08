@@ -109,7 +109,7 @@
                         <td>{{ $data->divisi->nama_divisi ?? '-' }}</td>
                     </tr>
                     <tr>
-                        <th>Catatan</th>
+                        <th>{{ $data->status === 'ditolak' ? 'Alasan Penolakan' : 'Catatan' }}</th>
                         <td>{{ $data->catatan ?? '-' }}</td>
                     </tr>
                 </table>

@@ -325,15 +325,23 @@ class PermintaanKendaraanController extends Controller
         );
     }
 
-    public function reject($id)
+    public function reject(Request $request, $id)
     {
+        $request->validate([
+            'catatan' => 'required|string|max:1000',
+        ], [
+            'catatan.required' => 'Alasan penolakan wajib diisi.',
+            'catatan.max'      => 'Alasan penolakan maksimal 1000 karakter.',
+        ]);
+
         $data = PermintaanKendaraan::findOrFail($id);
 
         $data->update([
-            'status' => 'ditolak'
+            'status'  => 'ditolak',
+            'catatan' => $request->catatan,
         ]);
 
-        return back()->with('success', 'Ditolak');
+        return back()->with('success', 'Permintaan berhasil ditolak.');
     }
 
     public function process($id)
