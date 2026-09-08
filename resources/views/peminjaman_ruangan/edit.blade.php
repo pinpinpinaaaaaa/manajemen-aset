@@ -35,74 +35,96 @@
                     @csrf
                     @method('PUT')
 
+                    <x-form-errors />
+
                     <div class="mb-3">
                         <label>Nama Pengaju</label>
-                        <input type="text" name="nama_pengaju" class="form-control"
+                        <input type="text" name="nama_pengaju"
+                            class="form-control @error('nama_pengaju') is-invalid @enderror"
                             value="{{ old('nama_pengaju', $peminjaman->nama_pengaju) }}" required>
+                        @error('nama_pengaju') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="mb-3">
                         <label>Email Pengaju</label>
-                        <input type="email" name="email_pengaju" class="form-control"
+                        <input type="email" name="email_pengaju"
+                            class="form-control @error('email_pengaju') is-invalid @enderror"
                             value="{{ old('email_pengaju', $peminjaman->email_pengaju) }}" required>
+                        @error('email_pengaju') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="mb-3">
                         <label>Divisi</label>
 
-                        <select name="id_divisi" class="form-select" required>
+                        <select name="id_divisi"
+                            class="form-select @error('id_divisi') is-invalid @enderror" required>
 
                             @foreach ($divisi as $d)
                                 <option value="{{ $d->id_divisi }}"
-                                    {{ $peminjaman->id_divisi == $d->id_divisi ? 'selected' : '' }}>
+                                    {{ old('id_divisi', $peminjaman->id_divisi) == $d->id_divisi ? 'selected' : '' }}>
                                     {{ $d->nama_divisi }}
                                 </option>
                             @endforeach
 
                         </select>
+                        @error('id_divisi') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="mb-3">
                         <label>Jenis Kegiatan</label>
 
-                        <select name="jenis_kegiatan" id="jenis_kegiatan" class="form-select" required>
+                        <select name="jenis_kegiatan" id="jenis_kegiatan"
+                            class="form-select @error('jenis_kegiatan') is-invalid @enderror" required>
 
-                            <option value="rapat" {{ $peminjaman->jenis_kegiatan == 'rapat' ? 'selected' : '' }}>
+                            <option value="rapat"
+                                {{ old('jenis_kegiatan', $peminjaman->jenis_kegiatan) == 'rapat' ? 'selected' : '' }}>
                                 Rapat
                             </option>
 
-                            <option value="pelatihan" {{ $peminjaman->jenis_kegiatan == 'pelatihan' ? 'selected' : '' }}>
+                            <option value="pelatihan"
+                                {{ old('jenis_kegiatan', $peminjaman->jenis_kegiatan) == 'pelatihan' ? 'selected' : '' }}>
                                 Pelatihan
                             </option>
 
-                            <option value="asasmen" {{ $peminjaman->jenis_kegiatan == 'asasmen' ? 'selected' : '' }}>
+                            <option value="asasmen"
+                                {{ old('jenis_kegiatan', $peminjaman->jenis_kegiatan) == 'asasmen' ? 'selected' : '' }}>
                                 Asasmen
                             </option>
 
-                            <option value="lainnya" {{ $peminjaman->jenis_kegiatan == 'lainnya' ? 'selected' : '' }}>
+                            <option value="lainnya"
+                                {{ old('jenis_kegiatan', $peminjaman->jenis_kegiatan) == 'lainnya' ? 'selected' : '' }}>
                                 Lainnya
                             </option>
 
                         </select>
+                        @error('jenis_kegiatan') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="mb-3" id="namaKegiatanBox">
                         <label>Nama Kegiatan</label>
 
-                        <input type="text" name="nama_kegiatan" class="form-control"
+                        <input type="text" name="nama_kegiatan"
+                            class="form-control @error('nama_kegiatan') is-invalid @enderror"
                             value="{{ old('nama_kegiatan', $peminjaman->nama_kegiatan) }}">
+                        @error('nama_kegiatan') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="mb-3" id="pesertaRapatBox">
                         <label>Peserta Rapat</label>
 
-                        <textarea name="peserta_rapat" class="form-control" rows="4">{{ old('peserta_rapat', $peminjaman->peserta_rapat) }}</textarea>
+                        <textarea name="peserta_rapat"
+                            class="form-control @error('peserta_rapat') is-invalid @enderror"
+                            rows="4">{{ old('peserta_rapat', $peminjaman->peserta_rapat) }}</textarea>
+                        @error('peserta_rapat') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="mb-4">
                         <label>Catatan</label>
 
-                        <textarea name="catatan" class="form-control" rows="3">{{ old('catatan', $peminjaman->catatan) }}</textarea>
+                        <textarea name="catatan"
+                            class="form-control @error('catatan') is-invalid @enderror"
+                            rows="3">{{ old('catatan', $peminjaman->catatan) }}</textarea>
+                        @error('catatan') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <hr>
@@ -143,7 +165,7 @@
 
                                         @foreach ($gedung as $g)
                                             <option value="{{ $g->id_gedung }}"
-                                                {{ $detail->id_gedung == $g->id_gedung ? 'selected' : '' }}>
+                                                {{ old('ruangan.'.$i.'.id_gedung', $detail->id_gedung) == $g->id_gedung ? 'selected' : '' }}>
 
                                                 {{ $g->nama_gedung }}
 
@@ -163,7 +185,7 @@
 
                                         @foreach ($ruangan as $r)
                                             <option value="{{ $r->id_ruangan }}"
-                                                {{ $detail->id_ruangan == $r->id_ruangan ? 'selected' : '' }}>
+                                                {{ old('ruangan.'.$i.'.id_ruangan', $detail->id_ruangan) == $r->id_ruangan ? 'selected' : '' }}>
 
                                                 {{ $r->nama_ruangan }}
 
@@ -183,7 +205,7 @@
 
                                         <input type="date" class="form-control"
                                             name="ruangan[{{ $i }}][tanggal_mulai]"
-                                            value="{{ $detail->tanggal_mulai }}">
+                                            value="{{ old('ruangan.'.$i.'.tanggal_mulai', $detail->tanggal_mulai) }}">
 
                                     </div>
 
@@ -193,7 +215,7 @@
 
                                         <input type="date" class="form-control"
                                             name="ruangan[{{ $i }}][tanggal_selesai]"
-                                            value="{{ $detail->tanggal_selesai }}">
+                                            value="{{ old('ruangan.'.$i.'.tanggal_selesai', $detail->tanggal_selesai) }}">
 
                                     </div>
 
@@ -208,7 +230,7 @@
 
                                         <input type="time" class="form-control"
                                             name="ruangan[{{ $i }}][jam_mulai]"
-                                            value="{{ substr($detail->jam_mulai, 0, 5) }}">
+                                            value="{{ old('ruangan.'.$i.'.jam_mulai', substr($detail->jam_mulai, 0, 5)) }}">
 
                                     </div>
 
@@ -218,7 +240,7 @@
 
                                         <input type="time" class="form-control"
                                             name="ruangan[{{ $i }}][jam_selesai]"
-                                            value="{{ substr($detail->jam_selesai, 0, 5) }}">
+                                            value="{{ old('ruangan.'.$i.'.jam_selesai', substr($detail->jam_selesai, 0, 5)) }}">
 
                                     </div>
 
@@ -229,7 +251,8 @@
 
                                     <label>Catatan Detail</label>
 
-                                    <textarea class="form-control" rows="2" name="ruangan[{{ $i }}][catatan]">{{ $detail->catatan }}</textarea>
+                                    <textarea class="form-control" rows="2"
+                                        name="ruangan[{{ $i }}][catatan]">{{ old('ruangan.'.$i.'.catatan', $detail->catatan) }}</textarea>
 
                                 </div>
 

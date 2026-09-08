@@ -26,10 +26,15 @@
                     @csrf
                     @method('PUT')
 
+                    <x-form-errors />
+
                     <div class="form-group mb-4">
                         <label class="form-label">Alasan</label>
 
-                        <textarea name="alasan" class="form-control" rows="3">{{ old('alasan', $data->alasan) }}</textarea>
+                        <textarea name="alasan"
+                            class="form-control @error('alasan') is-invalid @enderror"
+                            rows="3">{{ old('alasan', $data->alasan) }}</textarea>
+                        @error('alasan') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="table-responsive">
@@ -67,12 +72,14 @@
                                         </td>
 
                                         <td>
-                                            <select name="to_gedung[{{ $detail->id }}]" class="form-select gedungTujuan"
+                                            @php $oldToGedung = old('to_gedung.'.$detail->id, $detail->to_gedung); @endphp
+                                            <select name="to_gedung[{{ $detail->id }}]"
+                                                class="form-select gedungTujuan @error('to_gedung.'.$detail->id) is-invalid @enderror"
                                                 data-detail="{{ $detail->id }}" required>
 
                                                 @foreach ($gedung as $g)
                                                     <option value="{{ $g->id_gedung }}"
-                                                        {{ $g->id_gedung == $detail->to_gedung ? 'selected' : '' }}>
+                                                        {{ $g->id_gedung == $oldToGedung ? 'selected' : '' }}>
                                                         {{ $g->nama_gedung }}
                                                     </option>
                                                 @endforeach
@@ -81,12 +88,12 @@
                                         </td>
 
                                         <td>
-
+                                            @php $oldToRuangan = old('to_ruangan.'.$detail->id, $detail->to_ruangan); @endphp
                                             <select name="to_ruangan[{{ $detail->id }}]"
-                                                class="form-select ruanganTujuan" id="ruangan_{{ $detail->id }}"
-                                                required>
+                                                class="form-select ruanganTujuan @error('to_ruangan.'.$detail->id) is-invalid @enderror"
+                                                id="ruangan_{{ $detail->id }}" required>
 
-                                                <option value="{{ $detail->to_ruangan }}" selected>
+                                                <option value="{{ $oldToRuangan }}" selected>
                                                     {{ $detail->ruanganTujuan->nama_ruangan ?? '-' }}
                                                 </option>
 
@@ -95,27 +102,30 @@
                                         </td>
 
                                         <td>
-                                            <input type="number" class="form-control" name="biaya[{{ $detail->id }}]"
-                                                value="{{ $detail->biaya }}">
+                                            <input type="number"
+                                                class="form-control @error('biaya.'.$detail->id) is-invalid @enderror"
+                                                name="biaya[{{ $detail->id }}]"
+                                                value="{{ old('biaya.'.$detail->id, $detail->biaya) }}">
                                         </td>
 
                                         <td>
-
+                                            @php $oldPelaksana = old('pelaksana_type.'.$detail->id, $detail->pelaksana_type); @endphp
                                             <select name="pelaksana_type[{{ $detail->id }}]"
-                                                class="form-select pelaksanaType" data-detail="{{ $detail->id }}">
+                                                class="form-select pelaksanaType @error('pelaksana_type.'.$detail->id) is-invalid @enderror"
+                                                data-detail="{{ $detail->id }}">
 
                                                 <option value="internal"
-                                                    {{ $detail->pelaksana_type == 'internal' ? 'selected' : '' }}>
+                                                    {{ $oldPelaksana == 'internal' ? 'selected' : '' }}>
                                                     Internal
                                                 </option>
 
                                                 <option value="vendor"
-                                                    {{ $detail->pelaksana_type == 'vendor' ? 'selected' : '' }}>
+                                                    {{ $oldPelaksana == 'vendor' ? 'selected' : '' }}>
                                                     Vendor
                                                 </option>
 
                                                 <option value="lainnya"
-                                                    {{ $detail->pelaksana_type == 'lainnya' ? 'selected' : '' }}>
+                                                    {{ $oldPelaksana == 'lainnya' ? 'selected' : '' }}>
                                                     Lainnya
                                                 </option>
 
@@ -124,10 +134,11 @@
                                         </td>
 
                                         <td>
-
-                                            <select name="id_vendor[{{ $detail->id }}]" class="form-select vendorField"
+                                            @php $oldVendor = old('id_vendor.'.$detail->id, $detail->id_vendor); @endphp
+                                            <select name="id_vendor[{{ $detail->id }}]"
+                                                class="form-select vendorField @error('id_vendor.'.$detail->id) is-invalid @enderror"
                                                 id="vendor_{{ $detail->id }}"
-                                                {{ $detail->pelaksana_type == 'vendor' ? '' : 'disabled' }}>
+                                                {{ $oldPelaksana == 'vendor' ? '' : 'disabled' }}>
 
                                                 <option value="">
                                                     -- Pilih Vendor --
@@ -135,7 +146,7 @@
 
                                                 @foreach ($vendors as $v)
                                                     <option value="{{ $v->id_vendor }}"
-                                                        {{ $detail->id_vendor == $v->id_vendor ? 'selected' : '' }}>
+                                                        {{ $oldVendor == $v->id_vendor ? 'selected' : '' }}>
                                                         {{ $v->nama_perusahaan }}
                                                     </option>
                                                 @endforeach

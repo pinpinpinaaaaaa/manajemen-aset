@@ -27,6 +27,8 @@
                     @csrf
                     @method('PUT')
 
+                    <x-form-errors />
+
                     {{-- GEDUNG --}}
                     <div class="form-group mb-4">
                         <label class="form-label">Gedung</label>
@@ -63,86 +65,103 @@
                     {{-- TANGGAL --}}
                     <div class="form-group mb-4">
                         <label class="form-label">Tanggal Pemusnahan</label>
-                        <input type="date" name="tanggal_pemusnahan" class="form-control"
-                            value="{{ \Carbon\Carbon::parse($laporan->tanggal_pemusnahan)->format('Y-m-d') }}" required>
+                        <input type="date" name="tanggal_pemusnahan"
+                            class="form-control @error('tanggal_pemusnahan') is-invalid @enderror"
+                            value="{{ old('tanggal_pemusnahan', \Carbon\Carbon::parse($laporan->tanggal_pemusnahan)->format('Y-m-d')) }}"
+                            required>
+                        @error('tanggal_pemusnahan') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     {{-- METODE --}}
                     <div class="form-group mb-4">
                         <label class="form-label">Metode Pemusnahan</label>
-                        <select name="metode" id="metodeSelect" class="form-select" required>
+                        <select name="metode" id="metodeSelect"
+                            class="form-select @error('metode') is-invalid @enderror" required>
                             <option value="">-- Pilih Metode --</option>
                             @foreach (['Lelang', 'Hibahkan', 'Dijual', 'Dimusnahkan'] as $m)
-                                <option value="{{ $m }}" {{ $laporan->metode == $m ? 'selected' : '' }}>
+                                <option value="{{ $m }}"
+                                    {{ old('metode', $laporan->metode) == $m ? 'selected' : '' }}>
                                     {{ $m }}
                                 </option>
                             @endforeach
                         </select>
+                        @error('metode') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
-                    {{-- ===========================
-                    BIAYA KELUAR
-                =========================== --}}
+                    {{-- BIAYA KELUAR --}}
                     <div class="form-group mb-4">
                         <label class="form-label">Biaya Keluar (Opsional)</label>
-                        <input type="number" name="biaya_keluar" class="form-control" min="0"
-                            value="{{ $laporan->biaya_keluar }}">
+                        <input type="number" name="biaya_keluar"
+                            class="form-control @error('biaya_keluar') is-invalid @enderror"
+                            min="0"
+                            value="{{ old('biaya_keluar', $laporan->biaya_keluar) }}">
+                        @error('biaya_keluar') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
-
-                    {{-- ===========================
-                    NILAI MASUK
-                =========================== --}}
+                    {{-- NILAI MASUK --}}
                     <div class="form-group mb-4" id="nilaiMasukWrapper" style="display:none;">
                         <label class="form-label">Nilai Masuk</label>
-                        <input type="number" name="nilai_masuk" id="nilaiMasukInput" class="form-control" min="0"
-                            value="{{ $laporan->nilai_masuk }}">
+                        <input type="number" name="nilai_masuk" id="nilaiMasukInput"
+                            class="form-control @error('nilai_masuk') is-invalid @enderror"
+                            min="0"
+                            value="{{ old('nilai_masuk', $laporan->nilai_masuk) }}">
+                        @error('nilai_masuk') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
-                    {{-- ===========================
-                    PELAKSANA
-                =========================== --}}
+                    {{-- PELAKSANA --}}
                     <div class="form-group mb-4">
                         <label class="form-label">Pelaksana</label>
-                        <select name="pelaksana_type" id="pelaksanaType" class="form-select">
+                        <select name="pelaksana_type" id="pelaksanaType"
+                            class="form-select @error('pelaksana_type') is-invalid @enderror">
                             <option value="">-- Pilih --</option>
 
-                            <option value="internal" {{ $laporan->pelaksana_type == 'internal' ? 'selected' : '' }}>
+                            <option value="internal"
+                                {{ old('pelaksana_type', $laporan->pelaksana_type) == 'internal' ? 'selected' : '' }}>
                                 Internal
                             </option>
 
-                            <option value="vendor" {{ $laporan->pelaksana_type == 'vendor' ? 'selected' : '' }}>
+                            <option value="vendor"
+                                {{ old('pelaksana_type', $laporan->pelaksana_type) == 'vendor' ? 'selected' : '' }}>
                                 Vendor
                             </option>
 
-                            <option value="lainnya" {{ $laporan->pelaksana_type == 'lainnya' ? 'selected' : '' }}>
+                            <option value="lainnya"
+                                {{ old('pelaksana_type', $laporan->pelaksana_type) == 'lainnya' ? 'selected' : '' }}>
                                 Lainnya
                             </option>
                         </select>
+                        @error('pelaksana_type') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="form-group mb-4" id="vendorSelectWrapper" style="display:none;">
                         <label>Vendor</label>
-                        <select name="id_vendor" class="form-select">
+                        <select name="id_vendor"
+                            class="form-select @error('id_vendor') is-invalid @enderror">
                             <option value="">-- Pilih Vendor --</option>
                             @foreach ($vendors as $v)
                                 <option value="{{ $v->id_vendor }}"
-                                    {{ $laporan->id_vendor == $v->id_vendor ? 'selected' : '' }}>
+                                    {{ old('id_vendor', $laporan->id_vendor) == $v->id_vendor ? 'selected' : '' }}>
                                     {{ $v->nama_perusahaan }} ({{ $v->bidang_usaha }})
                                 </option>
                             @endforeach
                         </select>
+                        @error('id_vendor') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="form-group mb-4" id="vendorManualWrapper" style="display:none;">
                         <label>Vendor Manual</label>
-                        <input type="text" name="vendor_manual" class="form-control">
+                        <input type="text" name="vendor_manual"
+                            class="form-control @error('vendor_manual') is-invalid @enderror"
+                            value="{{ old('vendor_manual', $laporan->vendor_manual) }}">
+                        @error('vendor_manual') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     {{-- CATATAN --}}
                     <div class="form-group mb-4">
                         <label class="form-label">Catatan</label>
-                        <textarea name="catatan" rows="3" class="form-control">{{ $laporan->catatan }}</textarea>
+                        <textarea name="catatan" rows="3"
+                            class="form-control @error('catatan') is-invalid @enderror">{{ old('catatan', $laporan->catatan) }}</textarea>
+                        @error('catatan') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="text-end">

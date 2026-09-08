@@ -24,34 +24,45 @@
                     @csrf
                     @method('PUT')
 
+                    <x-form-errors />
+
                     <div class="form-group mb-3">
                         <label>Divisi</label>
-                        <select name="id_divisi" class="form-select" required>
+                        <select name="id_divisi"
+                            class="form-select @error('id_divisi') is-invalid @enderror" required>
                             @foreach ($divisi as $d)
                                 <option value="{{ $d->id_divisi }}"
-                                    {{ $d->id_divisi == $permintaan->id_divisi ? 'selected' : '' }}>
+                                    {{ old('id_divisi', $permintaan->id_divisi) == $d->id_divisi ? 'selected' : '' }}>
                                     {{ $d->nama_divisi }}
                                 </option>
                             @endforeach
                         </select>
+                        @error('id_divisi') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="form-group mb-3">
                         <label>Nama Pengaju</label>
-                        <input type="text" name="nama_pengaju" class="form-control"
-                            value="{{ $permintaan->nama_pengaju }}" required>
+                        <input type="text" name="nama_pengaju"
+                            class="form-control @error('nama_pengaju') is-invalid @enderror"
+                            value="{{ old('nama_pengaju', $permintaan->nama_pengaju) }}" required>
+                        @error('nama_pengaju') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="form-group mb-3">
                         <label>Email</label>
-                        <input type="email" name="email_pengaju" class="form-control"
-                            value="{{ $permintaan->email_pengaju }}" required>
+                        <input type="email" name="email_pengaju"
+                            class="form-control @error('email_pengaju') is-invalid @enderror"
+                            value="{{ old('email_pengaju', $permintaan->email_pengaju) }}" required>
+                        @error('email_pengaju') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="form-group mb-4">
                         <label>Tanggal Kebutuhan</label>
-                        <input type="date" name="tanggal_kebutuhan" class="form-control"
-                            value="{{ \Carbon\Carbon::parse($permintaan->tanggal_kebutuhan)->format('Y-m-d') }}" required>
+                        <input type="date" name="tanggal_kebutuhan"
+                            class="form-control @error('tanggal_kebutuhan') is-invalid @enderror"
+                            value="{{ old('tanggal_kebutuhan', \Carbon\Carbon::parse($permintaan->tanggal_kebutuhan)->format('Y-m-d')) }}"
+                            required>
+                        @error('tanggal_kebutuhan') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <hr>
@@ -113,12 +124,18 @@
                     {{-- ================= CATATAN ================= --}}
                     <div class="form-group mb-3">
                         <label>Alasan</label>
-                        <textarea name="alasan" class="form-control" rows="3">{{ $permintaan->alasan }}</textarea>
+                        <textarea name="alasan"
+                            class="form-control @error('alasan') is-invalid @enderror"
+                            rows="3">{{ old('alasan', $permintaan->alasan) }}</textarea>
+                        @error('alasan') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="form-group mb-4">
                         <label>Catatan</label>
-                        <textarea name="catatan" class="form-control" rows="3">{{ $permintaan->catatan }}</textarea>
+                        <textarea name="catatan"
+                            class="form-control @error('catatan') is-invalid @enderror"
+                            rows="3">{{ old('catatan', $permintaan->catatan) }}</textarea>
+                        @error('catatan') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="text-end">

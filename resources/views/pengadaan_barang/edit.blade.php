@@ -30,46 +30,59 @@
                     @csrf
                     @method('PUT')
 
+                    <x-form-errors />
+
                     {{-- DATA PENGAJU --}}
                     <div class="form-group mb-3">
                         <label>Nama Pengaju</label>
-                        <input type="text" name="nama_pengaju" class="form-control"
+                        <input type="text" name="nama_pengaju"
+                            class="form-control @error('nama_pengaju') is-invalid @enderror"
                             value="{{ old('nama_pengaju', $pengadaan->nama_pengaju) }}" required>
+                        @error('nama_pengaju') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="form-group mb-3">
                         <label>Email Pengaju</label>
-                        <input type="email" name="email_pengaju" class="form-control"
+                        <input type="email" name="email_pengaju"
+                            class="form-control @error('email_pengaju') is-invalid @enderror"
                             value="{{ old('email_pengaju', $pengadaan->email_pengaju) }}" required>
+                        @error('email_pengaju') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="form-group mb-3">
                         <label>Divisi</label>
 
-                        <select name="id_divisi" class="form-select" required>
+                        <select name="id_divisi"
+                            class="form-select @error('id_divisi') is-invalid @enderror" required>
 
                             @foreach ($divisi as $d)
                                 <option value="{{ $d->id_divisi }}"
-                                    {{ $d->id_divisi == $pengadaan->id_divisi ? 'selected' : '' }}>
+                                    {{ old('id_divisi', $pengadaan->id_divisi) == $d->id_divisi ? 'selected' : '' }}>
                                     {{ $d->nama_divisi }}
                                 </option>
                             @endforeach
 
                         </select>
+                        @error('id_divisi') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="form-group mb-3">
                         <label>Tanggal Kebutuhan</label>
 
-                        <input type="date" name="tanggal_kebutuhan" class="form-control"
+                        <input type="date" name="tanggal_kebutuhan"
+                            class="form-control @error('tanggal_kebutuhan') is-invalid @enderror"
                             value="{{ old('tanggal_kebutuhan', \Carbon\Carbon::parse($pengadaan->tanggal_kebutuhan)->format('Y-m-d')) }}"
                             required>
+                        @error('tanggal_kebutuhan') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="form-group mb-4">
                         <label>Alasan</label>
 
-                        <textarea name="alasan" class="form-control" rows="3" required>{{ old('alasan', $pengadaan->alasan) }}</textarea>
+                        <textarea name="alasan"
+                            class="form-control @error('alasan') is-invalid @enderror"
+                            rows="3" required>{{ old('alasan', $pengadaan->alasan) }}</textarea>
+                        @error('alasan') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <hr>
@@ -92,27 +105,28 @@
                                     <label>Nama Barang</label>
 
                                     <input type="text" class="form-control" name="items[{{ $i }}][nama]"
-                                        value="{{ $detail->nama_barang }}" required>
+                                        value="{{ old('items.'.$i.'.nama', $detail->nama_barang) }}" required>
                                 </div>
 
                                 <div class="form-group mb-3">
                                     <label>Merk</label>
 
                                     <input type="text" class="form-control" name="items[{{ $i }}][merk]"
-                                        value="{{ $detail->merk }}">
+                                        value="{{ old('items.'.$i.'.merk', $detail->merk) }}">
                                 </div>
 
                                 <div class="form-group mb-3">
                                     <label>Tipe / Model</label>
 
                                     <input type="text" class="form-control"
-                                        name="items[{{ $i }}][tipe_model]" value="{{ $detail->tipe_model }}">
+                                        name="items[{{ $i }}][tipe_model]"
+                                        value="{{ old('items.'.$i.'.tipe_model', $detail->tipe_model) }}">
                                 </div>
 
                                 <div class="form-group mb-3">
                                     <label>Spesifikasi</label>
 
-                                    <textarea class="form-control" rows="3" name="items[{{ $i }}][spesifikasi]">{{ $detail->spesifikasi }}</textarea>
+                                    <textarea class="form-control" rows="3" name="items[{{ $i }}][spesifikasi]">{{ old('items.'.$i.'.spesifikasi', $detail->spesifikasi) }}</textarea>
                                 </div>
                             @else
                                 <div class="form-group mb-3">
@@ -120,7 +134,7 @@
 
                                     <input type="text" class="form-control"
                                         name="items[{{ $i }}][kategori_jasa]"
-                                        value="{{ $detail->kategori_jasa }}" required>
+                                        value="{{ old('items.'.$i.'.kategori_jasa', $detail->kategori_jasa) }}" required>
                                 </div>
                             @endif
 
@@ -128,7 +142,7 @@
                                 <label>Jumlah</label>
 
                                 <input type="number" class="form-control" name="items[{{ $i }}][jumlah]"
-                                    value="{{ $detail->jumlah }}" min="1" required>
+                                    value="{{ old('items.'.$i.'.jumlah', $detail->jumlah) }}" min="1" required>
                             </div>
 
                             <div class="form-group mb-3">
@@ -136,13 +150,13 @@
 
                                 <input type="text" class="form-control harga-satuan"
                                     name="items[{{ $i }}][harga_satuan]"
-                                    value="{{ number_format((int) $detail->harga_satuan, 0, ',', '.') }}" required>
+                                    value="{{ old('items.'.$i.'.harga_satuan') ?? number_format((int) $detail->harga_satuan, 0, ',', '.') }}" required>
                             </div>
 
                             <div class="form-group mb-3">
                                 <label>Catatan Item</label>
 
-                                <textarea class="form-control" rows="2" name="items[{{ $i }}][catatan]">{{ $detail->catatan }}</textarea>
+                                <textarea class="form-control" rows="2" name="items[{{ $i }}][catatan]">{{ old('items.'.$i.'.catatan', $detail->catatan) }}</textarea>
                             </div>
 
                             <div class="form-group">
@@ -176,7 +190,10 @@
                     <div class="form-group mb-4">
                         <label>Catatan Pengadaan</label>
 
-                        <textarea name="catatan" class="form-control" rows="3">{{ old('catatan', $pengadaan->catatan) }}</textarea>
+                        <textarea name="catatan"
+                            class="form-control @error('catatan') is-invalid @enderror"
+                            rows="3">{{ old('catatan', $pengadaan->catatan) }}</textarea>
+                        @error('catatan') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="text-end">
