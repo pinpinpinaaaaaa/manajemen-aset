@@ -92,6 +92,10 @@
     font-size: 13px;
 }
 .dash-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #fff;
     font-size: 11px;
     font-weight: 600;
     color: #9ca3af;
@@ -99,7 +103,8 @@
     letter-spacing: .04em;
     padding: 6px 10px;
     text-align: left;
-    border-bottom: 1px solid #f3f4f6;
+    border-bottom: 2px solid #f3f4f6;
+    white-space: nowrap;
 }
 .dash-table tbody td {
     padding: 8px 10px;
@@ -109,10 +114,15 @@
 }
 .dash-table tbody tr:last-child td { border-bottom: none; }
 .dash-table tbody tr:hover td { background: #f9fafb; }
+/* scroll wrapper — shows 5 rows then scrolls */
+.table-scroll {
+    overflow-y: auto;
+    max-height: 260px;
+}
 /* reuse existing badge colours */
-.badge-perlu  { display:inline-block; padding:2px 7px; border-radius:4px; font-size:11px; font-weight:600; background:#fffbeb; color:#d97706; }
-.badge-proses { display:inline-block; padding:2px 7px; border-radius:4px; font-size:11px; font-weight:600; background:#eff6ff; color:#2563eb; }
-.empty-note   { text-align:center; padding:24px; color:#9ca3af; font-size:13px; }
+.badge-belum-approve { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600; background:#fffbeb; color:#d97706; }
+.badge-sedang-proses { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600; background:#eff6ff; color:#2563eb; }
+.empty-note          { text-align:center; padding:24px; color:#9ca3af; font-size:13px; }
 
 /* ── responsive ─────────────────────────────────────────────────────────*/
 @media (max-width: 900px) {
@@ -215,48 +225,67 @@
             </div>
         </div>
 
-        {{-- Kanan: tabel maintenance pending --}}
-        <div class="dash-card">
-            <p class="dash-card-title">Maintenance Belum Di-approve</p>
-            @if ($maintenancePending->isEmpty())
-                <div class="empty-note">Tidak ada maintenance yang menunggu persetujuan.</div>
+        {{-- Kanan: tabel maintenance belum selesai --}}
+        <div class="dash-card" style="display:flex;flex-direction:column;min-height:0;">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;">
+                <p class="dash-card-title" style="margin:0;">Maintenance Belum Selesai · {{ $tahun }}</p>
+                @if ($maintenanceBelumSelesai->isNotEmpty())
+                    <a href="{{ route('maintenance.index') }}"
+                       style="font-size:12px;color:#2563eb;text-decoration:none;white-space:nowrap;">
+                        Lihat semua →
+                    </a>
+                @endif
+            </div>
+            @if ($maintenanceBelumSelesai->isEmpty())
+                <div class="empty-note">Semua maintenance sudah selesai.</div>
             @else
-                <div style="overflow-x:auto;">
+                <div class="table-scroll">
                 <table class="dash-table">
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Tanggal</th>
                             <th>Aset</th>
+                            <th>Lokasi</th>
                             <th>Status</th>
+                            <th>Tanggal</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($maintenancePending as $m)
-                            @php $firstDetail = $m->details->first(); @endphp
+                        @foreach ($maintenanceBelumSelesai as $m)
+                            @php
+                                $asets      = $m->details->map(fn($d) => $d->aset)->filter();
+                                $firstAset  = $asets->first();
+                                $extraCount = max(0, $asets->count() - 1);
+                            @endphp
                             <tr>
-                                <td style="white-space:nowrap;font-family:monospace;font-size:12px;">
-                                    {{ $m->id_maintenance }}
-                                </td>
-                                <td style="white-space:nowrap;">
-                                    {{ \Carbon\Carbon::parse($m->tanggal_laporan)->format('d M Y') }}
-                                </td>
+                                {{-- Aset --}}
                                 <td>
-                                    @foreach ($m->details->take(2) as $d)
-                                        {{ $d->aset?->nama_aset ?? '-' }}@if(!$loop->last)<br>@endif
-                                    @endforeach
-                                    @if ($m->details->count() > 2)
-                                        <span style="color:#9ca3af;font-size:11px;">+{{ $m->details->count() - 2 }} lainnya</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    @if ($firstDetail)
-                                        @if ($firstDetail->status === 'Sedang Diperbaiki')
-                                            <span class="badge-proses">Sedang Diperbaiki</span>
-                                        @else
-                                            <span class="badge-perlu">Perlu Perbaikan</span>
+                                    @if ($firstAset)
+                                        <span style="font-size:12px;color:#9ca3af;font-family:monospace;">
+                                            {{ $firstAset->kode_aset }}
+                                        </span><br>
+                                        <span style="font-weight:500;">{{ $firstAset->nama_aset }}</span>
+                                        @if ($extraCount > 0)
+                                            <br><span style="color:#9ca3af;font-size:11px;">+{{ $extraCount }} aset lain</span>
                                         @endif
+                                    @else
+                                        <span style="color:#9ca3af;">—</span>
                                     @endif
+                                </td>
+                                {{-- Lokasi --}}
+                                <td style="white-space:nowrap;">
+                                    {{ $m->ruangan?->nama_ruangan ?? '—' }}
+                                </td>
+                                {{-- Status badge --}}
+                                <td style="white-space:nowrap;">
+                                    @if ($m->decision_status === 'menunggu_persetujuan')
+                                        <span class="badge-belum-approve">Belum Approve</span>
+                                    @else
+                                        <span class="badge-sedang-proses">Sedang Proses</span>
+                                    @endif
+                                </td>
+                                {{-- Tanggal --}}
+                                <td style="white-space:nowrap;color:#6b7280;font-size:12px;">
+                                    {{ \Carbon\Carbon::parse($m->tanggal_laporan)->format('d M Y') }}
                                 </td>
                             </tr>
                         @endforeach

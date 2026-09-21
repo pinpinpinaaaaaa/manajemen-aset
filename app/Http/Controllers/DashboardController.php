@@ -63,12 +63,13 @@ class DashboardController extends Controller
         $pengaduanTotal        = $pengaduanBelumApprove + $pengaduanSedangDiproses
                                  + $pengaduanSelesai + $pengaduanDitolak;
 
-        // ── ROW 4 · Maintenance belum di-approve dan belum selesai ──────────
-        $maintenancePending = Maintenance::with('details.aset')
-            ->where('decision_status', 'menunggu_persetujuan')
+        // ── ROW 4 · Maintenance belum selesai (belum approve + sedang proses) ─
+        // "Belum selesai" = decision_status bukan ditolak DAN masih ada detail yg belum Selesai
+        $maintenanceBelumSelesai = Maintenance::with(['details.aset', 'ruangan'])
+            ->whereYear('tanggal_laporan', $tahun)
+            ->whereIn('decision_status', ['menunggu_persetujuan', 'disetujui'])
             ->whereHas('details', fn($q) => $q->whereIn('status', ['Perlu Perbaikan', 'Sedang Diperbaiki']))
-            ->latest('tanggal_laporan')
-            ->take(15)
+            ->oldest('tanggal_laporan')
             ->get();
 
         return view('dashboard', compact(
@@ -78,7 +79,7 @@ class DashboardController extends Controller
             'totalBiayaMaintenance', 'jumlahMaintenance',
             'totalBiayaPengadaan', 'jumlahPengadaan',
             'pengaduanTotal', 'pengaduanBelumApprove', 'pengaduanSedangDiproses', 'pengaduanSelesai', 'pengaduanDitolak',
-            'maintenancePending'
+            'maintenanceBelumSelesai'
         ));
     }
 }
