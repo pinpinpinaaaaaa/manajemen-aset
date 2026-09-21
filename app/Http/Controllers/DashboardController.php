@@ -11,9 +11,9 @@ use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-    public function index(\Illuminate\Http\Request $request)
+    public function index()
     {
-        $tahun = (int) $request->get('tahun', Carbon::now()->year);
+        $tahun = Carbon::now()->year;
 
         // ── ROW 1 · Stat cards (snapshot saat ini, tidak difilter tahun) ────
         $totalAset        = Aset::whereIn('status', ['tersedia', 'dipinjam', 'maintenance'])->count();

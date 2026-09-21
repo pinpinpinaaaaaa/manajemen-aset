@@ -5,37 +5,6 @@
 @section('content')
 
 <style>
-/* ── year filter bar ──────────────────────────────────────────────────── */
-.dash-filter-bar {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 20px 0 4px;
-    flex-wrap: wrap;
-}
-.dash-filter-bar label {
-    font-size: 13px;
-    font-weight: 600;
-    color: #64748b;
-    white-space: nowrap;
-}
-.dash-year-select {
-    height: 36px;
-    padding: 0 32px 0 12px;
-    border-radius: 8px;
-    border: 1px solid #d1d5db;
-    background: #fff;
-    font-size: 14px;
-    font-weight: 600;
-    color: #111;
-    cursor: pointer;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-}
-.dash-year-select:focus { outline: 2px solid #2a78d6; outline-offset: 1px; }
-
 /* ── row helpers ──────────────────────────────────────────────────────── */
 .dash-row {
     display: grid;
@@ -43,42 +12,23 @@
     margin-top: 16px;
 }
 .dash-row.row-2 { grid-template-columns: 1fr 1fr; }
-.dash-row.row-4 { grid-template-columns: repeat(4, 1fr); }
 
 /* ── card base ────────────────────────────────────────────────────────── */
 .dash-card {
     background: #fff;
     border-radius: 12px;
     padding: 20px;
-    box-shadow: 0 2px 10px rgba(0,0,0,.06);
+    box-shadow: 0 4px 12px rgba(0,0,0,.06);
     min-width: 0;
 }
 .dash-card-title {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
     color: #64748b;
     text-transform: uppercase;
     letter-spacing: .04em;
     margin: 0 0 14px;
 }
-
-/* ── stat cards (row 1) ───────────────────────────────────────────────── */
-.dash-stat-val {
-    font-size: 36px;
-    font-weight: 700;
-    color: #0f172a;
-    line-height: 1;
-    margin-bottom: 4px;
-}
-.dash-stat-label {
-    font-size: 12px;
-    color: #94a3b8;
-    font-weight: 500;
-}
-.dash-card.stat { border-top: 3px solid #2a78d6; }
-.dash-card.stat.s2 { border-top-color: #1baf7a; }
-.dash-card.stat.s3 { border-top-color: #eb6834; }
-.dash-card.stat.s4 { border-top-color: #e34948; }
 
 /* ── chart box ────────────────────────────────────────────────────────── */
 .chart-wrap {
@@ -90,48 +40,50 @@
 .summary-big {
     font-size: 28px;
     font-weight: 700;
-    color: #0f172a;
+    color: #111;
     line-height: 1.1;
     margin-bottom: 4px;
 }
 .summary-sub {
     font-size: 13px;
-    color: #64748b;
+    color: #6b7280;
 }
 
 /* ── 4-cell grid inside a card (pengaduan) ────────────────────────────── */
 .quad-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    gap: 10px;
     margin-top: 4px;
 }
 .quad-cell {
-    background: #f8fafc;
+    background: #f3f4f6;
     border-radius: 8px;
     padding: 12px 14px;
 }
 .quad-cell-val {
     font-size: 26px;
     font-weight: 700;
-    color: #0f172a;
+    color: #111;
     line-height: 1;
 }
 .quad-cell-label {
     font-size: 11px;
     font-weight: 600;
-    color: #94a3b8;
+    color: #9ca3af;
     text-transform: uppercase;
     letter-spacing: .04em;
     margin-top: 4px;
 }
-.quad-cell.hl { background: #eff6ff; }
-.quad-cell.hl .quad-cell-val { color: #1d4ed8; }
-.quad-cell.warn { background: #fff7ed; }
-.quad-cell.warn .quad-cell-val { color: #c2410c; }
-.quad-cell.ok { background: #f0fdf4; }
-.quad-cell.ok .quad-cell-val { color: #15803d; }
-.quad-cell.muted .quad-cell-val { color: #64748b; }
+/* match existing badge system */
+.quad-cell.hl   { background: #fef9e7; }
+.quad-cell.hl   .quad-cell-val { color: #000; }
+.quad-cell.warn { background: #fffbeb; }
+.quad-cell.warn .quad-cell-val { color: #d97706; }
+.quad-cell.ok   { background: #f0fdf4; }
+.quad-cell.ok   .quad-cell-val { color: #16a34a; }
+.quad-cell.err  { background: #fef2f2; }
+.quad-cell.err  .quad-cell-val { color: #dc2626; }
 
 /* ── pending maintenance table ────────────────────────────────────────── */
 .dash-table {
@@ -142,44 +94,34 @@
 .dash-table thead th {
     font-size: 11px;
     font-weight: 600;
-    color: #94a3b8;
+    color: #9ca3af;
     text-transform: uppercase;
     letter-spacing: .04em;
     padding: 6px 10px;
     text-align: left;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid #f3f4f6;
 }
 .dash-table tbody td {
     padding: 8px 10px;
-    border-bottom: 1px solid #f8fafc;
-    color: #334155;
+    border-bottom: 1px solid #f3f4f6;
+    color: #374151;
     vertical-align: top;
 }
 .dash-table tbody tr:last-child td { border-bottom: none; }
-.dash-table tbody tr:hover td { background: #f8fafc; }
-.badge-perlu  { display:inline-block; padding:2px 7px; border-radius:4px; font-size:11px; font-weight:600; background:#fff7ed; color:#c2410c; }
-.badge-proses { display:inline-block; padding:2px 7px; border-radius:4px; font-size:11px; font-weight:600; background:#eff6ff; color:#1d4ed8; }
-.empty-note   { text-align:center; padding:24px; color:#94a3b8; font-size:13px; }
-
-/* ── viz tokens ────────────────────────────────────────────────────────── */
-.viz-root {
-    --s1: #2a78d6;
-    --s2: #eb6834;
-    --s3: #1baf7a;
-    --grid: rgba(0,0,0,.06);
-    --axis: #c3c2b7;
-    --muted: #898781;
-}
+.dash-table tbody tr:hover td { background: #f9fafb; }
+/* reuse existing badge colours */
+.badge-perlu  { display:inline-block; padding:2px 7px; border-radius:4px; font-size:11px; font-weight:600; background:#fffbeb; color:#d97706; }
+.badge-proses { display:inline-block; padding:2px 7px; border-radius:4px; font-size:11px; font-weight:600; background:#eff6ff; color:#2563eb; }
+.empty-note   { text-align:center; padding:24px; color:#9ca3af; font-size:13px; }
 
 /* ── responsive ─────────────────────────────────────────────────────────*/
 @media (max-width: 900px) {
     .dash-row.row-2 { grid-template-columns: 1fr; }
-    .dash-row.row-4 { grid-template-columns: 1fr 1fr; }
+    .chart-wrap { height: 220px; }
 }
 @media (max-width: 540px) {
-    .dash-row.row-4 { grid-template-columns: 1fr 1fr; }
-    .chart-wrap { height: 200px; }
-    .dash-stat-val { font-size: 28px; }
+    .chart-wrap { height: 190px; }
+    .summary-big { font-size: 22px; }
 }
 </style>
 
@@ -191,50 +133,20 @@
         <nav class="breadcrumb"><span class="current">Dashboard</span></nav>
     </div>
 
-    {{-- ── Year filter ──────────────────────────────────────────────── --}}
-    <div class="dash-filter-bar">
-        <label for="yearPicker">Periode:</label>
-        <form method="GET" action="{{ route('dashboard') }}" id="yearForm">
-            <select name="tahun" id="yearPicker" class="dash-year-select"
-                    onchange="document.getElementById('yearForm').submit()">
-                @for ($y = date('Y') + 1; $y >= 2020; $y--)
-                    <option value="{{ $y }}" @selected($y == $tahun)>{{ $y }}</option>
-                @endfor
-            </select>
-        </form>
-    </div>
-
     {{-- ══════════════════════════════════════════════════════════════ --}}
-    {{-- ROW 1 · 4 stat cards                                          --}}
+    {{-- ROW 1 · 4 stat cards — pakai komponen existing               --}}
     {{-- ══════════════════════════════════════════════════════════════ --}}
-    <div class="dash-row row-4">
-
-        <div class="dash-card stat">
-            <div class="dash-stat-val">{{ number_format($totalAset) }}</div>
-            <div class="dash-stat-label">Total Aset Aktif</div>
-        </div>
-
-        <div class="dash-card stat s2">
-            <div class="dash-stat-val">{{ number_format($asetTersedia) }}</div>
-            <div class="dash-stat-label">Tersedia</div>
-        </div>
-
-        <div class="dash-card stat s3">
-            <div class="dash-stat-val">{{ number_format($asetMaintenance) }}</div>
-            <div class="dash-stat-label">Dalam Maintenance</div>
-        </div>
-
-        <div class="dash-card stat s4">
-            <div class="dash-stat-val">{{ number_format($sedangPemusnahan) }}</div>
-            <div class="dash-stat-label">Proses Pemusnahan</div>
-        </div>
-
+    <div class="stat-cards-grid">
+        <x-stat-card label="Total Aset Aktif"    :value="number_format($totalAset)" />
+        <x-stat-card label="Tersedia"            :value="number_format($asetTersedia)" />
+        <x-stat-card label="Dalam Maintenance"   :value="number_format($asetMaintenance)" />
+        <x-stat-card label="Proses Pemusnahan"   :value="number_format($sedangPemusnahan)" />
     </div>
 
     {{-- ══════════════════════════════════════════════════════════════ --}}
     {{-- ROW 2 · 2 grafik tren berdampingan                            --}}
     {{-- ══════════════════════════════════════════════════════════════ --}}
-    <div class="dash-row row-2 viz-root">
+    <div class="dash-row row-2">
 
         <div class="dash-card">
             <p class="dash-card-title">Tren Biaya Maintenance · {{ $tahun }}</p>
@@ -292,7 +204,7 @@
                     <div class="quad-cell-val">{{ number_format($pengaduanDisetujui) }}</div>
                     <div class="quad-cell-label">Disetujui / Proses</div>
                 </div>
-                <div class="quad-cell muted" style="grid-column:span 2">
+                <div class="quad-cell err" style="grid-column:span 2">
                     <div class="quad-cell-val">{{ number_format($pengaduanDitolak) }}</div>
                     <div class="quad-cell-label">Ditolak</div>
                 </div>
@@ -330,7 +242,7 @@
                                         {{ $d->aset?->nama_aset ?? '-' }}@if(!$loop->last)<br>@endif
                                     @endforeach
                                     @if ($m->details->count() > 2)
-                                        <span style="color:#94a3b8;font-size:11px;">+{{ $m->details->count() - 2 }} lainnya</span>
+                                        <span style="color:#9ca3af;font-size:11px;">+{{ $m->details->count() - 2 }} lainnya</span>
                                     @endif
                                 </td>
                                 <td>
@@ -363,43 +275,30 @@
 
     const MONTHS = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
 
-    // palette tokens (match CSS vars)
-    const S1   = '#2a78d6';
-    const S2   = '#eb6834';
-    const S3   = '#1baf7a';
-    const GRID = 'rgba(0,0,0,.06)';
-    const AXIS = '#c3c2b7';
-    const MUTED = '#898781';
+    // warna dari sistem existing — sama dengan btn-primary, status badge, dll.
+    const YELLOW = '#ebca56';  // brand primary (btn-primary, stat-card border)
+    const BLUE   = '#2563eb';  // active/link colour
+    const GREEN  = '#16a34a';  // success/ok colour
+    const GRID   = '#e5e7eb';  // border colour used throughout styles.css
+    const AXIS   = '#d1d5db';
+    const MUTED  = '#9ca3af';
 
-    // data from PHP — arrays indexed 1..12, json_encode gives 0..11
     const dMaintenance = @json(array_values($trendMaintenance));
     const dBarang      = @json(array_values($trendBarang));
     const dJasa        = @json(array_values($trendJasa));
 
-    // shared axis / plugin defaults
     const rupiahTick = {
-        callback: v => v === 0 ? '0' : 'Rp ' + Intl.NumberFormat('id-ID', {notation:'compact',maximumFractionDigits:1}).format(v)
+        callback: v => v === 0 ? '0' : 'Rp ' + Intl.NumberFormat('id-ID',{notation:'compact',maximumFractionDigits:1}).format(v)
     };
     const rupiahTooltip = {
-        callbacks: {
-            label: ctx => ' Rp ' + Intl.NumberFormat('id-ID').format(ctx.parsed.y)
-        }
+        callbacks: { label: ctx => ' Rp ' + Intl.NumberFormat('id-ID').format(ctx.parsed.y) }
     };
     const sharedScales = {
-        x: {
-            grid: { color: GRID },
-            ticks: { color: MUTED, font: { size: 11 } },
-            border: { color: AXIS }
-        },
-        y: {
-            grid: { color: GRID },
-            ticks: { ...rupiahTick, color: MUTED, font: { size: 11 } },
-            border: { color: AXIS },
-            beginAtZero: true
-        }
+        x: { grid:{color:GRID}, ticks:{color:MUTED,font:{size:11}}, border:{color:AXIS} },
+        y: { grid:{color:GRID}, ticks:{...rupiahTick,color:MUTED,font:{size:11}}, border:{color:AXIS}, beginAtZero:true }
     };
 
-    // ── Chart kiri: Tren Maintenance ──────────────────────────────────
+    // ── Maintenance (satu seri, warna brand kuning) ───────────────────
     new Chart(document.getElementById('chartMaintenance'), {
         type: 'line',
         data: {
@@ -407,12 +306,12 @@
             datasets: [{
                 label: 'Biaya Maintenance',
                 data: dMaintenance,
-                borderColor: S1,
-                backgroundColor: S1 + '18',
+                borderColor: YELLOW,
+                backgroundColor: 'rgba(235,202,86,.15)',
                 borderWidth: 2,
                 pointRadius: 4,
                 pointHoverRadius: 6,
-                pointBackgroundColor: S1,
+                pointBackgroundColor: YELLOW,
                 pointBorderColor: '#fff',
                 pointBorderWidth: 2,
                 fill: true,
@@ -422,16 +321,13 @@
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            interaction: { mode: 'index', intersect: false },
-            plugins: {
-                legend: { display: false },
-                tooltip: rupiahTooltip
-            },
+            interaction: { mode:'index', intersect:false },
+            plugins: { legend:{ display:false }, tooltip: rupiahTooltip },
             scales: sharedScales
         }
     });
 
-    // ── Chart kanan: Tren Pengadaan Barang & Jasa ──────────────────────
+    // ── Pengadaan: Barang (biru) dan Jasa (hijau) ─────────────────────
     new Chart(document.getElementById('chartPengadaan'), {
         type: 'line',
         data: {
@@ -440,12 +336,12 @@
                 {
                     label: 'Barang',
                     data: dBarang,
-                    borderColor: S2,
-                    backgroundColor: S2 + '18',
+                    borderColor: BLUE,
+                    backgroundColor: 'rgba(37,99,235,.10)',
                     borderWidth: 2,
                     pointRadius: 4,
                     pointHoverRadius: 6,
-                    pointBackgroundColor: S2,
+                    pointBackgroundColor: BLUE,
                     pointBorderColor: '#fff',
                     pointBorderWidth: 2,
                     fill: false,
@@ -454,12 +350,12 @@
                 {
                     label: 'Jasa',
                     data: dJasa,
-                    borderColor: S3,
-                    backgroundColor: S3 + '18',
+                    borderColor: GREEN,
+                    backgroundColor: 'rgba(22,163,74,.10)',
                     borderWidth: 2,
                     pointRadius: 4,
                     pointHoverRadius: 6,
-                    pointBackgroundColor: S3,
+                    pointBackgroundColor: GREEN,
                     pointBorderColor: '#fff',
                     pointBorderWidth: 2,
                     fill: false,
@@ -470,20 +366,13 @@
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            interaction: { mode: 'index', intersect: false },
+            interaction: { mode:'index', intersect:false },
             plugins: {
                 legend: {
                     display: true,
                     position: 'top',
                     align: 'end',
-                    labels: {
-                        usePointStyle: true,
-                        pointStyle: 'circle',
-                        boxWidth: 8,
-                        padding: 16,
-                        color: MUTED,
-                        font: { size: 12 }
-                    }
+                    labels: { usePointStyle:true, pointStyle:'circle', boxWidth:8, padding:16, color:MUTED, font:{size:12} }
                 },
                 tooltip: rupiahTooltip
             },
