@@ -124,6 +124,29 @@
 .badge-sedang-proses { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600; background:#eff6ff; color:#2563eb; }
 .empty-note          { text-align:center; padding:24px; color:#9ca3af; font-size:13px; }
 
+/* ── clickable stat cards ────────────────────────────────────────────── */
+.stat-card-link {
+    cursor: pointer;
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+.stat-card-link:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0,0,0,.12);
+    color: inherit;
+}
+/* ── clickable dash-card ─────────────────────────────────────────────── */
+.dash-card-link {
+    cursor: pointer;
+    transition: transform .15s ease, box-shadow .15s ease;
+    text-decoration: none;
+    display: block;
+}
+.dash-card-link:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0,0,0,.12);
+    color: inherit;
+}
+
 /* ── responsive ─────────────────────────────────────────────────────────*/
 @media (max-width: 900px) {
     .dash-row.row-2 { grid-template-columns: 1fr; }
@@ -147,10 +170,10 @@
     {{-- ROW 1 · 4 stat cards — pakai komponen existing               --}}
     {{-- ══════════════════════════════════════════════════════════════ --}}
     <div class="stat-cards-grid">
-        <x-stat-card label="Total Aset Aktif"    :value="number_format($totalAset)" />
-        <x-stat-card label="Tersedia"            :value="number_format($asetTersedia)" />
-        <x-stat-card label="Dalam Maintenance"   :value="number_format($asetMaintenance)" />
-        <x-stat-card label="Proses Pemusnahan"   :value="number_format($sedangPemusnahan)" />
+        <x-stat-card label="Total Aset Aktif"  :value="number_format($totalAset)"       :href="route('aset.index')" />
+        <x-stat-card label="Tersedia"          :value="number_format($asetTersedia)"    :href="route('aset.index')" />
+        <x-stat-card label="Dalam Maintenance" :value="number_format($asetMaintenance)" :href="route('maintenance.index')" />
+        <x-stat-card label="Proses Pemusnahan" :value="number_format($sedangPemusnahan)" :href="route('laporan_pemusnahan.index')" />
     </div>
 
     {{-- ══════════════════════════════════════════════════════════════ --}}
@@ -198,8 +221,8 @@
     {{-- ══════════════════════════════════════════════════════════════ --}}
     <div class="dash-row row-2" style="margin-bottom:32px;">
 
-        {{-- Kiri: 5 angka pengaduan --}}
-        <div class="dash-card">
+        {{-- Kiri: 5 angka pengaduan (seluruh card bisa diklik) --}}
+        <a href="{{ route('pengaduan-kerusakan.index') }}" class="dash-card dash-card-link">
             <p class="dash-card-title">Pengaduan Kerusakan · {{ $tahun }}</p>
             <div class="quad-grid">
                 <div class="quad-cell hl" style="grid-column:span 2">
@@ -223,7 +246,7 @@
                     <div class="quad-cell-label">Ditolak</div>
                 </div>
             </div>
-        </div>
+        </a>
 
         {{-- Kanan: tabel maintenance belum selesai --}}
         <div class="dash-card" style="display:flex;flex-direction:column;min-height:0;">
