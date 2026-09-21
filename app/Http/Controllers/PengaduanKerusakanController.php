@@ -270,6 +270,7 @@ class PengaduanKerusakanController extends Controller
 
             $pengaduan->update([
                 'decision_status' => 'disetujui',
+                'status'          => 'Sedang Diproses',
                 'decided_by'      => auth()->user()->id_user ?? null,
                 'decided_at'      => now(),
             ]);
@@ -349,6 +350,19 @@ class PengaduanKerusakanController extends Controller
             'success',
             'Pengaduan berhasil ditolak'
         );
+    }
+
+
+    /*=================================================
+    SELESAI
+    =================================================*/
+    public function selesai($id)
+    {
+        $data = PengaduanKerusakan::where('decision_status', 'disetujui')->findOrFail($id);
+
+        $data->update(['status' => 'Selesai']);
+
+        return back()->with('success', 'Pengaduan ditandai selesai');
     }
 
 

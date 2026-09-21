@@ -52,13 +52,16 @@ class DashboardController extends Controller
         $jumlahPengadaan       = PengadaanBarangJasa::whereYear('created_at', $tahun)->count();
 
         // ── ROW 4 · Pengaduan kerusakan (tahun terpilih) ────────────────────
-        $pengaduanTotal        = PengaduanKerusakan::whereYear('created_at', $tahun)->count();
         $pengaduanBelumApprove = PengaduanKerusakan::whereYear('created_at', $tahun)
             ->where('decision_status', 'menunggu_persetujuan')->count();
-        $pengaduanDisetujui    = PengaduanKerusakan::whereYear('created_at', $tahun)
-            ->where('decision_status', 'disetujui')->count();
+        $pengaduanSedangDiproses = PengaduanKerusakan::whereYear('created_at', $tahun)
+            ->where('status', 'Sedang Diproses')->count();
+        $pengaduanSelesai      = PengaduanKerusakan::whereYear('created_at', $tahun)
+            ->where('status', 'Selesai')->count();
         $pengaduanDitolak      = PengaduanKerusakan::whereYear('created_at', $tahun)
             ->where('decision_status', 'ditolak')->count();
+        $pengaduanTotal        = $pengaduanBelumApprove + $pengaduanSedangDiproses
+                                 + $pengaduanSelesai + $pengaduanDitolak;
 
         // ── ROW 4 · Maintenance belum di-approve dan belum selesai ──────────
         $maintenancePending = Maintenance::with('details.aset')
@@ -74,7 +77,7 @@ class DashboardController extends Controller
             'trendMaintenance', 'trendBarang', 'trendJasa',
             'totalBiayaMaintenance', 'jumlahMaintenance',
             'totalBiayaPengadaan', 'jumlahPengadaan',
-            'pengaduanTotal', 'pengaduanBelumApprove', 'pengaduanDisetujui', 'pengaduanDitolak',
+            'pengaduanTotal', 'pengaduanBelumApprove', 'pengaduanSedangDiproses', 'pengaduanSelesai', 'pengaduanDitolak',
             'maintenancePending'
         ));
     }

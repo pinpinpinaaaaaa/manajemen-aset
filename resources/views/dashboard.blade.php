@@ -188,7 +188,7 @@
     {{-- ══════════════════════════════════════════════════════════════ --}}
     <div class="dash-row row-2" style="margin-bottom:32px;">
 
-        {{-- Kiri: 4 angka pengaduan --}}
+        {{-- Kiri: 5 angka pengaduan --}}
         <div class="dash-card">
             <p class="dash-card-title">Pengaduan Kerusakan · {{ $tahun }}</p>
             <div class="quad-grid">
@@ -200,11 +200,15 @@
                     <div class="quad-cell-val">{{ number_format($pengaduanBelumApprove) }}</div>
                     <div class="quad-cell-label">Belum Di-approve</div>
                 </div>
-                <div class="quad-cell ok">
-                    <div class="quad-cell-val">{{ number_format($pengaduanDisetujui) }}</div>
-                    <div class="quad-cell-label">Disetujui / Proses</div>
+                <div class="quad-cell" style="background:#eff6ff;">
+                    <div class="quad-cell-val" style="color:#2563eb;">{{ number_format($pengaduanSedangDiproses) }}</div>
+                    <div class="quad-cell-label">Sedang Diproses</div>
                 </div>
-                <div class="quad-cell err" style="grid-column:span 2">
+                <div class="quad-cell ok">
+                    <div class="quad-cell-val">{{ number_format($pengaduanSelesai) }}</div>
+                    <div class="quad-cell-label">Sudah Selesai</div>
+                </div>
+                <div class="quad-cell err">
                     <div class="quad-cell-val">{{ number_format($pengaduanDitolak) }}</div>
                     <div class="quad-cell-label">Ditolak</div>
                 </div>

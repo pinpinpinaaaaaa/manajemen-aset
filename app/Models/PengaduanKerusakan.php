@@ -27,6 +27,7 @@ class PengaduanKerusakan extends BaseModel
         'id_gedung',
         'id_ruangan',
         'decision_status',
+        'status',
         'decided_by',
         'decided_at'
     ];
