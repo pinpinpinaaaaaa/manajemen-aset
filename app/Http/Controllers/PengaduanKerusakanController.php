@@ -270,7 +270,6 @@ class PengaduanKerusakanController extends Controller
 
             $pengaduan->update([
                 'decision_status' => 'disetujui',
-                'status'          => 'Sedang Diproses',
                 'decided_by'      => auth()->user()->id_user ?? null,
                 'decided_at'      => now(),
             ]);
@@ -283,6 +282,7 @@ class PengaduanKerusakanController extends Controller
                 // Header maintenance — hanya field yang ada di tabel/fillable
                 Maintenance::create([
                     'id_maintenance'  => $maintenanceId,
+                    'id_pengaduan'    => $pengaduan->id_pengaduan,
                     'id_ruangan'      => $aset->id_ruangan ?? null,
                     'id_gedung'       => $aset->id_gedung  ?? null,
                     'tanggal_laporan' => $pengaduan->created_at,
@@ -350,19 +350,6 @@ class PengaduanKerusakanController extends Controller
             'success',
             'Pengaduan berhasil ditolak'
         );
-    }
-
-
-    /*=================================================
-    SELESAI
-    =================================================*/
-    public function selesai($id)
-    {
-        $data = PengaduanKerusakan::where('decision_status', 'disetujui')->findOrFail($id);
-
-        $data->update(['status' => 'Selesai']);
-
-        return back()->with('success', 'Pengaduan ditandai selesai');
     }
 
 

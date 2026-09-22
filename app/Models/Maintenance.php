@@ -16,6 +16,7 @@ class Maintenance extends BaseModel
 
     protected $fillable = [
         'id_maintenance',
+        'id_pengaduan',
         'id_ruangan',
         'id_gedung',
         'tanggal_laporan',
@@ -69,6 +70,11 @@ class Maintenance extends BaseModel
     public function aset()
     {
         return $this->belongsTo(Aset::class, 'id_aset', 'id_aset');
+    }
+
+    public function pengaduan()
+    {
+        return $this->belongsTo(PengaduanKerusakan::class, 'id_pengaduan', 'id_pengaduan');
     }
 
 }

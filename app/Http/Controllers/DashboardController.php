@@ -52,16 +52,16 @@ class DashboardController extends Controller
         $jumlahPengadaan       = PengadaanBarangJasa::whereYear('created_at', $tahun)->count();
 
         // ── ROW 4 · Pengaduan kerusakan (tahun terpilih) ────────────────────
-        $pengaduanBelumApprove = PengaduanKerusakan::whereYear('created_at', $tahun)
-            ->where('decision_status', 'menunggu_persetujuan')->count();
-        $pengaduanSedangDiproses = PengaduanKerusakan::whereYear('created_at', $tahun)
-            ->where('status', 'Sedang Diproses')->count();
-        $pengaduanSelesai      = PengaduanKerusakan::whereYear('created_at', $tahun)
-            ->where('status', 'Selesai')->count();
-        $pengaduanDitolak      = PengaduanKerusakan::whereYear('created_at', $tahun)
-            ->where('decision_status', 'ditolak')->count();
-        $pengaduanTotal        = $pengaduanBelumApprove + $pengaduanSedangDiproses
-                                 + $pengaduanSelesai + $pengaduanDitolak;
+        // Status diturunkan (computed) dari relasi maintenance — eager-load untuk hindari N+1
+        $allPengaduan = PengaduanKerusakan::with(['maintenances.details'])
+            ->whereYear('created_at', $tahun)
+            ->get();
+
+        $pengaduanBelumApprove   = $allPengaduan->filter(fn($p) => $p->status_computed === 'belum_approve')->count();
+        $pengaduanSedangDiproses = $allPengaduan->filter(fn($p) => $p->status_computed === 'sedang_diproses')->count();
+        $pengaduanSelesai        = $allPengaduan->filter(fn($p) => $p->status_computed === 'selesai')->count();
+        $pengaduanDitolak        = $allPengaduan->filter(fn($p) => $p->status_computed === 'ditolak')->count();
+        $pengaduanTotal          = $allPengaduan->count();
 
         // ── ROW 4 · Maintenance belum selesai (belum approve + sedang proses) ─
         // "Belum selesai" = decision_status bukan ditolak DAN masih ada detail yg belum Selesai
