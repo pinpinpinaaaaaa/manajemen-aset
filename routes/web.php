@@ -28,7 +28,8 @@ use App\Http\Controllers\{
     VendorController,
     PengaduanKerusakanController,
     PermintaanKendaraanController,
-    EkspedisiController
+    EkspedisiController,
+    AnggaranController
 };
 
 Route::get('/', fn() => view('welcome'));
@@ -348,5 +349,9 @@ Route::middleware(['auth', 'menu.access'])->group(function () {
         Route::delete('/{id}', [LaporanTahunanController::class, 'destroy'])->name('laporan_tahunan.destroy');
     });
 
-    Route::get('/laporan-tahunan/{id}/export-pdf',[LaporanTahunanController::class, 'exportPdf'])->name('laporan_tahunan.export_pdf');    
+    Route::get('/laporan-tahunan/{id}/export-pdf',[LaporanTahunanController::class, 'exportPdf'])->name('laporan_tahunan.export_pdf');
+
+    // === ANGGARAN
+    Route::get('/anggaran-rkat', [AnggaranController::class, 'rkat'])->name('anggaran-rkat.index');
+    Route::get('/riwayat-realisasi', [AnggaranController::class, 'realisasi'])->name('riwayat-realisasi.index');
 });

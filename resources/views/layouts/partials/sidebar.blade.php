@@ -282,6 +282,31 @@
             @endif
         @endif
 
+        {{-- MANAJEMEN ANGGARAN --}}
+        @if (canMenu('anggaran-rkat.index') || canMenu('riwayat-realisasi.index'))
+            <div class="sidebar-section">Manajemen Anggaran</div>
+
+            @if (canMenu('anggaran-rkat.index'))
+                <div class="nav-item">
+                    <a href="{{ route('anggaran-rkat.index') }}"
+                        class="nav-link {{ request()->routeIs('anggaran-rkat.*') ? 'active' : '' }}">
+                        <i class="fas fa-file-invoice-dollar nav-icon"></i>
+                        <span class="nav-label">Anggaran RKAT</span>
+                    </a>
+                </div>
+            @endif
+
+            @if (canMenu('riwayat-realisasi.index'))
+                <div class="nav-item">
+                    <a href="{{ route('riwayat-realisasi.index') }}"
+                        class="nav-link {{ request()->routeIs('riwayat-realisasi.*') ? 'active' : '' }}">
+                        <i class="fas fa-chart-bar nav-icon"></i>
+                        <span class="nav-label">Riwayat Realisasi</span>
+                    </a>
+                </div>
+            @endif
+        @endif
+
         <div class="sidebar-section">Manajemen Pengguna dan Sistem</div>
 
         {{-- USER MANAGEMENT (SUBMENU) --}}
