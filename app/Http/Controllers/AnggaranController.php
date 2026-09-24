@@ -41,8 +41,9 @@ class AnggaranController extends Controller
 
     public function storeRkat(Request $request)
     {
+        $thisYear = now()->year;
         $validated = $request->validate([
-            'tahun'         => 'required|integer|min:2020|max:2100',
+            'tahun'         => "required|integer|min:{$thisYear}|max:" . ($thisYear + 5),
             'kode_kegiatan' => 'required|string|max:50|unique:rkat_anggaran,kode_kegiatan',
             'coa_pos'       => 'required|string|max:100',
             'coa_sub'       => 'required|string|max:150',
@@ -62,8 +63,9 @@ class AnggaranController extends Controller
     {
         $anggaran = RkatAnggaran::findOrFail($id);
 
+        $thisYear = now()->year;
         $validated = $request->validate([
-            'tahun'         => 'required|integer|min:2020|max:2100',
+            'tahun'         => "required|integer|min:{$thisYear}|max:" . ($thisYear + 5),
             'kode_kegiatan' => 'required|string|max:50|unique:rkat_anggaran,kode_kegiatan,' . $id,
             'coa_pos'       => 'required|string|max:100',
             'coa_sub'       => 'required|string|max:150',

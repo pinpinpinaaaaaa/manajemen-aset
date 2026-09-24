@@ -311,7 +311,8 @@
                     <div class="row g-3">
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Tahun <span class="text-danger">*</span></label>
-                            <input type="number" name="tahun" class="form-control" value="{{ old('tahun', $tahun) }}" min="2020" max="2100" required>
+                            <input type="number" name="tahun" class="form-control" value="{{ old('tahun', $tahun) }}" min="{{ now()->year }}" max="{{ now()->year + 5 }}" required>
+                            <div class="form-text">Tahun berjalan atau tahun depan.</div>
                         </div>
                         <div class="col-md-8">
                             <label class="form-label fw-semibold">Kode Kegiatan <span class="text-danger">*</span></label>
@@ -319,7 +320,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">COA — Pos Utama <span class="text-danger">*</span></label>
-                            <select name="coa_pos" id="coaPosAdd" class="form-select" required onchange="isiSubPos('coaPosAdd','coaSubAdd')">
+                            <select name="coa_pos" id="coaPosAdd" class="form-select" required>
                                 <option value="">-- Pilih Pos --</option>
                                 @foreach (array_keys($coaList) as $pos)
                                     <option value="{{ $pos }}" @selected(old('coa_pos') == $pos)>{{ $pos }}</option>
@@ -328,9 +329,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">COA — Sub-Pos <span class="text-danger">*</span></label>
-                            <select name="coa_sub" id="coaSubAdd" class="form-select" required>
-                                <option value="">-- Pilih pos utama dulu --</option>
-                            </select>
+                            <input type="text" name="coa_sub" class="form-control" value="{{ old('coa_sub') }}" placeholder="Mis. Maintenance AC Lantai 2" maxlength="150" required>
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold">Nama Kegiatan <span class="text-danger">*</span></label>
@@ -365,7 +364,8 @@
                     <div class="row g-3">
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Tahun <span class="text-danger">*</span></label>
-                            <input type="number" name="tahun" id="editTahun" class="form-control" min="2020" max="2100" required>
+                            <input type="number" name="tahun" id="editTahun" class="form-control" min="{{ now()->year }}" max="{{ now()->year + 5 }}" required>
+                            <div class="form-text">Tahun berjalan atau tahun depan.</div>
                         </div>
                         <div class="col-md-8">
                             <label class="form-label fw-semibold">Kode Kegiatan <span class="text-danger">*</span></label>
@@ -373,7 +373,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">COA — Pos Utama <span class="text-danger">*</span></label>
-                            <select name="coa_pos" id="coaPosEdit" class="form-select" required onchange="isiSubPos('coaPosEdit','coaSubEdit')">
+                            <select name="coa_pos" id="coaPosEdit" class="form-select" required>
                                 <option value="">-- Pilih Pos --</option>
                                 @foreach (array_keys($coaList) as $pos)
                                     <option value="{{ $pos }}">{{ $pos }}</option>
@@ -382,9 +382,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">COA — Sub-Pos <span class="text-danger">*</span></label>
-                            <select name="coa_sub" id="coaSubEdit" class="form-select" required>
-                                <option value="">-- Pilih pos utama dulu --</option>
-                            </select>
+                            <input type="text" name="coa_sub" id="editCoaSub" class="form-control" placeholder="Mis. Maintenance AC Lantai 2" maxlength="150" required>
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold">Nama Kegiatan <span class="text-danger">*</span></label>
@@ -406,35 +404,16 @@
 </div>
 
 <script>
-const COA_LIST = @json($coaList);
-
-function isiSubPos(posElId, subElId, currentSub) {
-    const pos   = document.getElementById(posElId).value;
-    const subEl = document.getElementById(subElId);
-    const subs  = COA_LIST[pos] || [];
-
-    subEl.innerHTML = '<option value="">-- Pilih Sub-Pos --</option>';
-    subEl.disabled  = subs.length === 0;
-
-    subs.forEach(s => {
-        const opt       = document.createElement('option');
-        opt.value       = s;
-        opt.textContent = s;
-        if (s === currentSub) opt.selected = true;
-        subEl.appendChild(opt);
-    });
-}
-
 function bukaModalEdit(id, tahun, kode, pos, sub, nama, anggaran) {
     document.getElementById('formEditAnggaran').action = '/anggaran-rkat/' + id;
     document.getElementById('editTahun').value    = tahun;
     document.getElementById('editKode').value     = kode;
+    document.getElementById('editCoaSub').value   = sub;
     document.getElementById('editNama').value     = nama;
     document.getElementById('editAnggaran').value = anggaran;
 
     const posEl = document.getElementById('coaPosEdit');
     posEl.value = pos;
-    isiSubPos('coaPosEdit', 'coaSubEdit', sub);
 
     new bootstrap.Modal(document.getElementById('modalEditAnggaran')).show();
 }
@@ -446,14 +425,9 @@ document.getElementById('searchRkat').addEventListener('input', function () {
     });
 });
 
-// Restore modal jika ada error validasi
 @if ($errors->any())
     document.addEventListener('DOMContentLoaded', () => {
         new bootstrap.Modal(document.getElementById('modalTambahAnggaran')).show();
-        @if (old('coa_pos'))
-            document.getElementById('coaPosAdd').value = '{{ old('coa_pos') }}';
-            isiSubPos('coaPosAdd', 'coaSubAdd', '{{ old('coa_sub') }}');
-        @endif
     });
 @endif
 </script>
