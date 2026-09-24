@@ -85,12 +85,6 @@
         max-width: 460px;
     }
     .search-bar-wrap input:focus { border-color: #2563eb; }
-    .pagination-info {
-        font-size: 13px;
-        color: #6b7280;
-        margin-top: 10px;
-        text-align: right;
-    }
     .btn-hapus-realisasi {
         background: none;
         border: 1px solid #fecaca;
@@ -112,6 +106,19 @@
 <main class="main-content">
 <div class="content-padding">
 
+    @if (session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+    @if ($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>{{ $errors->first() }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
     {{-- ── Page Header ── --}}
     <div class="anggaran-page-header">
         <div class="page-header">
@@ -124,37 +131,43 @@
             </nav>
         </div>
         <div class="header-actions">
-            <select id="tahunSelect" class="form-select" style="width:auto;height:38px;font-size:14px;">
-                <option value="2026" selected>2026</option>
-                <option value="2025">2025</option>
-                <option value="2024">2024</option>
-            </select>
-            <button class="btn btn-outline" onclick="alert('Fitur export akan tersedia setelah backend tersambung.')">
-                <i class="fas fa-file-excel"></i> Export
-            </button>
+            <form method="GET" action="{{ route('riwayat-realisasi.index') }}" class="d-flex gap-2">
+                <select name="tahun" class="form-select" style="width:auto;height:38px;font-size:14px;" onchange="this.form.submit()">
+                    @foreach ($tahunList as $t)
+                        <option value="{{ $t }}" @selected($t == $tahun)>{{ $t }}</option>
+                    @endforeach
+                    @unless ($tahunList->contains(now()->year))
+                        <option value="{{ now()->year }}" @selected(now()->year == $tahun)>{{ now()->year }}</option>
+                    @endunless
+                </select>
+            </form>
+            @if ($anggaranList->isNotEmpty())
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambahRealisasi">
+                    <i class="fas fa-plus me-1"></i> Catat Realisasi
+                </button>
+            @endif
         </div>
     </div>
 
     {{-- ── Summary Cards ── --}}
     <div class="realisasi-summary-wrap">
         <div class="realisasi-summary-card">
-            <div class="realisasi-summary-label"><i class="fas fa-receipt me-1"></i> Total Realisasi Tahun <span id="labelTahunCard">2026</span></div>
-            <div class="realisasi-summary-value" id="cardTotalRealisasi">Rp 0</div>
+            <div class="realisasi-summary-label"><i class="fas fa-receipt me-1"></i> Total Realisasi Tahun {{ $tahun }}</div>
+            <div class="realisasi-summary-value">Rp {{ number_format($totalRealisasi, 0, ',', '.') }}</div>
         </div>
         <div class="realisasi-summary-card blue">
             <div class="realisasi-summary-label"><i class="fas fa-list-ol me-1"></i> Jumlah Transaksi</div>
-            <div class="realisasi-summary-value" id="cardJumlahTx">0</div>
+            <div class="realisasi-summary-value">{{ $jumlahTransaksi }} transaksi</div>
         </div>
     </div>
 
     {{-- ── Search ── --}}
     <div class="search-bar-wrap">
-        <input type="text" id="searchRealisasi"
-               placeholder="Cari kode kegiatan, nama, atau deskripsi...">
+        <input type="text" id="searchRealisasi" placeholder="Cari kode kegiatan, nama, atau deskripsi...">
     </div>
 
     {{-- ── Table ── --}}
-    <span class="tabel-title">Daftar Realisasi <span id="labelTahun">2026</span></span>
+    <span class="tabel-title">Daftar Realisasi {{ $tahun }}</span>
 
     <div class="table-container">
         <table class="data-table" id="tabelRealisasi">
@@ -169,139 +182,115 @@
                     <th>Aksi</th>
                 </tr>
             </thead>
-            <tbody id="realisasiBody">
-                {{-- diisi JS --}}
+            <tbody>
+                @forelse ($data as $i => $row)
+                    <tr data-search="{{ strtolower(($row->anggaran->kode_kegiatan ?? '') . ' ' . ($row->anggaran->nama_kegiatan ?? '') . ' ' . $row->deskripsi) }}">
+                        <td>{{ $data->firstItem() + $i }}</td>
+                        <td style="white-space:nowrap">{{ $row->tanggal->format('d M Y') }}</td>
+                        <td><span class="badge-kode">{{ $row->anggaran->kode_kegiatan ?? '-' }}</span></td>
+                        <td style="text-align:left">{{ $row->anggaran->nama_kegiatan ?? '-' }}</td>
+                        <td style="text-align:left;color:#6b7280;font-size:13px">{{ $row->deskripsi ?? '-' }}</td>
+                        <td class="text-right" style="font-weight:600;font-variant-numeric:tabular-nums">
+                            {{ number_format($row->jumlah, 0, ',', '.') }}
+                        </td>
+                        <td>
+                            <form method="POST" action="{{ route('riwayat-realisasi.destroy', $row->id) }}"
+                                  onsubmit="return confirm('Hapus transaksi realisasi ini?')">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="btn-hapus-realisasi">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <i class="fas fa-inbox fa-2x mb-2 d-block opacity-50"></i>
+                            Belum ada realisasi untuk tahun {{ $tahun }}.
+                        </td>
+                    </tr>
+                @endforelse
             </tbody>
         </table>
     </div>
-    <div class="pagination-info" id="paginationInfo"></div>
+
+    {{-- Pagination --}}
+    <div class="d-flex justify-content-between align-items-center mt-3">
+        <div style="font-size:13px;color:#6b7280">
+            @if ($data->total() > 0)
+                Menampilkan {{ $data->firstItem() }}–{{ $data->lastItem() }} dari {{ $data->total() }} data
+            @endif
+        </div>
+        {{ $data->appends(['tahun' => $tahun])->links() }}
+    </div>
 
 </div>
 </main>
 
+{{-- ──────────── MODAL TAMBAH REALISASI ──────────── --}}
+@if ($anggaranList->isNotEmpty())
+<div class="modal fade" id="modalTambahRealisasi" tabindex="-1" aria-labelledby="modalRealisasiLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <form method="POST" action="{{ route('riwayat-realisasi.store') }}">
+            @csrf
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalRealisasiLabel">
+                        <i class="fas fa-plus-circle me-2 text-primary"></i>Catat Realisasi Anggaran
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Pos Anggaran <span class="text-danger">*</span></label>
+                            <select name="rkat_anggaran_id" class="form-select" required>
+                                <option value="">-- Pilih Pos Anggaran --</option>
+                                @foreach ($anggaranList as $ag)
+                                    <option value="{{ $ag->id }}" @selected(old('rkat_anggaran_id') == $ag->id)>
+                                        {{ $ag->kode_kegiatan }} — {{ $ag->nama_kegiatan }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Tanggal <span class="text-danger">*</span></label>
+                            <input type="date" name="tanggal" class="form-control" value="{{ old('tanggal', date('Y-m-d')) }}" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Jumlah (Rp) <span class="text-danger">*</span></label>
+                            <input type="number" name="jumlah" class="form-control" value="{{ old('jumlah') }}" min="1" step="1000" placeholder="0" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Deskripsi</label>
+                            <textarea name="deskripsi" class="form-control" rows="2" maxlength="500" placeholder="Keterangan singkat realisasi...">{{ old('deskripsi') }}</textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Simpan</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+@endif
+
 <script>
-// ── Data dummy Riwayat Realisasi ──
-let realisasiData = [
-    {
-        tanggal : '2026-02-14',
-        kode    : 'RKAT-2026-001',
-        nama    : 'Pengadaan Alat Tulis Kantor (ATK)',
-        deskripsi: 'Pembelian ATK untuk kebutuhan kantor semester 1',
-        jumlah  : 1200000,
-    },
-    {
-        tanggal : '2026-02-28',
-        kode    : 'RKAT-2026-001',
-        nama    : 'Pengadaan Alat Tulis Kantor (ATK)',
-        deskripsi: 'Pembelian kertas A4 dan tinta printer',
-        jumlah  : 1300000,
-    },
-    {
-        tanggal : '2026-03-05',
-        kode    : 'RKAT-2026-002',
-        nama    : 'Pemeliharaan & Perbaikan Peralatan Kantor',
-        deskripsi: 'Servis AC ruangan rapat lantai 3',
-        jumlah  : 3500000,
-    },
-    {
-        tanggal : '2026-03-20',
-        kode    : 'RKAT-2026-002',
-        nama    : 'Pemeliharaan & Perbaikan Peralatan Kantor',
-        deskripsi: 'Perbaikan printer HP LaserJet',
-        jumlah  : 1200000,
-    },
-    {
-        tanggal : '2026-04-01',
-        kode    : 'RKAT-2026-002',
-        nama    : 'Pemeliharaan & Perbaikan Peralatan Kantor',
-        deskripsi: 'Penggantian cartridge scanner dan keyboard',
-        jumlah  : 3300000,
-    },
-    {
-        tanggal : '2026-04-15',
-        kode    : 'RKAT-2026-004',
-        nama    : 'Biaya Pemeliharaan Gedung dan Bangunan',
-        deskripsi: 'Pengecatan ulang koridor gedung D lantai 1–2',
-        jumlah  : 12000000,
-    },
-    {
-        tanggal : '2026-05-10',
-        kode    : 'RKAT-2026-004',
-        nama    : 'Biaya Pemeliharaan Gedung dan Bangunan',
-        deskripsi: 'Perbaikan atap dan saluran air gedung D',
-        jumlah  : 8000000,
-    },
-    {
-        tanggal : '2026-05-22',
-        kode    : 'RKAT-2026-005',
-        nama    : 'Pengadaan Kendaraan Operasional',
-        deskripsi: 'DP pembelian 1 unit Toyota Kijang Innova',
-        jumlah  : 60000000,
-    },
-    {
-        tanggal : '2026-06-30',
-        kode    : 'RKAT-2026-005',
-        nama    : 'Pengadaan Kendaraan Operasional',
-        deskripsi: 'Pelunasan cicilan dan biaya balik nama kendaraan',
-        jumlah  : 50433320,
-    },
-];
-
-const fmt = v => 'Rp ' + v.toLocaleString('id-ID');
-const fmtTgl = s => {
-    const d = new Date(s + 'T00:00:00');
-    return d.toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' });
-};
-
-function renderTable(data) {
-    const tbody = document.getElementById('realisasiBody');
-    tbody.innerHTML = '';
-    let total = 0;
-    data.forEach((d, i) => {
-        total += d.jumlah;
-        const tr = document.createElement('tr');
-        tr.dataset.search = (d.kode + ' ' + d.nama + ' ' + d.deskripsi).toLowerCase();
-        tr.innerHTML = `
-            <td>${i + 1}</td>
-            <td style="white-space:nowrap">${fmtTgl(d.tanggal)}</td>
-            <td><span class="badge-kode">${d.kode}</span></td>
-            <td style="text-align:left">${d.nama}</td>
-            <td style="text-align:left;color:#6b7280;font-size:13px">${d.deskripsi}</td>
-            <td class="text-right" style="font-weight:600">${fmt(d.jumlah)}</td>
-            <td>
-                <button class="btn-hapus-realisasi" onclick="hapusBaris(${i})">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </td>`;
-        tbody.appendChild(tr);
-    });
-
-    document.getElementById('cardTotalRealisasi').textContent = fmt(total);
-    document.getElementById('cardJumlahTx').textContent       = data.length + ' transaksi';
-    document.getElementById('paginationInfo').textContent     =
-        `Menampilkan 1–${data.length} dari ${data.length} data`;
-}
-
-function hapusBaris(idx) {
-    if (!confirm('Hapus transaksi realisasi ini?')) return;
-    realisasiData.splice(idx, 1);
-    renderTable(realisasiData);
-}
-
 document.getElementById('searchRealisasi').addEventListener('input', function () {
     const q = this.value.toLowerCase();
-    document.querySelectorAll('#realisasiBody tr').forEach(tr => {
+    document.querySelectorAll('#tabelRealisasi tbody tr[data-search]').forEach(tr => {
         tr.style.display = (tr.dataset.search || '').includes(q) ? '' : 'none';
     });
 });
 
-document.getElementById('tahunSelect').addEventListener('change', function () {
-    const t = this.value;
-    document.getElementById('labelTahun').textContent     = t;
-    document.getElementById('labelTahunCard').textContent = t;
-});
-
-// Init
-renderTable(realisasiData);
+@if ($errors->any())
+    document.addEventListener('DOMContentLoaded', () => {
+        const modal = document.getElementById('modalTambahRealisasi');
+        if (modal) new bootstrap.Modal(modal).show();
+    });
+@endif
 </script>
 @endsection

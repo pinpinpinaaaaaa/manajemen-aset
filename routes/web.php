@@ -353,5 +353,11 @@ Route::middleware(['auth', 'menu.access'])->group(function () {
 
     // === ANGGARAN
     Route::get('/anggaran-rkat', [AnggaranController::class, 'rkat'])->name('anggaran-rkat.index');
+    Route::post('/anggaran-rkat', [AnggaranController::class, 'storeRkat'])->name('anggaran-rkat.store');
+    Route::put('/anggaran-rkat/{id}', [AnggaranController::class, 'updateRkat'])->name('anggaran-rkat.update');
+    Route::delete('/anggaran-rkat/{id}', [AnggaranController::class, 'destroyRkat'])->name('anggaran-rkat.destroy');
+
     Route::get('/riwayat-realisasi', [AnggaranController::class, 'realisasi'])->name('riwayat-realisasi.index');
+    Route::post('/riwayat-realisasi', [AnggaranController::class, 'storeRealisasi'])->name('riwayat-realisasi.store');
+    Route::delete('/riwayat-realisasi/{id}', [AnggaranController::class, 'destroyRealisasi'])->name('riwayat-realisasi.destroy');
 });

@@ -24,24 +24,24 @@
         gap: 8px;
         flex-shrink: 0;
     }
-    .anggaran-summary-grid {
+    .anggaran-stat-wrap {
         display: flex;
         flex-wrap: wrap;
         gap: 16px;
         margin-bottom: 20px;
     }
-    .anggaran-summary-card {
-        flex: 1 1 calc(33.333% - 11px);
-        min-width: 180px;
+    .anggaran-stat-card {
+        flex: 1 1 200px;
         background: #fff;
         border-radius: 12px;
         padding: 16px 20px;
         box-shadow: 0 4px 12px rgba(0,0,0,.06);
-        border-left: 4px solid #2563eb;
     }
-    .anggaran-summary-card.orange { border-left-color: #d97706; }
-    .anggaran-summary-card.green  { border-left-color: #16a34a; }
-    .anggaran-summary-label {
+    .anggaran-stat-card.yellow { border-left: 4px solid #ebca56; }
+    .anggaran-stat-card.green  { border-left: 4px solid #16a34a; }
+    .anggaran-stat-card.blue   { border-left: 4px solid #2563eb; }
+    .anggaran-stat-card.orange { border-left: 4px solid #d97706; }
+    .anggaran-stat-label {
         font-size: 12px;
         font-weight: 600;
         color: #64748b;
@@ -49,34 +49,55 @@
         letter-spacing: .04em;
         margin-bottom: 6px;
     }
-    .anggaran-summary-value {
-        font-size: 22px;
+    .anggaran-stat-value {
+        font-size: 20px;
         font-weight: 700;
-        color: #111;
+        color: #111827;
         line-height: 1.2;
     }
-    .anggaran-summary-card.green  .anggaran-summary-value { color: #16a34a; }
-    .anggaran-summary-card.orange .anggaran-summary-value { color: #d97706; }
-    .tabel-title-bar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 12px;
+    .anggaran-stat-card.yellow .anggaran-stat-value { color: #b45309; }
+    .anggaran-stat-card.green  .anggaran-stat-value { color: #16a34a; }
+    .anggaran-stat-card.blue   .anggaran-stat-value { color: #2563eb; }
+    .anggaran-stat-card.orange .anggaran-stat-value { color: #d97706; }
+    .persen-badge {
+        display: inline-block;
+        margin-top: 4px;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 999px;
     }
-    .tabel-title { font-size: 16px; font-weight: 600; color: #111; }
-    .text-sisa   { color: #16a34a; font-weight: 600; }
-    .text-right  { text-align: right !important; }
-    .tabel-total-row td {
-        font-weight: 700;
-        background: #f9fafb;
-        border-top: 2px solid #e5e7eb;
+    .persen-badge.aman    { background: #dcfce7; color: #16a34a; }
+    .persen-badge.sedang  { background: #fef9c3; color: #854d0e; }
+    .persen-badge.kritis  { background: #fee2e2; color: #dc2626; }
+    .tabel-title { font-size: 16px; font-weight: 600; color: #111; margin-bottom: 12px; display: block; }
+    .text-right { text-align: right !important; }
+    .coa-badge {
+        display: inline-block;
+        background: #f0fdf4;
+        color: #15803d;
+        border: 1px solid #bbf7d0;
+        padding: 2px 9px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
     }
-    .pagination-info {
-        font-size: 13px;
-        color: #6b7280;
-        margin-top: 10px;
-        text-align: right;
+    .progress-wrap { min-width: 80px; }
+    .progress-bar-bg {
+        background: #e5e7eb;
+        border-radius: 99px;
+        height: 6px;
+        margin-top: 4px;
     }
+    .progress-bar-fill {
+        background: #2563eb;
+        border-radius: 99px;
+        height: 6px;
+    }
+    .progress-bar-fill.kritis { background: #dc2626; }
+    .progress-bar-fill.sedang { background: #d97706; }
+    .progress-pct { font-size: 11px; color: #6b7280; white-space: nowrap; }
     .search-bar-wrap {
         display: flex;
         align-items: center;
@@ -96,40 +117,35 @@
         max-width: 460px;
     }
     .search-bar-wrap input:focus { border-color: #2563eb; }
-    .coa-badge {
-        display: inline-block;
-        background: #f1f5f9;
-        color: #334155;
-        border: 1px solid #e2e8f0;
-        padding: 2px 8px;
-        border-radius: 6px;
-        font-size: 12px;
-        font-weight: 500;
-        white-space: nowrap;
-    }
-    .coa-pos-hint {
-        font-size: 11px;
-        color: #94a3b8;
-        margin-top: 1px;
-    }
-    /* cascading dropdown helper text */
-    .subpos-placeholder { color: #9ca3af; font-style: italic; }
+    .total-row td { font-weight: 700; background: #f8fafc; border-top: 2px solid #e2e8f0; }
     @media (max-width: 640px) {
         .anggaran-page-header { flex-direction: column; }
-        .anggaran-summary-card { flex: 1 1 100%; }
-        .tabel-title-bar { flex-direction: column; align-items: flex-start; gap: 8px; }
-        .header-actions { width: 100%; }
+        .anggaran-stat-card { flex: 1 1 100%; }
+        .header-actions { width: 100%; flex-wrap: wrap; }
     }
 </style>
 
 <main class="main-content">
 <div class="content-padding">
 
+    @if (session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+    @if ($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>{{ $errors->first() }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
     {{-- ── Page Header ── --}}
     <div class="anggaran-page-header">
         <div class="page-header">
             <h1 class="page-title">Kelola Anggaran RKAT</h1>
-            <p class="page-subtitle">Manajemen Rencana Kegiatan dan Anggaran Tahunan</p>
+            <p class="page-subtitle">Rencana Kerja dan Anggaran Tahunan — pengelolaan pos anggaran & realisasi</p>
             <nav class="breadcrumb" style="margin-top:6px">
                 <a href="{{ url('/dashboard') }}">Dashboard</a>
                 <span class="separator">/</span>
@@ -137,408 +153,308 @@
             </nav>
         </div>
         <div class="header-actions">
-            <select id="tahunSelect" class="form-select" style="width:auto;height:38px;font-size:14px;">
-                <option value="2026" selected>2026</option>
-                <option value="2025">2025</option>
-                <option value="2024">2024</option>
-            </select>
-            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalTambah">
-                <i class="fas fa-plus"></i> Tambah Anggaran
+            <form method="GET" action="{{ route('anggaran-rkat.index') }}" class="d-flex gap-2">
+                <select name="tahun" class="form-select" style="width:auto;height:38px;font-size:14px;" onchange="this.form.submit()">
+                    @foreach ($tahunList as $t)
+                        <option value="{{ $t }}" @selected($t == $tahun)>{{ $t }}</option>
+                    @endforeach
+                    @unless ($tahunList->contains(now()->year))
+                        <option value="{{ now()->year }}" @selected(now()->year == $tahun)>{{ now()->year }}</option>
+                    @endunless
+                </select>
+            </form>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambahAnggaran">
+                <i class="fas fa-plus me-1"></i> Tambah Pos Anggaran
             </button>
         </div>
     </div>
 
-    {{-- ── Summary Cards ── --}}
-    <div class="anggaran-summary-grid">
-        <div class="anggaran-summary-card">
-            <div class="anggaran-summary-label"><i class="fas fa-wallet me-1"></i> Total Anggaran</div>
-            <div class="anggaran-summary-value" id="cardTotalAnggaran">Rp 0</div>
+    {{-- ── Stat Cards ── --}}
+    @php
+        $pct      = $totalAnggaran > 0 ? ($totalRealisasi / $totalAnggaran * 100) : 0;
+        $pctClass = $pct >= 90 ? 'kritis' : ($pct >= 60 ? 'sedang' : 'aman');
+    @endphp
+    <div class="anggaran-stat-wrap">
+        <div class="anggaran-stat-card yellow">
+            <div class="anggaran-stat-label"><i class="fas fa-file-invoice-dollar me-1"></i> Total Anggaran {{ $tahun }}</div>
+            <div class="anggaran-stat-value">Rp {{ number_format($totalAnggaran, 0, ',', '.') }}</div>
         </div>
-        <div class="anggaran-summary-card orange">
-            <div class="anggaran-summary-label"><i class="fas fa-receipt me-1"></i> Total Realisasi</div>
-            <div class="anggaran-summary-value" id="cardTotalRealisasi">Rp 0</div>
+        <div class="anggaran-stat-card green">
+            <div class="anggaran-stat-label"><i class="fas fa-check-double me-1"></i> Total Realisasi</div>
+            <div class="anggaran-stat-value">Rp {{ number_format($totalRealisasi, 0, ',', '.') }}</div>
+            <span class="persen-badge {{ $pctClass }}">{{ number_format($pct, 1) }}%</span>
         </div>
-        <div class="anggaran-summary-card green">
-            <div class="anggaran-summary-label"><i class="fas fa-piggy-bank me-1"></i> Sisa Anggaran</div>
-            <div class="anggaran-summary-value" id="cardSisaAnggaran">Rp 0</div>
+        <div class="anggaran-stat-card blue">
+            <div class="anggaran-stat-label"><i class="fas fa-wallet me-1"></i> Sisa Anggaran</div>
+            <div class="anggaran-stat-value">Rp {{ number_format($totalSisa, 0, ',', '.') }}</div>
+        </div>
+        <div class="anggaran-stat-card orange">
+            <div class="anggaran-stat-label"><i class="fas fa-list-ul me-1"></i> Jumlah Pos</div>
+            <div class="anggaran-stat-value">{{ $data->count() }} pos</div>
         </div>
     </div>
 
     {{-- ── Search ── --}}
     <div class="search-bar-wrap">
-        <input type="text" id="searchRkat" placeholder="Cari berdasarkan kode kegiatan, COA, atau nama kegiatan...">
+        <input type="text" id="searchRkat" placeholder="Cari kode, nama kegiatan, atau COA...">
     </div>
 
     {{-- ── Table ── --}}
-    <div class="tabel-title-bar">
-        <span class="tabel-title">Daftar Anggaran RKAT <span id="labelTahun">2026</span></span>
-    </div>
+    <span class="tabel-title">Daftar Pos Anggaran {{ $tahun }}</span>
 
     <div class="table-container">
         <table class="data-table" id="tabelRkat">
             <thead>
                 <tr>
                     <th>No</th>
-                    <th>Kode Kegiatan</th>
-                    <th style="text-align:left">COA</th>
+                    <th>Kode</th>
                     <th style="text-align:left">Nama Kegiatan</th>
+                    <th style="text-align:left">COA</th>
                     <th class="text-right">Anggaran (Rp)</th>
                     <th class="text-right">Realisasi (Rp)</th>
-                    <th class="text-right">Sisa Anggaran (Rp)</th>
+                    <th>Progres</th>
+                    <th class="text-right">Sisa (Rp)</th>
                     <th>Aksi</th>
                 </tr>
             </thead>
-            <tbody id="rkatBody">
-                {{-- diisi JS --}}
+            <tbody>
+                @forelse ($data as $i => $row)
+                    @php
+                        $r      = (float) ($row->realisasis_sum_jumlah ?? 0);
+                        $a      = (float) $row->anggaran;
+                        $s      = $a - $r;
+                        $p      = $a > 0 ? ($r / $a * 100) : 0;
+                        $pClass = $p >= 90 ? 'kritis' : ($p >= 60 ? 'sedang' : '');
+                    @endphp
+                    <tr data-search="{{ strtolower($row->kode_kegiatan . ' ' . $row->nama_kegiatan . ' ' . $row->coa_pos . ' ' . $row->coa_sub) }}">
+                        <td>{{ $i + 1 }}</td>
+                        <td style="white-space:nowrap;font-family:monospace;font-size:13px">{{ $row->kode_kegiatan }}</td>
+                        <td style="text-align:left">{{ $row->nama_kegiatan }}</td>
+                        <td style="text-align:left">
+                            <span class="coa-badge">{{ $row->coa_sub }}</span>
+                            <div style="font-size:11px;color:#9ca3af;margin-top:2px">{{ $row->coa_pos }}</div>
+                        </td>
+                        <td class="text-right" style="font-variant-numeric:tabular-nums">{{ number_format($a, 0, ',', '.') }}</td>
+                        <td class="text-right" style="font-variant-numeric:tabular-nums">{{ number_format($r, 0, ',', '.') }}</td>
+                        <td>
+                            <div class="progress-wrap">
+                                <span class="progress-pct">{{ number_format($p, 1) }}%</span>
+                                <div class="progress-bar-bg">
+                                    <div class="progress-bar-fill {{ $pClass }}" style="width:{{ min($p, 100) }}%"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-right" style="font-variant-numeric:tabular-nums{{ $s < 0 ? ';color:#dc2626;font-weight:600' : '' }}">
+                            {{ number_format($s, 0, ',', '.') }}
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1 justify-content-center">
+                                <button class="btn btn-sm btn-outline-primary" title="Edit"
+                                    onclick="bukaModalEdit({{ $row->id }}, '{{ $row->tahun }}', '{{ addslashes($row->kode_kegiatan) }}', '{{ addslashes($row->coa_pos) }}', '{{ addslashes($row->coa_sub) }}', '{{ addslashes($row->nama_kegiatan) }}', {{ $row->anggaran }})">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <form method="POST" action="{{ route('anggaran-rkat.destroy', $row->id) }}"
+                                      onsubmit="return confirm('Hapus pos anggaran ini? Semua realisasinya juga akan dihapus.')">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="9" class="text-center text-muted py-4">
+                            <i class="fas fa-inbox fa-2x mb-2 d-block opacity-50"></i>
+                            Belum ada pos anggaran untuk tahun {{ $tahun }}.
+                        </td>
+                    </tr>
+                @endforelse
             </tbody>
+            @if ($data->isNotEmpty())
             <tfoot>
-                <tr class="tabel-total-row">
-                    <td colspan="4" style="text-align:left;padding-left:16px;">TOTAL</td>
-                    <td class="text-right" id="footAnggaran"></td>
-                    <td class="text-right" id="footRealisasi"></td>
-                    <td class="text-right text-sisa" id="footSisa"></td>
+                <tr class="total-row">
+                    <td colspan="4" class="text-right" style="text-align:right">TOTAL</td>
+                    <td class="text-right" style="font-variant-numeric:tabular-nums">{{ number_format($totalAnggaran, 0, ',', '.') }}</td>
+                    <td class="text-right" style="font-variant-numeric:tabular-nums">{{ number_format($totalRealisasi, 0, ',', '.') }}</td>
+                    <td>
+                        <span class="progress-pct">{{ number_format($pct, 1) }}%</span>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill {{ $pctClass }}" style="width:{{ min($pct, 100) }}%"></div>
+                        </div>
+                    </td>
+                    <td class="text-right" style="font-variant-numeric:tabular-nums">{{ number_format($totalSisa, 0, ',', '.') }}</td>
                     <td></td>
                 </tr>
             </tfoot>
+            @endif
         </table>
     </div>
-    <div class="pagination-info" id="paginationInfo"></div>
 
 </div>
 </main>
 
-{{-- ══════════════════ MODAL TAMBAH ANGGARAN ══════════════════ --}}
-<div class="modal fade" id="modalTambah" tabindex="-1" aria-labelledby="modalTambahLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalTambahLabel">
-                    <i class="fas fa-plus-circle me-2"></i> Tambah Anggaran RKAT
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+{{-- ──────────── MODAL TAMBAH ──────────── --}}
+<div class="modal fade" id="modalTambahAnggaran" tabindex="-1" aria-labelledby="modalTambahLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form method="POST" action="{{ route('anggaran-rkat.store') }}">
+            @csrf
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTambahLabel">
+                        <i class="fas fa-plus-circle me-2 text-primary"></i>Tambah Pos Anggaran
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Tahun <span class="text-danger">*</span></label>
+                            <input type="number" name="tahun" class="form-control" value="{{ old('tahun', $tahun) }}" min="2020" max="2100" required>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold">Kode Kegiatan <span class="text-danger">*</span></label>
+                            <input type="text" name="kode_kegiatan" class="form-control" value="{{ old('kode_kegiatan') }}" placeholder="Contoh: RKAT-2026-001" maxlength="50" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">COA — Pos Utama <span class="text-danger">*</span></label>
+                            <select name="coa_pos" id="coaPosAdd" class="form-select" required onchange="isiSubPos('coaPosAdd','coaSubAdd')">
+                                <option value="">-- Pilih Pos --</option>
+                                @foreach (array_keys($coaList) as $pos)
+                                    <option value="{{ $pos }}" @selected(old('coa_pos') == $pos)>{{ $pos }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">COA — Sub-Pos <span class="text-danger">*</span></label>
+                            <select name="coa_sub" id="coaSubAdd" class="form-select" required>
+                                <option value="">-- Pilih pos utama dulu --</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Nama Kegiatan <span class="text-danger">*</span></label>
+                            <input type="text" name="nama_kegiatan" class="form-control" value="{{ old('nama_kegiatan') }}" placeholder="Deskripsi kegiatan yang dianggarkan" maxlength="255" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Anggaran (Rp) <span class="text-danger">*</span></label>
+                            <input type="number" name="anggaran" class="form-control" value="{{ old('anggaran') }}" placeholder="0" min="0" step="1000" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Simpan</button>
+                </div>
             </div>
-            <div class="modal-body">
-                <form id="formTambah">
-                    <div class="mb-3">
-                        <label class="form-label">Kode Kegiatan <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="inputKode" placeholder="mis. RKAT-2026-006" required>
-                    </div>
-
-                    {{-- COA bertingkat --}}
-                    <div class="mb-2">
-                        <label class="form-label">Pos COA <span class="text-danger">*</span></label>
-                        <select class="form-select" id="inputCoaPos" required>
-                            <option value="" disabled selected>— Pilih pos utama —</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Sub-pos COA <span class="text-danger">*</span></label>
-                        <select class="form-select" id="inputCoaSub" required disabled>
-                            <option value="" disabled selected class="subpos-placeholder">— Pilih pos utama dulu —</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Nama Kegiatan <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="inputNama" placeholder="Nama kegiatan" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Anggaran (Rp) <span class="text-danger">*</span></label>
-                        <input type="number" class="form-control" id="inputAnggaran" placeholder="0" min="0" required>
-                        <div class="form-text" id="anggaranPreview" style="font-weight:600;color:#2563eb;"></div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline" data-bs-dismiss="modal">Batal</button>
-                <button type="button" class="btn btn-success" id="btnSimpan">
-                    <i class="fas fa-save"></i> Simpan
-                </button>
-            </div>
-        </div>
+        </form>
     </div>
 </div>
 
-{{-- ══════════════════ MODAL EDIT ══════════════════ --}}
-<div class="modal fade" id="modalEdit" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-edit me-2"></i> Edit Anggaran</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+{{-- ──────────── MODAL EDIT ──────────── --}}
+<div class="modal fade" id="modalEditAnggaran" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form method="POST" id="formEditAnggaran">
+            @csrf @method('PUT')
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-edit me-2 text-warning"></i>Edit Pos Anggaran</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Tahun <span class="text-danger">*</span></label>
+                            <input type="number" name="tahun" id="editTahun" class="form-control" min="2020" max="2100" required>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold">Kode Kegiatan <span class="text-danger">*</span></label>
+                            <input type="text" name="kode_kegiatan" id="editKode" class="form-control" maxlength="50" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">COA — Pos Utama <span class="text-danger">*</span></label>
+                            <select name="coa_pos" id="coaPosEdit" class="form-select" required onchange="isiSubPos('coaPosEdit','coaSubEdit')">
+                                <option value="">-- Pilih Pos --</option>
+                                @foreach (array_keys($coaList) as $pos)
+                                    <option value="{{ $pos }}">{{ $pos }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">COA — Sub-Pos <span class="text-danger">*</span></label>
+                            <select name="coa_sub" id="coaSubEdit" class="form-select" required>
+                                <option value="">-- Pilih pos utama dulu --</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Nama Kegiatan <span class="text-danger">*</span></label>
+                            <input type="text" name="nama_kegiatan" id="editNama" class="form-control" maxlength="255" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Anggaran (Rp) <span class="text-danger">*</span></label>
+                            <input type="number" name="anggaran" id="editAnggaran" class="form-control" min="0" step="1000" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-warning text-white"><i class="fas fa-save me-1"></i> Perbarui</button>
+                </div>
             </div>
-            <div class="modal-body">
-                <form id="formEdit">
-                    <input type="hidden" id="editIdx">
-                    <div class="mb-3">
-                        <label class="form-label">Kode Kegiatan</label>
-                        <input type="text" class="form-control" id="editKode" required>
-                    </div>
-
-                    {{-- COA bertingkat --}}
-                    <div class="mb-2">
-                        <label class="form-label">Pos COA</label>
-                        <select class="form-select" id="editCoaPos" required>
-                            <option value="" disabled>— Pilih pos utama —</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Sub-pos COA</label>
-                        <select class="form-select" id="editCoaSub" required>
-                            <option value="" disabled>— Pilih pos utama dulu —</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Nama Kegiatan</label>
-                        <input type="text" class="form-control" id="editNama" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Anggaran (Rp)</label>
-                        <input type="number" class="form-control" id="editAnggaran" min="0" required>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline" data-bs-dismiss="modal">Batal</button>
-                <button type="button" class="btn btn-success" id="btnSimpanEdit">
-                    <i class="fas fa-save"></i> Simpan Perubahan
-                </button>
-            </div>
-        </div>
+        </form>
     </div>
 </div>
 
 <script>
-// ══════════════════════════════════════════════════════
-// DAFTAR COA TERPUSAT — edit di sini untuk ubah pilihan
-// Format: { 'Pos Utama': ['Sub-pos 1', 'Sub-pos 2', ...] }
-// ══════════════════════════════════════════════════════
-const COA_LIST = {
-    'Maintenance': [
-        'Maintenance AC',
-        'Maintenance Gedung',
-        'Maintenance Kendaraan',
-        'Maintenance Peralatan',
-    ],
-    'Pengadaan': [
-        'Pengadaan Barang',
-        'Pengadaan Jasa',
-        'Beban Jasa Provider',
-        'Beban Jasa Sub-Kontraktor',
-    ],
-    'Gudang': [
-        'Pembelian Barang Gudang',
-        'Perlengkapan Gudang',
-    ],
-    'Aset': [
-        'Pengadaan Mebel dan Furnitur',
-        'Pengadaan Kendaraan',
-        'Pengadaan Peralatan Elektronik',
-    ],
-    'Umum': [
-        'Beban ATK',
-        'Beban Operasional Kantor',
-        'Beban Perjalanan Dinas',
-        'Beban Pemeliharaan/Perbaikan',
-    ],
-};
+const COA_LIST = @json($coaList);
 
-// ── Data dummy RKAT (coa = nama sub-pos teks) ──
-let rkatData = [
-    { kode: 'RKAT-2026-001', coa: 'Beban ATK',                     nama: 'Pengadaan Alat Tulis Kantor (ATK)',        anggaran: 5000000,   realisasi: 2500000   },
-    { kode: 'RKAT-2026-002', coa: 'Beban Pemeliharaan/Perbaikan',   nama: 'Pemeliharaan & Perbaikan Peralatan Kantor',anggaran: 15000000,  realisasi: 8000000   },
-    { kode: 'RKAT-2026-003', coa: 'Pengadaan Mebel dan Furnitur',   nama: 'Pengadaan Mebel dan Furnitur Ruangan',     anggaran: 25000000,  realisasi: 0         },
-    { kode: 'RKAT-2026-004', coa: 'Maintenance Gedung',             nama: 'Biaya Pemeliharaan Gedung dan Bangunan',  anggaran: 50000000,  realisasi: 20000000  },
-    { kode: 'RKAT-2026-005', coa: 'Pengadaan Kendaraan',            nama: 'Pengadaan Kendaraan Operasional',         anggaran: 200000000, realisasi: 110433320 },
-];
+function isiSubPos(posElId, subElId, currentSub) {
+    const pos   = document.getElementById(posElId).value;
+    const subEl = document.getElementById(subElId);
+    const subs  = COA_LIST[pos] || [];
 
-// ── Helpers ──
-const fmt = v => 'Rp ' + v.toLocaleString('id-ID');
+    subEl.innerHTML = '<option value="">-- Pilih Sub-Pos --</option>';
+    subEl.disabled  = subs.length === 0;
 
-/** Cari pos utama dari nilai sub-pos */
-function findPos(subPosValue) {
-    for (const [pos, subs] of Object.entries(COA_LIST)) {
-        if (subs.includes(subPosValue)) return pos;
-    }
-    return '';
-}
-
-/** Isi <select> sub-pos sesuai pos, tandai value terpilih jika diberikan */
-function populateSubPos(selectEl, pos, selectedValue = '') {
-    selectEl.innerHTML = '';
-    const subs = COA_LIST[pos] || [];
-    subs.forEach(sub => {
-        const opt = document.createElement('option');
-        opt.value = sub;
-        opt.textContent = sub;
-        if (sub === selectedValue) opt.selected = true;
-        selectEl.appendChild(opt);
-    });
-    selectEl.disabled = subs.length === 0;
-}
-
-/** Isi <select> pos utama, tandai pos terpilih jika diberikan */
-function populatePos(selectEl, selectedPos = '') {
-    selectEl.innerHTML = '<option value="" disabled>— Pilih pos utama —</option>';
-    Object.keys(COA_LIST).forEach(pos => {
-        const opt = document.createElement('option');
-        opt.value = pos;
-        opt.textContent = pos;
-        if (pos === selectedPos) opt.selected = true;
-        selectEl.appendChild(opt);
+    subs.forEach(s => {
+        const opt       = document.createElement('option');
+        opt.value       = s;
+        opt.textContent = s;
+        if (s === currentSub) opt.selected = true;
+        subEl.appendChild(opt);
     });
 }
 
-// ── Render tabel ──
-function renderTable(data) {
-    const tbody = document.getElementById('rkatBody');
-    tbody.innerHTML = '';
-    let totAnggaran = 0, totRealisasi = 0;
+function bukaModalEdit(id, tahun, kode, pos, sub, nama, anggaran) {
+    document.getElementById('formEditAnggaran').action = '/anggaran-rkat/' + id;
+    document.getElementById('editTahun').value    = tahun;
+    document.getElementById('editKode').value     = kode;
+    document.getElementById('editNama').value     = nama;
+    document.getElementById('editAnggaran').value = anggaran;
 
-    data.forEach((d, i) => {
-        const sisa = d.anggaran - d.realisasi;
-        totAnggaran  += d.anggaran;
-        totRealisasi += d.realisasi;
+    const posEl = document.getElementById('coaPosEdit');
+    posEl.value = pos;
+    isiSubPos('coaPosEdit', 'coaSubEdit', sub);
 
-        const posLabel = findPos(d.coa);
-        const tr = document.createElement('tr');
-        tr.dataset.search = (d.kode + ' ' + d.coa + ' ' + (posLabel || '') + ' ' + d.nama).toLowerCase();
-        tr.innerHTML = `
-            <td>${i + 1}</td>
-            <td><code style="font-size:12px">${d.kode}</code></td>
-            <td style="text-align:left">
-                <span class="coa-badge">${d.coa}</span>
-                ${posLabel ? `<div class="coa-pos-hint">${posLabel}</div>` : ''}
-            </td>
-            <td style="text-align:left">${d.nama}</td>
-            <td class="text-right">${fmt(d.anggaran)}</td>
-            <td class="text-right">${fmt(d.realisasi)}</td>
-            <td class="text-right text-sisa">${fmt(sisa)}</td>
-            <td>
-                <div class="dropdown">
-                    <button class="btn btn-sm btn-outline" data-bs-toggle="dropdown" aria-expanded="false"
-                            style="padding:3px 10px;font-size:16px;line-height:1;">⋯</button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="#" onclick="openEdit(${i});return false;">
-                            <i class="fas fa-edit me-2 text-primary"></i>Edit</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger" href="#" onclick="hapusBaris(${i});return false;">
-                            <i class="fas fa-trash me-2"></i>Hapus</a></li>
-                    </ul>
-                </div>
-            </td>`;
-        tbody.appendChild(tr);
-    });
-
-    const totSisa = totAnggaran - totRealisasi;
-    document.getElementById('footAnggaran').textContent  = fmt(totAnggaran);
-    document.getElementById('footRealisasi').textContent = fmt(totRealisasi);
-    document.getElementById('footSisa').textContent      = fmt(totSisa);
-    document.getElementById('cardTotalAnggaran').textContent  = fmt(totAnggaran);
-    document.getElementById('cardTotalRealisasi').textContent = fmt(totRealisasi);
-    document.getElementById('cardSisaAnggaran').textContent   = fmt(totSisa);
-    document.getElementById('paginationInfo').textContent =
-        `Menampilkan 1–${data.length} dari ${data.length} data`;
+    new bootstrap.Modal(document.getElementById('modalEditAnggaran')).show();
 }
 
-// ── Edit ──
-function openEdit(idx) {
-    const d   = rkatData[idx];
-    const pos = findPos(d.coa);
-
-    document.getElementById('editIdx').value      = idx;
-    document.getElementById('editKode').value     = d.kode;
-    document.getElementById('editNama').value     = d.nama;
-    document.getElementById('editAnggaran').value = d.anggaran;
-
-    const selPos = document.getElementById('editCoaPos');
-    const selSub = document.getElementById('editCoaSub');
-    populatePos(selPos, pos);
-    populateSubPos(selSub, pos, d.coa);
-
-    new bootstrap.Modal(document.getElementById('modalEdit')).show();
-}
-
-// Hapus
-function hapusBaris(idx) {
-    if (!confirm(`Hapus "${rkatData[idx].nama}"?`)) return;
-    rkatData.splice(idx, 1);
-    renderTable(rkatData);
-}
-
-// ── Cascade: Tambah modal ──
-document.getElementById('inputCoaPos').addEventListener('change', function () {
-    const selSub = document.getElementById('inputCoaSub');
-    populateSubPos(selSub, this.value);
-    selSub.disabled = false;
-    // Tambahkan placeholder di awal setelah populate
-    const ph = document.createElement('option');
-    ph.value = ''; ph.disabled = true; ph.textContent = '— Pilih sub-pos —';
-    selSub.insertBefore(ph, selSub.firstChild);
-    selSub.value = '';
-});
-
-// ── Cascade: Edit modal ──
-document.getElementById('editCoaPos').addEventListener('change', function () {
-    populateSubPos(document.getElementById('editCoaSub'), this.value);
-});
-
-// ── Simpan Tambah ──
-document.getElementById('btnSimpan').addEventListener('click', function () {
-    const kode     = document.getElementById('inputKode').value.trim();
-    const coa      = document.getElementById('inputCoaSub').value;
-    const nama     = document.getElementById('inputNama').value.trim();
-    const anggaran = parseInt(document.getElementById('inputAnggaran').value) || 0;
-
-    if (!kode || !coa || !nama || !anggaran) {
-        alert('Lengkapi semua field terlebih dahulu.');
-        return;
-    }
-    rkatData.push({ kode, coa, nama, anggaran, realisasi: 0 });
-    renderTable(rkatData);
-
-    document.getElementById('formTambah').reset();
-    document.getElementById('inputCoaSub').disabled = true;
-    document.getElementById('inputCoaSub').innerHTML =
-        '<option value="" disabled selected>— Pilih pos utama dulu —</option>';
-    document.getElementById('anggaranPreview').textContent = '';
-
-    bootstrap.Modal.getInstance(document.getElementById('modalTambah')).hide();
-});
-
-// Preview rupiah
-document.getElementById('inputAnggaran').addEventListener('input', function () {
-    const v = parseInt(this.value) || 0;
-    document.getElementById('anggaranPreview').textContent = v > 0 ? fmt(v) : '';
-});
-
-// ── Simpan Edit ──
-document.getElementById('btnSimpanEdit').addEventListener('click', function () {
-    const idx = parseInt(document.getElementById('editIdx').value);
-    rkatData[idx].kode     = document.getElementById('editKode').value.trim();
-    rkatData[idx].coa      = document.getElementById('editCoaSub').value;
-    rkatData[idx].nama     = document.getElementById('editNama').value.trim();
-    rkatData[idx].anggaran = parseInt(document.getElementById('editAnggaran').value) || 0;
-
-    if (!rkatData[idx].coa) {
-        alert('Pilih sub-pos COA terlebih dahulu.');
-        return;
-    }
-    renderTable(rkatData);
-    bootstrap.Modal.getInstance(document.getElementById('modalEdit')).hide();
-});
-
-// ── Search ──
 document.getElementById('searchRkat').addEventListener('input', function () {
     const q = this.value.toLowerCase();
-    document.querySelectorAll('#rkatBody tr').forEach(tr => {
+    document.querySelectorAll('#tabelRkat tbody tr[data-search]').forEach(tr => {
         tr.style.display = (tr.dataset.search || '').includes(q) ? '' : 'none';
     });
 });
 
-// ── Init ──
-populatePos(document.getElementById('inputCoaPos'));  // isi pos di modal tambah
-renderTable(rkatData);
+// Restore modal jika ada error validasi
+@if ($errors->any())
+    document.addEventListener('DOMContentLoaded', () => {
+        new bootstrap.Modal(document.getElementById('modalTambahAnggaran')).show();
+        @if (old('coa_pos'))
+            document.getElementById('coaPosAdd').value = '{{ old('coa_pos') }}';
+            isiSubPos('coaPosAdd', 'coaSubAdd', '{{ old('coa_sub') }}');
+        @endif
+    });
+@endif
 </script>
 @endsection
