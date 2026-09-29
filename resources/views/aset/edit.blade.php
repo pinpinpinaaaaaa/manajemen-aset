@@ -122,7 +122,7 @@
 
 
                     <div class="form-group mb-3">
-                        <label class="form-label">Tahun Perolehan</label>
+                        <label class="form-label">Tahun Pembelian</label>
                         <input type="number" name="tahun_perolehan" class="form-control" min="1900"
                             max="{{ date('Y') }}" value="{{ $aset->tahun_perolehan }}">
                     </div>

@@ -41,6 +41,7 @@
     .anggaran-stat-card.green  { border-left: 4px solid #16a34a; }
     .anggaran-stat-card.blue   { border-left: 4px solid #2563eb; }
     .anggaran-stat-card.orange { border-left: 4px solid #d97706; }
+    .anggaran-stat-card.teal   { border-left: 4px solid #0891b2; }
     .anggaran-stat-label {
         font-size: 12px;
         font-weight: 600;
@@ -59,6 +60,7 @@
     .anggaran-stat-card.green  .anggaran-stat-value { color: #16a34a; }
     .anggaran-stat-card.blue   .anggaran-stat-value { color: #2563eb; }
     .anggaran-stat-card.orange .anggaran-stat-value { color: #d97706; }
+    .anggaran-stat-card.teal   .anggaran-stat-value { color: #0891b2; }
     .persen-badge {
         display: inline-block;
         margin-top: 4px;
@@ -81,7 +83,6 @@
         border-radius: 999px;
         font-size: 12px;
         font-weight: 600;
-        white-space: nowrap;
     }
     .progress-wrap { min-width: 80px; }
     .progress-bar-bg {
@@ -128,12 +129,6 @@
 <main class="main-content">
 <div class="content-padding">
 
-    @if (session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
     @if ($errors->any())
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="fas fa-exclamation-circle me-2"></i>{{ $errors->first() }}
@@ -163,6 +158,10 @@
                     @endunless
                 </select>
             </form>
+            <a href="{{ route('anggaran-rkat.export', ['tahun' => $tahun]) }}"
+               class="btn btn-success">
+                <i class="fas fa-file-excel me-1"></i> Export Excel
+            </a>
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambahAnggaran">
                 <i class="fas fa-plus me-1"></i> Tambah Pos Anggaran
             </button>
@@ -171,7 +170,7 @@
 
     {{-- ── Stat Cards ── --}}
     @php
-        $pct      = $totalAnggaran > 0 ? ($totalRealisasi / $totalAnggaran * 100) : 0;
+        $pct      = $totalAnggaran > 0 ? ($totalKeluar / $totalAnggaran * 100) : 0;
         $pctClass = $pct >= 90 ? 'kritis' : ($pct >= 60 ? 'sedang' : 'aman');
     @endphp
     <div class="anggaran-stat-wrap">
@@ -180,13 +179,19 @@
             <div class="anggaran-stat-value">Rp {{ number_format($totalAnggaran, 0, ',', '.') }}</div>
         </div>
         <div class="anggaran-stat-card green">
-            <div class="anggaran-stat-label"><i class="fas fa-check-double me-1"></i> Total Realisasi</div>
-            <div class="anggaran-stat-value">Rp {{ number_format($totalRealisasi, 0, ',', '.') }}</div>
+            <div class="anggaran-stat-label"><i class="fas fa-arrow-up me-1"></i> Realisasi Keluar</div>
+            <div class="anggaran-stat-value">Rp {{ number_format($totalKeluar, 0, ',', '.') }}</div>
             <span class="persen-badge {{ $pctClass }}">{{ number_format($pct, 1) }}%</span>
         </div>
         <div class="anggaran-stat-card blue">
             <div class="anggaran-stat-label"><i class="fas fa-wallet me-1"></i> Sisa Anggaran</div>
-            <div class="anggaran-stat-value">Rp {{ number_format($totalSisa, 0, ',', '.') }}</div>
+            <div class="anggaran-stat-value" style="{{ $totalSisa < 0 ? 'color:#dc2626' : '' }}">
+                Rp {{ number_format($totalSisa, 0, ',', '.') }}
+            </div>
+        </div>
+        <div class="anggaran-stat-card teal">
+            <div class="anggaran-stat-label"><i class="fas fa-hand-holding-usd me-1"></i> PNBP / Hasil Jual Aset</div>
+            <div class="anggaran-stat-value">Rp {{ number_format($totalMasuk, 0, ',', '.') }}</div>
         </div>
         <div class="anggaran-stat-card orange">
             <div class="anggaran-stat-label"><i class="fas fa-list-ul me-1"></i> Jumlah Pos</div>
@@ -206,37 +211,61 @@
         <table class="data-table" id="tabelRkat">
             <thead>
                 <tr>
-                    <th>No</th>
-                    <th>Kode</th>
-                    <th style="text-align:left">Nama Kegiatan</th>
-                    <th style="text-align:left">COA</th>
-                    <th class="text-right">Anggaran (Rp)</th>
-                    <th class="text-right">Realisasi (Rp)</th>
-                    <th>Progres</th>
-                    <th class="text-right">Sisa (Rp)</th>
-                    <th>Aksi</th>
+                    <th style="text-align:center">No</th>
+                    <th style="text-align:center">COA</th>
+                    <th style="text-align:center">Jenis Pengeluaran</th>
+                    <th style="text-align:center">LK</th>
+                    <th style="text-align:center">Kode Anggaran</th>
+                    <th style="text-align:center">Uraian Program Kerja</th>
+                    <th style="text-align:center">Anggaran (Rp)</th>
+                    <th style="text-align:center">Real. Keluar (Rp)</th>
+                    <th style="text-align:center">PNBP / Masuk (Rp)</th>
+                    <th style="text-align:center">Sisa (Rp)</th>
+                    <th style="text-align:center">Progres</th>
+                    <th style="text-align:center">Aksi</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse ($data as $i => $row)
                     @php
-                        $r      = (float) ($row->realisasis_sum_jumlah ?? 0);
+                        $keluar = (float) ($row->total_keluar ?? 0);
+                        $masuk  = (float) ($row->total_masuk  ?? 0);
                         $a      = (float) $row->anggaran;
-                        $s      = $a - $r;
-                        $p      = $a > 0 ? ($r / $a * 100) : 0;
+                        $s      = $a - $keluar;
+                        $p      = $a > 0 ? ($keluar / $a * 100) : 0;
                         $pClass = $p >= 90 ? 'kritis' : ($p >= 60 ? 'sedang' : '');
                     @endphp
-                    <tr data-search="{{ strtolower($row->kode_kegiatan . ' ' . $row->nama_kegiatan . ' ' . $row->coa_pos . ' ' . $row->coa_sub) }}">
-                        <td>{{ $i + 1 }}</td>
-                        <td style="white-space:nowrap;font-family:monospace;font-size:13px">{{ $row->kode_kegiatan }}</td>
-                        <td style="text-align:left">{{ $row->nama_kegiatan }}</td>
-                        <td style="text-align:left">
-                            <span class="coa-badge">{{ $row->coa_sub }}</span>
-                            <div style="font-size:11px;color:#9ca3af;margin-top:2px">{{ $row->coa_pos }}</div>
+                    <tr data-search="{{ strtolower(($row->kode_coa ?? '') . ' ' . $row->kode_kegiatan . ' ' . $row->nama_kegiatan . ' ' . $row->coa_pos) }}">
+                        <td style="text-align:center">{{ $i + 1 }}</td>
+                        <td style="text-align:center;white-space:nowrap;font-family:monospace;font-size:13px;font-weight:600;color:#0e7490">
+                            {{ $row->kode_coa ?? '—' }}
                         </td>
-                        <td class="text-right" style="font-variant-numeric:tabular-nums">{{ number_format($a, 0, ',', '.') }}</td>
-                        <td class="text-right" style="font-variant-numeric:tabular-nums">{{ number_format($r, 0, ',', '.') }}</td>
-                        <td>
+                        <td style="text-align:center">{{ $row->coa_pos }}</td>
+                        <td style="text-align:center">
+                            @if($row->laporan_keuangan)
+                                <span class="badge" style="{{ $row->laporan_keuangan === 'IS' ? 'background:#dbeafe;color:#1d4ed8' : 'background:#fef9c3;color:#854d0e' }}">
+                                    {{ $row->laporan_keuangan }}
+                                </span>
+                            @else
+                                <span style="color:#d1d5db">—</span>
+                            @endif
+                        </td>
+                        <td style="text-align:center;white-space:nowrap;font-family:monospace;font-size:13px">{{ $row->kode_kegiatan }}</td>
+                        <td style="text-align:center">{{ $row->nama_kegiatan }}</td>
+                        <td style="text-align:center;font-variant-numeric:tabular-nums">{{ number_format($a, 0, ',', '.') }}</td>
+                        <td style="text-align:center;font-variant-numeric:tabular-nums">{{ number_format($keluar, 0, ',', '.') }}</td>
+                        <td style="text-align:center;font-variant-numeric:tabular-nums;color:{{ $masuk > 0 ? '#0891b2' : '#9ca3af' }}">
+                            {{ $masuk > 0 ? number_format($masuk, 0, ',', '.') : '—' }}
+                        </td>
+                        <td style="text-align:center;font-variant-numeric:tabular-nums">
+                            @if ($s < 0)
+                                <span style="color:#dc2626;font-weight:600">{{ number_format($s, 0, ',', '.') }}</span>
+                                <span class="badge bg-danger ms-1" style="font-size:10px;vertical-align:middle">OVER</span>
+                            @else
+                                {{ number_format($s, 0, ',', '.') }}
+                            @endif
+                        </td>
+                        <td style="text-align:center">
                             <div class="progress-wrap">
                                 <span class="progress-pct">{{ number_format($p, 1) }}%</span>
                                 <div class="progress-bar-bg">
@@ -244,19 +273,40 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="text-right" style="font-variant-numeric:tabular-nums{{ $s < 0 ? ';color:#dc2626;font-weight:600' : '' }}">
-                            {{ number_format($s, 0, ',', '.') }}
-                        </td>
                         <td>
                             <div class="d-flex gap-1 justify-content-center">
-                                <button class="btn btn-sm btn-outline-primary" title="Edit"
-                                    onclick="bukaModalEdit({{ $row->id }}, '{{ $row->tahun }}', '{{ addslashes($row->kode_kegiatan) }}', '{{ addslashes($row->coa_pos) }}', '{{ addslashes($row->coa_sub) }}', '{{ addslashes($row->nama_kegiatan) }}', {{ $row->anggaran }})">
+                                <a href="{{ route('anggaran-rkat.show', $row->id) }}"
+                                   class="btn btn-sm btn-info text-white" title="Lihat Detail">
+                                    <i class="fas fa-chart-bar"></i>
+                                </a>
+                                <button class="btn btn-sm btn-warning" title="Edit"
+                                    data-id="{{ $row->id }}"
+                                    data-tahun="{{ $row->tahun }}"
+                                    data-kode-coa="{{ $row->kode_coa ?? '' }}"
+                                    data-laporan="{{ $row->laporan_keuangan ?? '' }}"
+                                    data-kode="{{ $row->kode_kegiatan }}"
+                                    data-pos="{{ $row->coa_pos }}"
+                                    data-nama="{{ $row->nama_kegiatan }}"
+                                    data-anggaran="{{ $row->anggaran }}"
+                                    data-jan="{{ $row->rencana_jan ?? 0 }}"
+                                    data-feb="{{ $row->rencana_feb ?? 0 }}"
+                                    data-mar="{{ $row->rencana_mar ?? 0 }}"
+                                    data-apr="{{ $row->rencana_apr ?? 0 }}"
+                                    data-mei="{{ $row->rencana_mei ?? 0 }}"
+                                    data-jun="{{ $row->rencana_jun ?? 0 }}"
+                                    data-jul="{{ $row->rencana_jul ?? 0 }}"
+                                    data-agu="{{ $row->rencana_agu ?? 0 }}"
+                                    data-sep="{{ $row->rencana_sep ?? 0 }}"
+                                    data-okt="{{ $row->rencana_okt ?? 0 }}"
+                                    data-nov="{{ $row->rencana_nov ?? 0 }}"
+                                    data-des="{{ $row->rencana_des ?? 0 }}"
+                                    onclick="bukaModalEdit(this)">
                                     <i class="fas fa-edit"></i>
                                 </button>
                                 <form method="POST" action="{{ route('anggaran-rkat.destroy', $row->id) }}"
                                       onsubmit="return confirm('Hapus pos anggaran ini? Semua realisasinya juga akan dihapus.')">
                                     @csrf @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus">
+                                    <button type="submit" class="btn btn-sm btn-danger" title="Hapus">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </form>
@@ -265,7 +315,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="9" class="text-center text-muted py-4">
+                        <td colspan="12" class="text-center text-muted py-4">
                             <i class="fas fa-inbox fa-2x mb-2 d-block opacity-50"></i>
                             Belum ada pos anggaran untuk tahun {{ $tahun }}.
                         </td>
@@ -275,16 +325,26 @@
             @if ($data->isNotEmpty())
             <tfoot>
                 <tr class="total-row">
-                    <td colspan="4" class="text-right" style="text-align:right">TOTAL</td>
+                    <td colspan="6" class="text-right" style="text-align:right">TOTAL</td>
                     <td class="text-right" style="font-variant-numeric:tabular-nums">{{ number_format($totalAnggaran, 0, ',', '.') }}</td>
-                    <td class="text-right" style="font-variant-numeric:tabular-nums">{{ number_format($totalRealisasi, 0, ',', '.') }}</td>
+                    <td class="text-right" style="font-variant-numeric:tabular-nums">{{ number_format($totalKeluar, 0, ',', '.') }}</td>
+                    <td class="text-right" style="font-variant-numeric:tabular-nums;color:{{ $totalMasuk > 0 ? '#0891b2' : '#9ca3af' }}">
+                        {{ $totalMasuk > 0 ? number_format($totalMasuk, 0, ',', '.') : '—' }}
+                    </td>
+                    <td class="text-right" style="font-variant-numeric:tabular-nums">
+                        @if ($totalSisa < 0)
+                            <span style="color:#dc2626;font-weight:700">{{ number_format($totalSisa, 0, ',', '.') }}</span>
+                            <span class="badge bg-danger ms-1" style="font-size:10px;vertical-align:middle">OVER</span>
+                        @else
+                            {{ number_format($totalSisa, 0, ',', '.') }}
+                        @endif
+                    </td>
                     <td>
                         <span class="progress-pct">{{ number_format($pct, 1) }}%</span>
                         <div class="progress-bar-bg">
                             <div class="progress-bar-fill {{ $pctClass }}" style="width:{{ min($pct, 100) }}%"></div>
                         </div>
                     </td>
-                    <td class="text-right" style="font-variant-numeric:tabular-nums">{{ number_format($totalSisa, 0, ',', '.') }}</td>
                     <td></td>
                 </tr>
             </tfoot>
@@ -314,30 +374,76 @@
                             <input type="number" name="tahun" class="form-control" value="{{ old('tahun', $tahun) }}" min="{{ now()->year }}" max="{{ now()->year + 5 }}" required>
                             <div class="form-text">Tahun berjalan atau tahun depan.</div>
                         </div>
-                        <div class="col-md-8">
+                        <div class="col-md-4">
                             <label class="form-label fw-semibold">Kode Kegiatan <span class="text-danger">*</span></label>
-                            <input type="text" name="kode_kegiatan" class="form-control" value="{{ old('kode_kegiatan') }}" placeholder="Contoh: RKAT-2026-001" maxlength="50" required>
+                            <input type="text" name="kode_kegiatan" class="form-control" value="{{ old('kode_kegiatan') }}" placeholder="Contoh: GA-001" maxlength="50" required>
+                            <div class="form-text">Format bebas, contoh: <code>GA-001</code>, <code>IT-2026-03</code></div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">COA — Pos Utama <span class="text-danger">*</span></label>
-                            <select name="coa_pos" id="coaPosAdd" class="form-select" required>
-                                <option value="">-- Pilih Pos --</option>
-                                @foreach (array_keys($coaList) as $pos)
-                                    <option value="{{ $pos }}" @selected(old('coa_pos') == $pos)>{{ $pos }}</option>
-                                @endforeach
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Klasifikasi Lap. Keuangan</label>
+                            <select name="laporan_keuangan" id="addLaporanKeuangan" class="form-select">
+                                <option value="">— Pilih (opsional) —</option>
+                                <option value="IS" {{ old('laporan_keuangan') === 'IS' ? 'selected' : '' }}>I/S — Income Statement</option>
+                                <option value="BS" {{ old('laporan_keuangan') === 'BS' ? 'selected' : '' }}>B/S — Balance Sheet</option>
                             </select>
+                            <div class="form-text">
+                                <strong>I/S</strong> = Laporan Laba Rugi (beban operasional, pendapatan) &nbsp;·&nbsp;
+                                <strong>B/S</strong> = Neraca (aset, kewajiban, ekuitas)
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">COA — Sub-Pos <span class="text-danger">*</span></label>
-                            <input type="text" name="coa_sub" class="form-control" value="{{ old('coa_sub') }}" placeholder="Mis. Maintenance AC Lantai 2" maxlength="150" required>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Kode COA</label>
+                            <input type="text" name="kode_coa" id="addKodeCoa" class="form-control" value="{{ old('kode_coa') }}"
+                                   placeholder="Mis. 5.1.02" maxlength="30" oninput="autoFillCoa('add')">
+                            <div class="form-text">Ketik kode → nama jenis terisi otomatis.</div>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold">Jenis Pengeluaran (COA) <span class="text-danger">*</span></label>
+                            <input type="text" name="coa_pos" id="addCoaPos" class="form-control" value="{{ old('coa_pos') }}"
+                                   placeholder="Mis. Beban Pemeliharaan, Beban Pengadaan ATK" maxlength="255" required>
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold">Nama Kegiatan <span class="text-danger">*</span></label>
-                            <input type="text" name="nama_kegiatan" class="form-control" value="{{ old('nama_kegiatan') }}" placeholder="Deskripsi kegiatan yang dianggarkan" maxlength="255" required>
+                            <input type="text" name="nama_kegiatan" id="addNamaKegiatan" class="form-control" value="{{ old('nama_kegiatan') }}"
+                                   placeholder="Mis. Maintenance AC Gedung A Lantai 3, Pengadaan ATK 2026" maxlength="255" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Anggaran (Rp) <span class="text-danger">*</span></label>
-                            <input type="number" name="anggaran" class="form-control" value="{{ old('anggaran') }}" placeholder="0" min="0" step="1000" required>
+                            <input type="text" name="anggaran" id="addAnggaran" class="form-control rupiah-input"
+                                   value="{{ old('anggaran') ? number_format((int)old('anggaran'), 0, ',', '.') : '' }}"
+                                   placeholder="0" inputmode="numeric" required
+                                   oninput="formatRupiah(this); hitungSubtotalAdd()">
+                        </div>
+
+                        {{-- Rencana Bulanan --}}
+                        <div class="col-12">
+                            <hr class="my-1">
+                            <div class="fw-semibold mb-2" style="font-size:13px;color:#374151">
+                                <i class="fas fa-calendar-alt me-1 text-muted"></i> Rencana Penyerapan per Bulan
+                                <small class="text-muted fw-normal">(opsional, boleh sebagian)</small>
+                            </div>
+                            @if ($errors->has('rencana'))
+                                <div class="alert alert-danger py-1 px-2 mb-2" style="font-size:13px">{{ $errors->first('rencana') }}</div>
+                            @endif
+                            <div class="row g-2">
+                                @foreach ([
+                                    'jan'=>'Jan','feb'=>'Feb','mar'=>'Mar','apr'=>'Apr',
+                                    'mei'=>'Mei','jun'=>'Jun','jul'=>'Jul','agu'=>'Agu',
+                                    'sep'=>'Sep','okt'=>'Okt','nov'=>'Nov','des'=>'Des',
+                                ] as $key => $label)
+                                    @php $oldVal = (int) old('rencana_'.$key, 0); @endphp
+                                    <div class="col-md-3 col-6">
+                                        <label class="form-label mb-1" style="font-size:12px;color:#6b7280">{{ $label }}</label>
+                                        <input type="text" name="rencana_{{ $key }}" class="form-control form-control-sm rencana-add rupiah-input"
+                                               value="{{ $oldVal > 0 ? number_format($oldVal, 0, ',', '.') : '' }}"
+                                               placeholder="0" inputmode="numeric"
+                                               oninput="formatRupiah(this); hitungSubtotalAdd()">
+                                    </div>
+                                @endforeach
+                            </div>
+                            <div class="mt-2" style="font-size:13px" id="subtotalAddWrap">
+                                Sub-total rencana: <strong id="subtotalAddVal">Rp 0</strong>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -367,30 +473,69 @@
                             <input type="number" name="tahun" id="editTahun" class="form-control" min="{{ now()->year }}" max="{{ now()->year + 5 }}" required>
                             <div class="form-text">Tahun berjalan atau tahun depan.</div>
                         </div>
-                        <div class="col-md-8">
+                        <div class="col-md-4">
                             <label class="form-label fw-semibold">Kode Kegiatan <span class="text-danger">*</span></label>
-                            <input type="text" name="kode_kegiatan" id="editKode" class="form-control" maxlength="50" required>
+                            <input type="text" name="kode_kegiatan" id="editKode" class="form-control" placeholder="Contoh: GA-001" maxlength="50" required>
+                            <div class="form-text">Format bebas, contoh: <code>GA-001</code>, <code>IT-2026-03</code></div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">COA — Pos Utama <span class="text-danger">*</span></label>
-                            <select name="coa_pos" id="coaPosEdit" class="form-select" required>
-                                <option value="">-- Pilih Pos --</option>
-                                @foreach (array_keys($coaList) as $pos)
-                                    <option value="{{ $pos }}">{{ $pos }}</option>
-                                @endforeach
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Klasifikasi Lap. Keuangan</label>
+                            <select name="laporan_keuangan" id="editLaporanKeuangan" class="form-select">
+                                <option value="">— Pilih (opsional) —</option>
+                                <option value="IS">I/S — Income Statement</option>
+                                <option value="BS">B/S — Balance Sheet</option>
                             </select>
+                            <div class="form-text">
+                                <strong>I/S</strong> = Laporan Laba Rugi (beban operasional, pendapatan) &nbsp;·&nbsp;
+                                <strong>B/S</strong> = Neraca (aset, kewajiban, ekuitas)
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">COA — Sub-Pos <span class="text-danger">*</span></label>
-                            <input type="text" name="coa_sub" id="editCoaSub" class="form-control" placeholder="Mis. Maintenance AC Lantai 2" maxlength="150" required>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Kode COA</label>
+                            <input type="text" name="kode_coa" id="editKodeCoa" class="form-control"
+                                   placeholder="Mis. 5.1.02" maxlength="30" oninput="autoFillCoa('edit')">
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold">Jenis Pengeluaran (COA) <span class="text-danger">*</span></label>
+                            <input type="text" name="coa_pos" id="editCoaPos" class="form-control"
+                                   placeholder="Mis. Beban Pemeliharaan, Beban Pengadaan ATK" maxlength="255" required>
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold">Nama Kegiatan <span class="text-danger">*</span></label>
-                            <input type="text" name="nama_kegiatan" id="editNama" class="form-control" maxlength="255" required>
+                            <input type="text" name="nama_kegiatan" id="editNamaKegiatan" class="form-control"
+                                   placeholder="Mis. Maintenance AC Gedung A Lantai 3, Pengadaan ATK 2026" maxlength="255" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Anggaran (Rp) <span class="text-danger">*</span></label>
-                            <input type="number" name="anggaran" id="editAnggaran" class="form-control" min="0" step="1000" required>
+                            <input type="text" name="anggaran" id="editAnggaran" class="form-control rupiah-input"
+                                   placeholder="0" inputmode="numeric" required
+                                   oninput="formatRupiah(this); hitungSubtotalEdit()">
+                        </div>
+
+                        {{-- Rencana Bulanan --}}
+                        <div class="col-12">
+                            <hr class="my-1">
+                            <div class="fw-semibold mb-2" style="font-size:13px;color:#374151">
+                                <i class="fas fa-calendar-alt me-1 text-muted"></i> Rencana Penyerapan per Bulan
+                                <small class="text-muted fw-normal">(opsional, boleh sebagian)</small>
+                            </div>
+                            <div class="row g-2">
+                                @foreach ([
+                                    'jan'=>'Jan','feb'=>'Feb','mar'=>'Mar','apr'=>'Apr',
+                                    'mei'=>'Mei','jun'=>'Jun','jul'=>'Jul','agu'=>'Agu',
+                                    'sep'=>'Sep','okt'=>'Okt','nov'=>'Nov','des'=>'Des',
+                                ] as $key => $label)
+                                    <div class="col-md-3 col-6">
+                                        <label class="form-label mb-1" style="font-size:12px;color:#6b7280">{{ $label }}</label>
+                                        <input type="text" name="rencana_{{ $key }}" id="editRencana{{ ucfirst($key) }}" class="form-control form-control-sm rencana-edit rupiah-input"
+                                               placeholder="0" inputmode="numeric"
+                                               oninput="formatRupiah(this); hitungSubtotalEdit()">
+                                    </div>
+                                @endforeach
+                            </div>
+                            <div class="mt-2" style="font-size:13px" id="subtotalEditWrap">
+                                Sub-total rencana: <strong id="subtotalEditVal">Rp 0</strong>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -404,20 +549,99 @@
 </div>
 
 <script>
-function bukaModalEdit(id, tahun, kode, pos, sub, nama, anggaran) {
-    document.getElementById('formEditAnggaran').action = '/anggaran-rkat/' + id;
-    document.getElementById('editTahun').value    = tahun;
-    document.getElementById('editKode').value     = kode;
-    document.getElementById('editCoaSub').value   = sub;
-    document.getElementById('editNama').value     = nama;
-    document.getElementById('editAnggaran').value = anggaran;
+const bulanKeysEdit = ['jan','feb','mar','apr','mei','jun','jul','agu','sep','okt','nov','des'];
+const COA_MAP = @json($coaKodeMap);
 
-    const posEl = document.getElementById('coaPosEdit');
-    posEl.value = pos;
+// ── Format ribuan ──────────────────────────────────────────────────────────
+function formatRupiah(input) {
+    const pos   = input.selectionStart;
+    const before = input.value.length;
+    const raw   = input.value.replace(/\D/g, '');
+    input.value = raw ? parseInt(raw, 10).toLocaleString('id-ID') : '';
+    // Jaga posisi kursor setelah penambahan titik
+    const diff = input.value.length - before;
+    try { input.setSelectionRange(pos + diff, pos + diff); } catch(_) {}
+}
 
+function getRaw(el) {
+    return parseInt((el.value || '0').replace(/\./g, ''), 10) || 0;
+}
+
+// Strip titik ribuan sebelum kirim form agar server terima angka bersih
+function stripRupiahForm(form) {
+    form.querySelectorAll('.rupiah-input').forEach(el => {
+        el.value = el.value.replace(/\./g, '');
+    });
+}
+
+document.getElementById('formEditAnggaran')
+    ?.closest('form, [id=formEditAnggaran]');
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Strip saat submit
+    document.querySelectorAll('form').forEach(f => {
+        f.addEventListener('submit', () => stripRupiahForm(f));
+    });
+});
+
+// ── COA auto-fill ──────────────────────────────────────────────────────────
+function autoFillCoa(prefix) {
+    const kodeEl = document.getElementById(prefix + 'KodeCoa');
+    const posEl  = document.getElementById(prefix + 'CoaPos');
+    const kode   = kodeEl ? kodeEl.value.trim() : '';
+    if (kode && COA_MAP[kode] && posEl) posEl.value = COA_MAP[kode];
+}
+
+// ── Buka modal edit ────────────────────────────────────────────────────────
+function bukaModalEdit(btn) {
+    const d = btn.dataset;
+    document.getElementById('formEditAnggaran').action = '/anggaran-rkat/' + d.id;
+    document.getElementById('editTahun').value   = d.tahun;
+    document.getElementById('editKodeCoa').value = d.kodeCoa || '';
+    document.getElementById('editKode').value    = d.kode;
+    const lkEl = document.getElementById('editLaporanKeuangan');
+    if (lkEl) lkEl.value = d.laporan || '';
+    document.getElementById('editCoaPos').value        = d.pos;
+    document.getElementById('editNamaKegiatan').value  = d.nama || '';
+
+    // Format anggaran dengan titik ribuan
+    const ang = parseInt(d.anggaran || 0);
+    document.getElementById('editAnggaran').value = ang ? ang.toLocaleString('id-ID') : '';
+
+    bulanKeysEdit.forEach(k => {
+        const el  = document.getElementById('editRencana' + k.charAt(0).toUpperCase() + k.slice(1));
+        const val = parseInt(d[k] || 0);
+        if (el) el.value = val > 0 ? val.toLocaleString('id-ID') : '';
+    });
+
+    hitungSubtotalEdit();
     new bootstrap.Modal(document.getElementById('modalEditAnggaran')).show();
 }
 
+// ── Subtotal rencana ───────────────────────────────────────────────────────
+function fmt(n) {
+    return 'Rp ' + Math.round(n).toLocaleString('id-ID');
+}
+
+function hitungSubtotalAdd() {
+    const ang   = getRaw(document.getElementById('addAnggaran'));
+    const total = Array.from(document.querySelectorAll('.rencana-add'))
+        .reduce((s, el) => s + getRaw(el), 0);
+    const el = document.getElementById('subtotalAddVal');
+    el.textContent = fmt(total);
+    el.style.color = total > ang ? '#dc2626' : '#16a34a';
+}
+
+function hitungSubtotalEdit() {
+    const ang   = getRaw(document.getElementById('editAnggaran'));
+    const total = Array.from(document.querySelectorAll('.rencana-edit'))
+        .reduce((s, el) => s + getRaw(el), 0);
+    const el = document.getElementById('subtotalEditVal');
+    el.textContent = fmt(total);
+    el.style.color = total > ang ? '#dc2626' : '#16a34a';
+}
+
+// ── Search ─────────────────────────────────────────────────────────────────
 document.getElementById('searchRkat').addEventListener('input', function () {
     const q = this.value.toLowerCase();
     document.querySelectorAll('#tabelRkat tbody tr[data-search]').forEach(tr => {

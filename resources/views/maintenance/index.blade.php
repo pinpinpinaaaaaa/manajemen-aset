@@ -301,6 +301,21 @@
                                 <textarea name="catatan" class="form-control" rows="3"></textarea>
                             </div>
 
+                            <div class="mb-3">
+                                <label>Pos Anggaran RKAT <span class="text-danger">*</span></label>
+                                <select name="rkat_anggaran_id" class="form-control" required>
+                                    <option value="">-- Pilih Pos Anggaran --</option>
+                                    @foreach ($anggaranList as $a)
+                                        <option value="{{ $a->id }}">
+                                            {{ $a->kode_kegiatan }} — {{ $a->coa_pos }} ({{ $a->nama_kegiatan }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @if ($anggaranList->isEmpty())
+                                    <small class="text-muted">Belum ada pos anggaran tahun {{ now()->year }}.</small>
+                                @endif
+                            </div>
+
                         </div>
 
                         <div class="modal-footer">

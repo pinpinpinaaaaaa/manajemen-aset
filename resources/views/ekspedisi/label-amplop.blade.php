@@ -1,20 +1,45 @@
-@extends('pdf.layout-surat')
-
-@section('content')
-    <div style="
-        border:1px solid #000;
-        padding:15px;
-        font-size:13px;
-    ">
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+    @page {
+        size: A5;
+        margin: 15mm;
+    }
+    body {
+        font-family: Arial, sans-serif;
+        font-size: 13px;
+        margin: 0;
+    }
+    .label-box {
+        border: 1px solid #000;
+        padding: 12px;
+    }
+    h3 {
+        margin: 0 0 6px 0;
+        font-size: 14px;
+    }
+    hr {
+        border: none;
+        border-top: 1px solid #000;
+        margin: 12px 0;
+    }
+    ul {
+        margin: 6px 0;
+        padding-left: 18px;
+    }
+</style>
+</head>
+<body>
+    <div class="label-box">
 
         {{-- PENERIMA --}}
-        <div style="margin-bottom:15px;">
+        <div style="margin-bottom:12px;">
 
-            <h3 style="margin-bottom:8px;">
-                Kepada Yth. :
-            </h3>
+            <h3>Kepada Yth. :</h3>
 
-            <strong style="font-size:16px;">
+            <strong style="font-size:15px;">
                 {{ $data->instansi_penerima }}
             </strong>
 
@@ -33,25 +58,22 @@
         <hr>
 
         {{-- ISI --}}
-        <div style="margin-top:15px;">
+        <div style="margin-top:12px;">
 
-            <strong>{{ $data->judul_kegiatan }}</strong>
+            @if($data->judul_kegiatan)
+                <strong>{{ $data->judul_kegiatan }}</strong><br>
+            @endif
 
             <strong>Isi Paket:</strong>
 
-            <ul style="margin-top:8px;">
+            <ul>
 
                 @foreach ($data->dokumen as $d)
-                    <li>
-                        {{ $d->nama_dokumen }} - ({{ $d->jumlah }}) rangkap
-                    </li>
+                    <li>{{ $d->nama_dokumen }} - ({{ $d->jumlah }}) rangkap</li>
                 @endforeach
 
                 @foreach ($data->barang as $b)
-                    <li>
-                        {{ $b->nama_barang }}
-                        ({{ $b->jumlah }})
-                    </li>
+                    <li>{{ $b->nama_barang }} ({{ $b->jumlah }})</li>
                 @endforeach
 
             </ul>
@@ -61,13 +83,11 @@
         <hr>
 
         {{-- PENGIRIM --}}
-        <div style="margin-top:15px;">
+        <div style="margin-top:12px;">
 
-            <h3 style="margin-bottom:8px;">
-                Dari :
-            </h3>
+            <h3>Dari :</h3>
 
-            <strong style="font-size:16px;">
+            <strong style="font-size:15px;">
                 Lembaga Management Fakultas Ekonomi dan Bisnis Universitas Indonesia (LM FEB UI)
             </strong>
 
@@ -81,14 +101,12 @@
 
         {{-- RESI --}}
         @if (optional($data->pengiriman)->no_resi)
-            <div style="margin-top:15px;">
-
+            <div style="margin-top:12px;">
                 <strong>No Resi:</strong>
-
                 {{ $data->pengiriman->no_resi }}
-
             </div>
         @endif
 
     </div>
-@endsection
+</body>
+</html>

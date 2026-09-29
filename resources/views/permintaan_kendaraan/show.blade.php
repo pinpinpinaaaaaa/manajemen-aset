@@ -126,6 +126,7 @@
                         <tr>
                             <th>Tanggal</th>
                             <th>Jam</th>
+                            <th>Jenis</th>
                             <th>Keperluan</th>
                             <th>Jemput</th>
                             <th>Tujuan</th>
@@ -147,6 +148,15 @@
                                     {{ $d->jam_mulai }} - {{ $d->jam_selesai }}
                                 </td>
 
+                                <td>
+                                    @if($d->jenis_perjalanan === 'penugasan')
+                                        <span class="badge bg-primary">Penugasan</span>
+                                    @elseif($d->jenis_perjalanan === 'pribadi')
+                                        <span class="badge bg-secondary">Pribadi</span>
+                                    @else
+                                        —
+                                    @endif
+                                </td>
                                 <td>{{ $d->keperluan }}</td>
                                 <td>{{ $d->tempat_jemput }}</td>
                                 <td>{{ $d->tempat_tujuan }}</td>

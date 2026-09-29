@@ -353,11 +353,14 @@ Route::middleware(['auth', 'menu.access'])->group(function () {
 
     // === ANGGARAN
     Route::get('/anggaran-rkat', [AnggaranController::class, 'rkat'])->name('anggaran-rkat.index');
+    Route::get('/anggaran-rkat/export', [AnggaranController::class, 'exportRkat'])->name('anggaran-rkat.export');
+    Route::get('/anggaran-rkat/{id}/show', [AnggaranController::class, 'showRkat'])->name('anggaran-rkat.show');
     Route::post('/anggaran-rkat', [AnggaranController::class, 'storeRkat'])->name('anggaran-rkat.store');
     Route::put('/anggaran-rkat/{id}', [AnggaranController::class, 'updateRkat'])->name('anggaran-rkat.update');
     Route::delete('/anggaran-rkat/{id}', [AnggaranController::class, 'destroyRkat'])->name('anggaran-rkat.destroy');
 
     Route::get('/riwayat-realisasi', [AnggaranController::class, 'realisasi'])->name('riwayat-realisasi.index');
     Route::post('/riwayat-realisasi', [AnggaranController::class, 'storeRealisasi'])->name('riwayat-realisasi.store');
+    Route::put('/riwayat-realisasi/{id}', [AnggaranController::class, 'updateRealisasi'])->name('riwayat-realisasi.update');
     Route::delete('/riwayat-realisasi/{id}', [AnggaranController::class, 'destroyRealisasi'])->name('riwayat-realisasi.destroy');
 });

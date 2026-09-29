@@ -8,6 +8,8 @@ use App\Models\GudangTransaksi;
 use App\Models\GudangRekapBulanan;
 use App\Models\GudangTransaksiDetail;
 use App\Models\PermintaanBarangJasaDetail;
+use App\Models\RkatAnggaran;
+use App\Models\RkatRealisasi;
 use Carbon\Carbon;
 use DB;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -413,24 +415,28 @@ class GudangController extends Controller
 
     public function transaksiForm()
     {
-        $barang = GudangBarang::orderBy('nama_barang')->get();
-        return view('gudang.transaksi.create', compact('barang'));
+        $barang        = GudangBarang::orderBy('nama_barang')->get();
+        $anggaranList  = RkatAnggaran::where('tahun', now()->year)
+            ->orderBy('kode_kegiatan')
+            ->get(['id', 'kode_kegiatan', 'coa_pos', 'nama_kegiatan']);
+        return view('gudang.transaksi.create', compact('barang', 'anggaranList'));
     }
 
     public function transaksiStore(Request $request)
     {
         $request->validate([
-            'jenis_transaksi' => 'required|in:masuk,keluar,penyesuaian',
-
-            'alasan' => 'required_if:jenis_transaksi,keluar,penyesuaian',
-
+            'jenis_transaksi'  => 'required|in:masuk,keluar,penyesuaian',
+            'alasan'           => 'required_if:jenis_transaksi,keluar,penyesuaian',
             'tipe_penyesuaian' => 'nullable|required_if:jenis_transaksi,penyesuaian|in:tambah,kurang',
-
-            'items' => 'required|array|min:1',
-            'items.*.id_barang' => 'required|exists:gudang_barang,id_barang',
-            'items.*.jumlah' => 'required|integer|min:1',
-            'items.*.harga_satuan' => 'required_if:jenis_transaksi,masuk|numeric|min:1',
-            'items.*.satuan_pilih' => 'required|string',
+            'rkat_anggaran_id' => 'nullable|required_if:jenis_transaksi,masuk|exists:rkat_anggaran,id',
+            'items'                  => 'required|array|min:1',
+            'items.*.id_barang'      => 'required|exists:gudang_barang,id_barang',
+            'items.*.jumlah'         => 'required|integer|min:1',
+            'items.*.harga_satuan'   => 'required_if:jenis_transaksi,masuk|numeric|min:1',
+            'items.*.satuan_pilih'   => 'required|string',
+            'charges.*.nama'         => 'nullable|string|max:100',
+            'charges.*.jumlah'       => 'nullable|numeric|min:0',
+            'struk'                  => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
 
         try {
@@ -439,15 +445,22 @@ class GudangController extends Controller
             $idTransaksi = $this->generateIdTransaksi();
             $totalBiaya = 0;
 
+            $strukPath = null;
+            if ($request->hasFile('struk')) {
+                $strukPath = $request->file('struk')->store('gudang/struk', 'public');
+            }
+
             $transaksi = GudangTransaksi::create([
-                'id_transaksi' => $idTransaksi,
-                'tanggal' => now(),
-                'jenis_transaksi' => $request->jenis_transaksi,
-                'dibuat_oleh' => auth()->user()->name ?? 'system',
-                'total_biaya' => 0,
-                'status' => 'pending',
-                'alasan' => $request->alasan,
+                'id_transaksi'     => $idTransaksi,
+                'tanggal'          => now(),
+                'jenis_transaksi'  => $request->jenis_transaksi,
+                'dibuat_oleh'      => auth()->user()->name ?? 'system',
+                'total_biaya'      => 0,
+                'status'           => 'pending',
+                'alasan'           => $request->alasan,
                 'tipe_penyesuaian' => $request->tipe_penyesuaian,
+                'rkat_anggaran_id' => $request->jenis_transaksi === 'masuk' ? $request->rkat_anggaran_id : null,
+                'struk'            => $strukPath,
             ]);
 
             foreach ($request->items as $item) {
@@ -489,8 +502,23 @@ class GudangController extends Controller
                 ]);
             }
 
+            // Simpan additional charges (hanya untuk masuk)
+            $totalCharge = 0;
+            if ($request->jenis_transaksi === 'masuk' && $request->charges) {
+                foreach ($request->charges as $charge) {
+                    if (!empty($charge['nama']) && isset($charge['jumlah']) && (float)$charge['jumlah'] > 0) {
+                        \App\Models\GudangTransaksiCharge::create([
+                            'id_transaksi' => $idTransaksi,
+                            'nama'         => $charge['nama'],
+                            'jumlah'       => (float)$charge['jumlah'],
+                        ]);
+                        $totalCharge += (float)$charge['jumlah'];
+                    }
+                }
+            }
+
             $transaksi->update([
-                'total_biaya' => $totalBiaya
+                'total_biaya' => $totalBiaya + $totalCharge,
             ]);
 
             DB::table('gudang_transaksi_log')->insert([
@@ -528,7 +556,7 @@ class GudangController extends Controller
         try {
 
             $trx = GudangTransaksi::lockForUpdate()
-                ->with('details')
+                ->with('details.barang', 'charges')
                 ->findOrFail($id);
 
             if ($trx->status !== 'pending') {
@@ -571,11 +599,39 @@ class GudangController extends Controller
             }
 
             $trx->update([
-                'status' => 'approved',
+                'status'      => 'approved',
                 'approved_by' => auth()->user()->name,
-                'approved_at' => now()
+                'approved_at' => now(),
             ]);
-            
+
+            // Catat realisasi RKAT untuk transaksi masuk (jika pos dipilih saat create)
+            if ($trx->jenis_transaksi === 'masuk' && $trx->rkat_anggaran_id && $trx->total_biaya > 0) {
+                RkatRealisasi::updateOrCreate(
+                    [
+                        'sumber_type' => GudangTransaksi::class,
+                        'sumber_id'   => $trx->id_transaksi,
+                    ],
+                    [
+                        'rkat_anggaran_id' => $trx->rkat_anggaran_id,
+                        'tanggal'          => now()->toDateString(),
+                        'jenis'            => 'keluar',
+                        'jumlah'           => $trx->total_biaya,
+                        'deskripsi'        => (function () use ($trx) {
+                            $items = $trx->details->map(fn($d) =>
+                                ($d->barang->nama_barang ?? $d->id_barang)
+                                . ' (' . $d->jumlah_input . ' ' . $d->satuan . ')'
+                            )->join(', ');
+                            $charges = $trx->charges->isNotEmpty()
+                                ? '; Biaya tambahan: ' . $trx->charges->map(fn($c) =>
+                                    $c->nama . ' Rp ' . number_format($c->jumlah, 0, ',', '.')
+                                  )->join(', ')
+                                : '';
+                            return "Pengadaan Barang Gudang [{$trx->id_transaksi}] — {$items}{$charges}";
+                        })(),
+                    ]
+                );
+            }
+
             DB::table('gudang_transaksi_log')->insert([
                 'id_transaksi' => $id,
                 'aksi' => 'approve',
@@ -686,7 +742,7 @@ class GudangController extends Controller
 
     public function transaksiDetail($id)
     {
-        $transaksi = GudangTransaksi::with('details.barang')
+        $transaksi = GudangTransaksi::with('details.barang', 'charges')
             ->where('id_transaksi', $id)
             ->firstOrFail();
 

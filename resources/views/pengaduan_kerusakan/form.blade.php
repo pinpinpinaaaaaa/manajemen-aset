@@ -579,7 +579,7 @@
                 asetSel.disabled = false;
                 asetSel.innerHTML = '<option value="">-- Pilih Aset --</option>';
                 asetData.forEach(a => {
-                    asetSel.innerHTML += `<option value="${a.id_aset}">${a.nama_aset}</option>`;
+                    asetSel.innerHTML += `<option value="${a.id_aset}">${a.nama_aset} (${a.kode_aset})</option>`;
                 });
                 if (oldData.id_aset) asetSel.value = oldData.id_aset;
 
@@ -623,7 +623,7 @@
                         aset.disabled = false;
                         aset.innerHTML = '<option value="">-- Pilih Aset --</option>';
                         data.forEach(a => {
-                            aset.innerHTML += `<option value="${a.id_aset}">${a.nama_aset}</option>`;
+                            aset.innerHTML += `<option value="${a.id_aset}">${a.nama_aset} (${a.kode_aset})</option>`;
                         });
                     });
             });

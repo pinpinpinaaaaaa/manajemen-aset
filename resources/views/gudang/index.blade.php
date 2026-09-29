@@ -5,6 +5,20 @@
 @section('content')
 
     <style>
+        /* Tabel barang: container scrollable sendiri, thead sticky di dalamnya */
+        #barang-table-wrap {
+            max-height: 600px;
+            overflow-y: auto;
+            overflow-x: auto;
+        }
+        #barang-table-wrap thead th {
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            background-color: #f9fafb;
+            box-shadow: 0 1px 0 #e5e7eb;
+        }
+
         /* ===============================
                                                                                         DASHBOARD GRID
                                                                                         ================================ */
@@ -142,12 +156,8 @@
             -webkit-overflow-scrolling: touch;
         }
 
-        /* biar header tetap keliatan waktu scroll */
         .low-stock-scroll thead th {
-            position: sticky;
-            top: 0;
             background: #fff;
-            z-index: 2;
         }
 
         .summary-grid {
@@ -240,14 +250,14 @@
             <div class="dashboard-grid">
 
                 <div class="dashboard-card">
-                    <h5 class="card-title-center">Top 10 Barang Paling Sering Keluar</h5>
+                    <h5 class="card-title-center">Barang Sering Keluar</h5>
                     <div class="chart-box">
                         <canvas id="chartKeluar"></canvas>
                     </div>
                 </div>
 
                 <div class="dashboard-card">
-                    <h5 class="card-title-center">Top 10 Barang Paling Sering Masuk</h5>
+                    <h5 class="card-title-center">Barang Sering Masuk</h5>
                     <div class="chart-box">
                         <canvas id="chartMasuk"></canvas>
                     </div>
@@ -371,7 +381,7 @@
                 </div>
             </div>
 
-            <div class="table-container">
+            <div class="table-container" id="barang-table-wrap">
                 <table class="data-table">
                     <thead>
                         <tr>

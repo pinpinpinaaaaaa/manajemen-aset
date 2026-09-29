@@ -31,11 +31,18 @@ class GudangTransaksi extends BaseModel
         'total_biaya',
         'tipe_penyesuaian',
         'referensi',
+        'rkat_anggaran_id',
+        'struk',
     ];
 
     public function hitungTotal()
     {
         return $this->details()->sum('subtotal');
+    }
+
+    public function rkatAnggaran()
+    {
+        return $this->belongsTo(RkatAnggaran::class, 'rkat_anggaran_id');
     }
 
     protected $casts = [
@@ -47,6 +54,12 @@ class GudangTransaksi extends BaseModel
      * RELATIONSHIPS
      * =========================
      */
+
+    // Transaksi -> Biaya tambahan
+    public function charges()
+    {
+        return $this->hasMany(GudangTransaksiCharge::class, 'id_transaksi', 'id_transaksi');
+    }
 
     // Transaksi -> Detail barang
     public function details()

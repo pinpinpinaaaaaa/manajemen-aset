@@ -109,6 +109,7 @@ class RuanganController extends Controller
         ])->findOrFail($id);
 
         $totalAset = $ruangan->aset->where('jenisBarang.jenis', 'sarana')->count();
+        $totalNilaiAset = $ruangan->aset->sum('nilai');
         $totalBiayaMaintenance = $ruangan->maintenance->sum('biaya');
 
         $vendors = Vendor::all();
@@ -118,6 +119,7 @@ class RuanganController extends Controller
         return view('ruangan.dashboard', compact(
             'ruangan',
             'totalAset',
+            'totalNilaiAset',
             'totalBiayaMaintenance',
             'vendors',
             'gedungs',

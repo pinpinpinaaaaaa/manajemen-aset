@@ -194,7 +194,7 @@
                     </div>
                 @endif
 
-                <form action="{{ route('gudang.transaksi.store') }}" method="POST">
+                <form action="{{ route('gudang.transaksi.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
 
                     {{-- JENIS TRANSAKSI --}}
@@ -221,6 +221,21 @@
                         <label class="form-label">Alasan</label>
                         <input type="text" name="alasan" id="alasan" class="form-control"
                             placeholder="Contoh: Pemakaian proyek / Rusak / Opname">
+                    </div>
+
+                    <div class="form-group mb-3" id="rkat-group" style="display:none;">
+                        <label class="form-label">Pos Anggaran RKAT <span class="text-danger">*</span></label>
+                        <select name="rkat_anggaran_id" id="rkat_anggaran_id" class="form-select">
+                            <option value="">-- Pilih Pos Anggaran --</option>
+                            @foreach ($anggaranList as $a)
+                                <option value="{{ $a->id }}">
+                                    {{ $a->kode_kegiatan }} — {{ $a->coa_pos }} ({{ $a->nama_kegiatan }})
+                                </option>
+                            @endforeach
+                        </select>
+                        @if ($anggaranList->isEmpty())
+                            <small class="text-muted">Belum ada pos anggaran tahun {{ now()->year }}.</small>
+                        @endif
                     </div>
 
                     <hr>
@@ -300,14 +315,48 @@
                         </div>
                     </div>
 
-                    {{-- TOTAL --}}
-                    <div class="text-end mb-3">
-                        <h5>Total Biaya:
-                            <span id="total-biaya">Rp 0</span>
-                        </h5>
+                    {{-- BIAYA TAMBAHAN (hanya masuk) --}}
+                    <div id="charge-section" style="display:none;">
+                        <hr>
+                        <div class="mb-2 d-flex justify-content-between align-items-center">
+                            <label class="form-label fw-semibold mb-0">Biaya Tambahan <small class="text-muted fw-normal">(opsional)</small></label>
+                            <button type="button" class="btn btn-primary px-3" id="add-charge" style="font-size:13px;font-weight:600;letter-spacing:.3px;">
+                                <i class="fas fa-plus me-1"></i> Tambah Biaya
+                            </button>
+                        </div>
+                        <div id="charge-wrapper"></div>
+
+                        {{-- Upload Struk --}}
+                        <div class="form-group mt-3">
+                            <label class="form-label">Upload Struk / Invoice <small class="text-muted">(opsional, jpg/png/pdf — gambar dikompres otomatis ke ≤2MB)</small></label>
+                            <input type="file" name="struk" id="struk-input" class="form-control" accept=".jpg,.jpeg,.png,.pdf">
+                            <small id="struk-info" class="text-muted" style="display:none"></small>
+                        </div>
+
+                        {{-- Breakdown Total --}}
+                        <div class="mt-3 p-3 rounded" style="background:#f8fafc;border:1px solid #e2e8f0;" id="total-breakdown">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-muted">Total Barang</span>
+                                <span id="total-barang-val">Rp 0</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-muted">Total Biaya Tambahan</span>
+                                <span id="total-charge-val">Rp 0</span>
+                            </div>
+                            <hr class="my-1">
+                            <div class="d-flex justify-content-between fw-bold">
+                                <span>Grand Total</span>
+                                <span id="grand-total-val">Rp 0</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="text-end">
+                    {{-- TOTAL (tampil saat bukan masuk) --}}
+                    <div class="text-end mb-3" id="total-simple">
+                        <h5>Total Biaya: <span id="total-biaya">Rp 0</span></h5>
+                    </div>
+
+                    <div class="text-end mt-3">
                         <a href="{{ route('gudang.transaksi.index') }}" class="btn btn-secondary">
                             Batal
                         </a>
@@ -555,6 +604,33 @@
                 total += hitungSubtotal(row);
             });
             document.getElementById('total-biaya').innerText = formatRupiah(total);
+
+            // Update breakdown jika masuk
+            if (getJenis() === 'masuk') {
+                document.getElementById('total-barang-val').innerText = formatRupiah(total);
+                hitungGrandTotal();
+            }
+        }
+
+        function hitungCharge() {
+            let total = 0;
+            document.querySelectorAll('.charge-jumlah').forEach(el => {
+                total += parseFloat(el.value.replace(/\./g, '').replace(',', '.')) || 0;
+            });
+            document.getElementById('total-charge-val').innerText = formatRupiah(total);
+            hitungGrandTotal();
+        }
+
+        function hitungGrandTotal() {
+            let barang = 0;
+            document.querySelectorAll('.barang-row').forEach(row => {
+                barang += hitungSubtotal(row);
+            });
+            let charge = 0;
+            document.querySelectorAll('.charge-jumlah').forEach(el => {
+                charge += parseFloat(el.value.replace(/\./g, '').replace(',', '.')) || 0;
+            });
+            document.getElementById('grand-total-val').innerText = formatRupiah(barang + charge);
         }
 
         /* =====================
@@ -739,6 +815,158 @@
                 tipeSelect.required = false;
                 tipeSelect.value = '';
             }
+
+            const rkatGroup  = document.getElementById('rkat-group');
+            const rkatSelect = document.getElementById('rkat_anggaran_id');
+            if (jenis === 'masuk') {
+                rkatGroup.style.display = 'block';
+                rkatSelect.required = true;
+            } else {
+                rkatGroup.style.display = 'none';
+                rkatSelect.required = false;
+                rkatSelect.value = '';
+            }
+
+            // Toggle charge section vs simple total
+            const chargeSection = document.getElementById('charge-section');
+            const totalSimple   = document.getElementById('total-simple');
+            if (jenis === 'masuk') {
+                chargeSection.style.display = 'block';
+                totalSimple.style.display   = 'none';
+            } else {
+                chargeSection.style.display = 'none';
+                totalSimple.style.display   = 'block';
+            }
+        }
+
+        // ── Charge rows ────────────────────────────────────────────────────────
+        let chargeIdx = 0;
+
+        function addChargeRow() {
+            const wrapper = document.getElementById('charge-wrapper');
+            const idx     = chargeIdx++;
+            const div     = document.createElement('div');
+            div.className = 'charge-row d-flex gap-2 mb-2 align-items-center';
+            div.innerHTML = `
+                <input type="text" name="charges[${idx}][nama]" class="form-control"
+                       placeholder="Nama biaya (mis. Ongkir, Pajak)" style="flex:2">
+                <input type="text" name="charges[${idx}][jumlah]" class="form-control charge-jumlah"
+                       placeholder="0" inputmode="numeric" style="flex:1"
+                       oninput="formatChargeRupiah(this); hitungCharge()">
+                <button type="button" class="btn btn-sm btn-danger remove-charge">
+                    <i class="fas fa-trash"></i>
+                </button>`;
+            wrapper.appendChild(div);
+        }
+
+        function formatChargeRupiah(input) {
+            const raw = input.value.replace(/\D/g, '');
+            input.value = raw ? parseInt(raw, 10).toLocaleString('id-ID') : '';
+            hitungCharge();
+        }
+
+        document.getElementById('add-charge').addEventListener('click', addChargeRow);
+
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.remove-charge')) {
+                e.target.closest('.charge-row').remove();
+                hitungCharge();
+            }
+        });
+
+        // ── Auto-compress struk image ke ≤ 2MB ────────────────────────────────
+        const MAX_BYTES = 2 * 1024 * 1024; // 2 MB
+
+        document.getElementById('struk-input').addEventListener('change', async function() {
+            const file = this.files[0];
+            if (!file) return;
+
+            const info = document.getElementById('struk-info');
+
+            // PDF: hanya cek ukuran, tidak dikompres
+            if (file.type === 'application/pdf') {
+                if (file.size > MAX_BYTES) {
+                    info.textContent = '⚠ PDF melebihi 2MB. Mohon kompres manual.';
+                    info.style.color = '#dc2626';
+                    info.style.display = 'block';
+                } else {
+                    info.style.display = 'none';
+                }
+                return;
+            }
+
+            // Gambar: kompres dengan Canvas
+            if (!file.type.startsWith('image/')) return;
+
+            info.textContent = 'Mengompres gambar…';
+            info.style.color = '#6b7280';
+            info.style.display = 'block';
+
+            const compressed = await compressImage(file, MAX_BYTES);
+            const sizeMB = (compressed.size / 1024 / 1024).toFixed(2);
+
+            // Ganti file di input
+            const dt = new DataTransfer();
+            dt.items.add(compressed);
+            this.files = dt.files;
+
+            if (compressed.size < file.size) {
+                info.textContent = `✓ Dikompres: ${(file.size/1024/1024).toFixed(2)}MB → ${sizeMB}MB`;
+                info.style.color = '#16a34a';
+            } else {
+                info.textContent = `✓ Ukuran sudah kecil (${sizeMB}MB), tidak perlu dikompres.`;
+                info.style.color = '#6b7280';
+            }
+        });
+
+        function compressImage(file, maxBytes) {
+            return new Promise(resolve => {
+                const img = new Image();
+                const url = URL.createObjectURL(file);
+                img.onload = () => {
+                    URL.revokeObjectURL(url);
+                    const canvas = document.createElement('canvas');
+                    let { width, height } = img;
+
+                    // Kurangi dimensi jika masih terlalu besar setelah quality turun
+                    const MAX_DIM = 2048;
+                    if (width > MAX_DIM || height > MAX_DIM) {
+                        const ratio = Math.min(MAX_DIM / width, MAX_DIM / height);
+                        width  = Math.round(width  * ratio);
+                        height = Math.round(height * ratio);
+                    }
+
+                    canvas.width  = width;
+                    canvas.height = height;
+                    canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+
+                    // Binary search quality terbaik yang masih ≤ maxBytes
+                    let lo = 0.1, hi = 0.95, bestBlob = null;
+                    const step = async () => {
+                        if (hi - lo < 0.02 || bestBlob) {
+                            // Satu kali lagi dengan hi untuk hasil terbaik
+                            canvas.toBlob(blob => {
+                                resolve(bestBlob && bestBlob.size <= maxBytes ? bestBlob : (blob || file));
+                            }, 'image/jpeg', bestBlob ? undefined : hi);
+                            return;
+                        }
+                        const mid = (lo + hi) / 2;
+                        canvas.toBlob(blob => {
+                            if (!blob) { resolve(file); return; }
+                            if (blob.size <= maxBytes) {
+                                bestBlob = blob;
+                                lo = mid;
+                            } else {
+                                hi = mid;
+                            }
+                            step();
+                        }, 'image/jpeg', mid);
+                    };
+                    step();
+                };
+                img.onerror = () => resolve(file);
+                img.src = url;
+            });
         }
     </script>
 

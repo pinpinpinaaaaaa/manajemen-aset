@@ -16,6 +16,8 @@ use App\Models\Gedung;
 use App\Models\Ruangan;
 use App\Services\AsetLogService;
 use App\Models\Vendor;
+use App\Models\RkatAnggaran;
+use App\Models\RkatRealisasi;
 
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -145,10 +147,15 @@ class MaintenanceController extends Controller
 
         $vendors = Vendor::all();
 
+        $anggaranList = RkatAnggaran::where('tahun', now()->year)
+            ->orderBy('kode_kegiatan')
+            ->get(['id', 'kode_kegiatan', 'coa_pos', 'nama_kegiatan']);
+
         return view('maintenance.index', compact(
             'maintenance',
             'vendors',
-            'perPage'
+            'perPage',
+            'anggaranList'
         ));
     }
     
@@ -165,9 +172,14 @@ class MaintenanceController extends Controller
         ])->findOrFail($id);
         $vendors = Vendor::all();
 
+        $anggaranList = RkatAnggaran::where('tahun', now()->year)
+            ->orderBy('kode_kegiatan')
+            ->get(['id', 'kode_kegiatan', 'coa_pos', 'nama_kegiatan']);
+
         return view('maintenance.show', compact(
             'maintenance',
-            'vendors'
+            'vendors',
+            'anggaranList'
         ));
     }
 
@@ -599,10 +611,11 @@ class MaintenanceController extends Controller
         $m = Maintenance::with('details.aset')->findOrFail($id);
 
         $request->validate([
-            'biaya' => 'required|numeric|min:0',
-            'foto_after' => 'required|image|mimes:jpg,jpeg,png',
-            'pelaksana_type' => 'required|in:internal,vendor',
-            'id_vendor' => 'required_if:pelaksana_type,vendor',
+            'biaya'            => 'required|numeric|min:0',
+            'foto_after'       => 'required|image|mimes:jpg,jpeg,png',
+            'pelaksana_type'   => 'required|in:internal,vendor',
+            'id_vendor'        => 'required_if:pelaksana_type,vendor',
+            'rkat_anggaran_id' => 'required|exists:rkat_anggaran,id',
         ]);
 
         if ($m->decision_status !== 'disetujui') {
@@ -655,6 +668,34 @@ class MaintenanceController extends Controller
                     'Maintenance selesai'
                 );
             }
+
+            $biayaTotal = $m->details()->sum('biaya');
+
+            if ($biayaTotal > 0) {
+                RkatRealisasi::updateOrCreate(
+                    [
+                        'sumber_type' => Maintenance::class,
+                        'sumber_id'   => $id,
+                    ],
+                    [
+                        'rkat_anggaran_id' => $request->rkat_anggaran_id,
+                        'tanggal'          => now()->toDateString(),
+                        'jenis'            => 'keluar',
+                        'jumlah'           => $biayaTotal,
+                        'deskripsi'        => (function () use ($m, $id, $biayaTotal) {
+                            $asetList = $m->details->map(fn($d) =>
+                                optional($d->aset)->nama_aset ?? $d->id_aset
+                            )->unique()->join(', ');
+                            $pelaksana = $m->details->first()?->pelaksana_type ?? '-';
+                            return "Maintenance [{$id}] — Aset: {$asetList}"
+                                . "; Pelaksana: {$pelaksana}"
+                                . "; Total Biaya: Rp " . number_format($biayaTotal, 0, ',', '.');
+                        })(),
+                    ]
+                );
+            }
+
+            $m->update(['rkat_anggaran_id' => $request->rkat_anggaran_id]);
         });
 
         return back()->with('success','Maintenance berhasil diselesaikan');
@@ -699,75 +740,120 @@ public function selesaiDetail(Request $request, $id)
     ])->findOrFail($id);
 
     $request->validate([
-        'biaya' => 'required|numeric|min:0',
-        'foto_after' => 'required|image',
+        'biaya'          => 'required|numeric|min:0',
+        'foto_after'     => 'required|image',
         'pelaksana_type' => 'required|in:internal,vendor',
-        'id_vendor' => 'required_if:pelaksana_type,vendor',
+        'id_vendor'      => 'required_if:pelaksana_type,vendor',
     ]);
 
     if ($detail->status != 'Sedang Diperbaiki') {
         return back()->with('error', 'Status tidak valid');
     }
 
-    $fotoAfter = $this->uploadPhoto(
-        $request->file('foto_after'),
-        $detail->id,
-        'after'
-    );
+    // Pre-check: apakah ini akan jadi detail terakhir?
+    $maintenance  = $detail->maintenance;
+    $akanJadiTerakhir = !$maintenance->details()
+        ->where('id', '!=', $id)
+        ->where('status', '!=', 'Selesai')
+        ->exists();
 
-    $tanggalSelesai = now();
-
-    $detail->update([
-        'status' => 'Selesai',
-        'tanggal_selesai' => $tanggalSelesai,
-        'durasi_jam' => Carbon::parse($detail->tanggal_mulai)
-            ->diffInHours($tanggalSelesai),
-        'biaya' => $request->biaya,
-        'pelaksana_type' => $request->pelaksana_type,
-        'id_vendor' => $request->id_vendor,
-        'foto_after' => $fotoAfter,
-        'catatan' => $request->catatan,
-    ]);
-
-    if ($detail->aset) {
-        $detail->aset->update([
-            'status' => 'tersedia',
-            'kelayakan' => 2,
-            'keterangan_kelayakan' => 'Layak'
+    if ($akanJadiTerakhir) {
+        $request->validate([
+            'rkat_anggaran_id' => 'required|exists:rkat_anggaran,id',
         ]);
     }
 
-    $maintenance = $detail->maintenance;
+    DB::transaction(function () use ($request, $detail, $id, $maintenance, $akanJadiTerakhir) {
 
-    $maintenance->update([
-        'biaya_total' => $maintenance->details()->sum('biaya')
-    ]);
+        $fotoAfter = $this->uploadPhoto(
+            $request->file('foto_after'),
+            $detail->id,
+            'after'
+        );
 
-    if (!$maintenance->details()->where('status', '!=', 'Selesai')->exists()) {
+        $tanggalSelesai = now();
 
-        $firstStart = $maintenance->details()
-            ->whereNotNull('tanggal_mulai')
-            ->orderBy('tanggal_mulai', 'asc')
-            ->value('tanggal_mulai');
+        $detail->update([
+            'status'         => 'Selesai',
+            'tanggal_selesai'=> $tanggalSelesai,
+            'durasi_jam'     => Carbon::parse($detail->tanggal_mulai)
+                ->diffInHours($tanggalSelesai),
+            'biaya'          => $request->biaya,
+            'pelaksana_type' => $request->pelaksana_type,
+            'id_vendor'      => $request->id_vendor,
+            'foto_after'     => $fotoAfter,
+            'catatan'        => $request->catatan,
+        ]);
 
-        $lastFinish = $maintenance->details()
-            ->max('tanggal_selesai');
+        if ($detail->aset) {
+            $detail->aset->update([
+                'status'               => 'tersedia',
+                'kelayakan'            => 2,
+                'keterangan_kelayakan' => 'Layak',
+            ]);
+        }
 
         $maintenance->update([
-            'tanggal_mulai' => $firstStart,
-            'tanggal_selesai' => $lastFinish,
-            'durasi_jam' => $firstStart && $lastFinish
-                ? Carbon::parse($firstStart)->diffInHours($lastFinish)
-                : null
+            'biaya_total' => $maintenance->details()->sum('biaya'),
         ]);
-    }
 
-    AsetLogService::log(
-        $detail->id_aset,
-        'maintenance_selesai',
-        $detail->id_maintenance,
-        'Maintenance selesai'
-    );
+        if (!$maintenance->details()->where('status', '!=', 'Selesai')->exists()) {
+
+            $firstStart = $maintenance->details()
+                ->whereNotNull('tanggal_mulai')
+                ->orderBy('tanggal_mulai', 'asc')
+                ->value('tanggal_mulai');
+
+            $lastFinish = $maintenance->details()->max('tanggal_selesai');
+
+            $maintenanceUpdate = [
+                'tanggal_mulai'   => $firstStart,
+                'tanggal_selesai' => $lastFinish,
+                'durasi_jam'      => $firstStart && $lastFinish
+                    ? Carbon::parse($firstStart)->diffInHours($lastFinish)
+                    : null,
+            ];
+
+            if ($akanJadiTerakhir && $request->rkat_anggaran_id) {
+                $maintenanceUpdate['rkat_anggaran_id'] = $request->rkat_anggaran_id;
+            }
+
+            $maintenance->update($maintenanceUpdate);
+
+            // Catat realisasi — sekali per tiket (idempoten kunci id_maintenance)
+            if ($maintenance->biaya_total > 0 && $request->rkat_anggaran_id) {
+                RkatRealisasi::updateOrCreate(
+                    [
+                        'sumber_type' => Maintenance::class,
+                        'sumber_id'   => $maintenance->id_maintenance,
+                    ],
+                    [
+                        'rkat_anggaran_id' => $request->rkat_anggaran_id,
+                        'tanggal'          => now()->toDateString(),
+                        'jenis'            => 'keluar',
+                        'jumlah'           => $maintenance->biaya_total,
+                        'deskripsi'        => (function () use ($maintenance, $request) {
+                            $maintenance->loadMissing('details.aset');
+                            $asetList = $maintenance->details->map(fn($d) =>
+                                optional($d->aset)->nama_aset ?? $d->id_aset
+                            )->unique()->join(', ');
+                            $pelaksana = $request->pelaksana_type;
+                            return "Maintenance [{$maintenance->id_maintenance}] — Aset: {$asetList}"
+                                . "; Pelaksana: {$pelaksana}"
+                                . "; Total Biaya: Rp " . number_format($maintenance->biaya_total, 0, ',', '.');
+                        })(),
+                    ]
+                );
+            }
+        }
+
+        AsetLogService::log(
+            $detail->id_aset,
+            'maintenance_selesai',
+            $detail->id_maintenance,
+            'Maintenance selesai'
+        );
+    });
 
     return back()->with(
         'success',

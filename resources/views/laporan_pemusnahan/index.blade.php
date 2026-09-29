@@ -171,8 +171,10 @@
                                             <button type="button" class="btn btn-sm btn-dark btnSelesai"
                                                 data-id="{{ $p->id_pemusnahan }}"
                                                 data-pelaksana="{{ $p->pelaksana_type }}"
-                                                data-vendor="{{ $p->id_vendor }}" data-metode="{{ $p->metode }}"
-                                                data-nilai="{{ $p->nilai_masuk }}">
+                                                data-vendor="{{ $p->id_vendor }}"
+                                                data-metode="{{ $p->metode }}"
+                                                data-nilai="{{ $p->nilai_masuk }}"
+                                                data-rkat="{{ $p->rkat_anggaran_id ?? '' }}">
                                                 Selesai
                                             </button>
                                         @endif
@@ -282,6 +284,28 @@
                                 <input type="number" name="nilai_masuk" id="nilai_masuk" class="form-control">
                             </div>
 
+                            <div class="mb-3 border-top pt-3">
+                                <label class="form-label">
+                                    Pos Anggaran RKAT <span class="text-danger">*</span>
+                                </label>
+                                <select name="rkat_anggaran_id" id="modal_rkat_anggaran_id" class="form-control" required>
+                                    <option value="">-- Pilih Pos Anggaran --</option>
+                                    @foreach ($anggaranList as $ag)
+                                        <option value="{{ $ag->id }}">
+                                            {{ $ag->kode_kegiatan }} — {{ $ag->coa_pos }} ({{ $ag->nama_kegiatan }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @if ($anggaranList->isEmpty())
+                                    <small class="text-danger">
+                                        Belum ada pos anggaran {{ now()->year }}.
+                                        Tambahkan di <a href="{{ route('anggaran-rkat.index') }}" target="_blank">Anggaran RKAT</a>.
+                                    </small>
+                                @else
+                                    <small class="text-muted">Wajib diisi sebelum menyelesaikan pemusnahan.</small>
+                                @endif
+                            </div>
+
                         </div>
 
                         <div class="modal-footer">
@@ -315,6 +339,7 @@
                 const vendor = this.dataset.vendor || '';
                 const metode = this.dataset.metode;
                 const nilai = this.dataset.nilai || '';
+                const rkat = this.dataset.rkat || '';
 
                 document.getElementById('selesaiForm').action =
                     `/laporan_pemusnahan/${id}/selesai`;
@@ -327,6 +352,9 @@
 
                 document.getElementById('nilai_masuk').value =
                     nilai;
+
+                document.getElementById('modal_rkat_anggaran_id').value =
+                    rkat;
 
                 if (pelaksana === 'vendor') {
                     document.getElementById('vendorArea').style.display = '';

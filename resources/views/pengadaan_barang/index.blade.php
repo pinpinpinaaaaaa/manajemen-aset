@@ -283,129 +283,176 @@
                                     </button>
                                 </div>
 
+                                @php $hasBarang = $p->details->where('jenis', 'barang')->isNotEmpty(); @endphp
+
                                 <div class="modal-body">
 
-                                    <div class="alert alert-info">
-                                        Tentukan lokasi dan kategori aset untuk
-                                        setiap barang yang akan dibuat.
-                                    </div>
+                                    @if ($hasBarang)
+                                        <div class="alert alert-info">
+                                            Tentukan lokasi dan kategori aset untuk
+                                            setiap barang yang akan dibuat.
+                                        </div>
+                                    @else
+                                        <div class="alert alert-secondary">
+                                            Pengadaan ini hanya berisi item jasa — tidak ada barang fisik yang perlu dialokasikan.
+                                            Klik <strong>Selesaikan</strong> untuk menutup pengadaan dan mencatat realisasi anggaran.
+                                        </div>
+                                    @endif
 
-                                    <div class="table-responsive">
-                                        <table class="table table-bordered">
+                                    @if ($hasBarang)
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered">
 
-                                            <thead>
-                                                <tr>
-                                                    <th style="width:25%">Barang</th>
-                                                    <th>Distribusi Aset</th>
-                                                </tr>
-                                            </thead>
-
-                                            <tbody>
-
-                                                @foreach ($p->details as $detail)
+                                                <thead>
                                                     <tr>
-                                                        <td>
-                                                            <strong>{{ $detail->nama_barang }}</strong>
-                                                            <br>
-                                                            <small class="text-muted">
-                                                                Total {{ $detail->jumlah }} unit
-                                                            </small>
-                                                        </td>
-
-                                                        <td colspan="3">
-
-                                                            <div id="detail-{{ $detail->id }}">
-
-                                                                <div class="row g-2 mb-2 distribusi-row">
-
-                                                                    <div class="col-md-2">
-                                                                        <input type="number" min="1"
-                                                                            max="{{ $detail->jumlah }}"
-                                                                            class="form-control qty-input"
-                                                                            name="items[{{ $detail->id }}][0][qty]"
-                                                                            required>
-                                                                    </div>
-
-                                                                    <div class="col-md-3">
-                                                                        <select
-                                                                            name="items[{{ $detail->id }}][0][id_jenis_barang]"
-                                                                            class="form-select" required>
-
-                                                                            <option value="">Jenis</option>
-
-                                                                            @foreach ($jenisBarang as $jenis)
-                                                                                <option
-                                                                                    value="{{ $jenis->id_jenis_barang }}">
-                                                                                    {{ $jenis->nama_barang }}
-                                                                                </option>
-                                                                            @endforeach
-
-                                                                        </select>
-                                                                    </div>
-
-                                                                    <div class="col-md-3">
-                                                                        <select
-                                                                            name="items[{{ $detail->id }}][0][id_gedung]"
-                                                                            class="form-select gedung-select" required>
-
-                                                                            <option value="">Gedung</option>
-
-                                                                            @foreach ($gedung as $g)
-                                                                                <option value="{{ $g->id_gedung }}">
-                                                                                    {{ $g->nama_gedung }}
-                                                                                </option>
-                                                                            @endforeach
-
-                                                                        </select>
-                                                                    </div>
-
-                                                                    <div class="col-md-3">
-                                                                        <select
-                                                                            name="items[{{ $detail->id }}][0][id_ruangan]"
-                                                                            class="form-select ruangan-select" required>
-
-                                                                            <option value="">Ruangan</option>
-
-                                                                            @foreach ($ruangan as $r)
-                                                                                <option value="{{ $r->id_ruangan }}"
-                                                                                    data-gedung="{{ $r->id_gedung }}">
-                                                                                    {{ $r->nama_ruangan }}
-                                                                                </option>
-                                                                            @endforeach
-
-                                                                        </select>
-                                                                    </div>
-
-                                                                    <div class="col-md-1">
-                                                                        <button type="button"
-                                                                            class="btn btn-danger remove-row">
-                                                                            ×
-                                                                        </button>
-                                                                    </div>
-
-                                                                </div>
-
-                                                            </div>
-
-                                                            <button type="button"
-                                                                class="btn btn-sm btn-success add-row mt-2"
-                                                                data-detail="{{ $detail->id }}"
-                                                                data-max="{{ $detail->jumlah }}">
-                                                                + Tambah Lokasi
-                                                            </button>
-
-                                                            <small class="text-primary d-block mt-1 remaining-info">
-                                                                Sisa: {{ $detail->jumlah }}
-                                                            </small>
-                                                        </td>
+                                                        <th style="width:25%">Item</th>
+                                                        <th>Distribusi Aset</th>
                                                     </tr>
-                                                @endforeach
+                                                </thead>
 
-                                            </tbody>
+                                                <tbody>
 
-                                        </table>
-                                    </div>
+                                                    @foreach ($p->details as $detail)
+                                                        @if ($detail->jenis === 'barang')
+                                                            <tr>
+                                                                <td>
+                                                                    <strong>{{ $detail->nama_barang }}</strong>
+                                                                    <br>
+                                                                    <small class="text-muted">
+                                                                        Total {{ $detail->jumlah }} unit
+                                                                    </small>
+                                                                </td>
 
+                                                                <td colspan="3">
+
+                                                                    <div id="detail-{{ $detail->id }}">
+
+                                                                        <div class="row g-2 mb-2 distribusi-row">
+
+                                                                            <div class="col-md-2">
+                                                                                <input type="number" min="1"
+                                                                                    max="{{ $detail->jumlah }}"
+                                                                                    class="form-control qty-input"
+                                                                                    name="items[{{ $detail->id }}][0][qty]"
+                                                                                    required>
+                                                                            </div>
+
+                                                                            <div class="col-md-3">
+                                                                                <select
+                                                                                    name="items[{{ $detail->id }}][0][id_jenis_barang]"
+                                                                                    class="form-select" required>
+
+                                                                                    <option value="">Jenis</option>
+
+                                                                                    @foreach ($jenisBarang as $jenis)
+                                                                                        <option
+                                                                                            value="{{ $jenis->id_jenis_barang }}">
+                                                                                            {{ $jenis->nama_barang }}
+                                                                                        </option>
+                                                                                    @endforeach
+
+                                                                                </select>
+                                                                            </div>
+
+                                                                            <div class="col-md-3">
+                                                                                <select
+                                                                                    name="items[{{ $detail->id }}][0][id_gedung]"
+                                                                                    class="form-select gedung-select" required>
+
+                                                                                    <option value="">Gedung</option>
+
+                                                                                    @foreach ($gedung as $g)
+                                                                                        <option value="{{ $g->id_gedung }}">
+                                                                                            {{ $g->nama_gedung }}
+                                                                                        </option>
+                                                                                    @endforeach
+
+                                                                                </select>
+                                                                            </div>
+
+                                                                            <div class="col-md-3">
+                                                                                <select
+                                                                                    name="items[{{ $detail->id }}][0][id_ruangan]"
+                                                                                    class="form-select ruangan-select" required>
+
+                                                                                    <option value="">Ruangan</option>
+
+                                                                                    @foreach ($ruangan as $r)
+                                                                                        <option value="{{ $r->id_ruangan }}"
+                                                                                            data-gedung="{{ $r->id_gedung }}">
+                                                                                            {{ $r->nama_ruangan }}
+                                                                                        </option>
+                                                                                    @endforeach
+
+                                                                                </select>
+                                                                            </div>
+
+                                                                            <div class="col-md-1">
+                                                                                <button type="button"
+                                                                                    class="btn btn-danger remove-row">
+                                                                                    ×
+                                                                                </button>
+                                                                            </div>
+
+                                                                        </div>
+
+                                                                    </div>
+
+                                                                    <button type="button"
+                                                                        class="btn btn-sm btn-success add-row mt-2"
+                                                                        data-detail="{{ $detail->id }}"
+                                                                        data-max="{{ $detail->jumlah }}">
+                                                                        + Tambah Lokasi
+                                                                    </button>
+
+                                                                    <small class="text-primary d-block mt-1 remaining-info">
+                                                                        Sisa: {{ $detail->jumlah }}
+                                                                    </small>
+                                                                </td>
+                                                            </tr>
+                                                        @else
+                                                            <tr class="table-light">
+                                                                <td>
+                                                                    <strong>{{ $detail->nama_barang }}</strong>
+                                                                    <br>
+                                                                    <span class="badge bg-secondary">Jasa</span>
+                                                                </td>
+                                                                <td class="text-muted fst-italic">
+                                                                    Tidak perlu alokasi fisik
+                                                                </td>
+                                                            </tr>
+                                                        @endif
+                                                    @endforeach
+
+                                                </tbody>
+
+                                            </table>
+                                        </div>
+                                    @endif
+
+                                </div>
+
+                                <div class="px-3 pb-3 pt-2 border-top mt-2">
+                                    <label class="form-label fw-semibold mb-1">
+                                        Pos Anggaran RKAT <span class="text-danger">*</span>
+                                    </label>
+                                    <select name="rkat_anggaran_id" class="form-select form-select-sm" required>
+                                        <option value="">-- Pilih Pos Anggaran --</option>
+                                        @foreach ($anggaranList as $ag)
+                                            <option value="{{ $ag->id }}"
+                                                @selected($p->rkat_anggaran_id == $ag->id)>
+                                                {{ $ag->kode_kegiatan }} — {{ $ag->coa_pos }} ({{ $ag->nama_kegiatan }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @if ($anggaranList->isEmpty())
+                                        <div class="form-text text-danger">
+                                            Belum ada pos anggaran tahun {{ now()->year }}.
+                                            Tambahkan di menu <a href="{{ route('anggaran-rkat.index') }}" target="_blank">Anggaran RKAT</a>.
+                                        </div>
+                                    @else
+                                        <div class="form-text text-muted">Wajib diisi sebelum menyelesaikan pengadaan.</div>
+                                    @endif
                                 </div>
 
                                 <div class="modal-footer">

@@ -85,17 +85,6 @@
         max-width: 460px;
     }
     .search-bar-wrap input:focus { border-color: #2563eb; }
-    .btn-hapus-realisasi {
-        background: none;
-        border: 1px solid #fecaca;
-        color: #dc2626;
-        border-radius: 6px;
-        padding: 4px 10px;
-        font-size: 12px;
-        cursor: pointer;
-        transition: background .15s;
-    }
-    .btn-hapus-realisasi:hover { background: #fee2e2; }
     @media (max-width: 640px) {
         .anggaran-page-header { flex-direction: column; }
         .realisasi-summary-card { flex: 1 1 100%; }
@@ -178,6 +167,7 @@
                     <th>Kode Kegiatan</th>
                     <th style="text-align:left">Nama Kegiatan</th>
                     <th style="text-align:left">Deskripsi</th>
+                    <th>Jenis</th>
                     <th class="text-right">Jumlah (Rp)</th>
                     <th>Aksi</th>
                 </tr>
@@ -190,22 +180,44 @@
                         <td><span class="badge-kode">{{ $row->anggaran->kode_kegiatan ?? '-' }}</span></td>
                         <td style="text-align:left">{{ $row->anggaran->nama_kegiatan ?? '-' }}</td>
                         <td style="text-align:left;color:#6b7280;font-size:13px">{{ $row->deskripsi ?? '-' }}</td>
+                        <td>
+                            @if ($row->jenis === 'masuk')
+                                <span class="badge bg-info text-dark" style="font-size:11px">Masuk</span>
+                            @else
+                                <span class="badge bg-danger" style="font-size:11px">Keluar</span>
+                            @endif
+                        </td>
                         <td class="text-right" style="font-weight:600;font-variant-numeric:tabular-nums">
                             {{ number_format($row->jumlah, 0, ',', '.') }}
                         </td>
                         <td>
-                            <form method="POST" action="{{ route('riwayat-realisasi.destroy', $row->id) }}"
-                                  onsubmit="return confirm('Hapus transaksi realisasi ini?')">
-                                @csrf @method('DELETE')
-                                <button type="submit" class="btn-hapus-realisasi">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </form>
+                            <div class="d-flex gap-1">
+                                @if (!$row->sumber_type)
+                                    {{-- Hanya entri manual (bukan auto-linked) yang bisa diedit --}}
+                                    <button class="btn btn-sm btn-warning" title="Edit"
+                                        data-id="{{ $row->id }}"
+                                        data-anggaran-id="{{ $row->rkat_anggaran_id }}"
+                                        data-tanggal="{{ $row->tanggal->format('Y-m-d') }}"
+                                        data-jumlah="{{ $row->jumlah }}"
+                                        data-jenis="{{ $row->jenis }}"
+                                        data-deskripsi="{{ $row->deskripsi }}"
+                                        onclick="bukaEditRealisasi(this)">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                @endif
+                                <form method="POST" action="{{ route('riwayat-realisasi.destroy', $row->id) }}"
+                                      onsubmit="return confirm('Hapus transaksi realisasi ini?')">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-danger" title="Hapus">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-4">
+                        <td colspan="8" class="text-center text-muted py-4">
                             <i class="fas fa-inbox fa-2x mb-2 d-block opacity-50"></i>
                             Belum ada realisasi untuk tahun {{ $tahun }}.
                         </td>
@@ -249,7 +261,7 @@
                                 <option value="">-- Pilih Pos Anggaran --</option>
                                 @foreach ($anggaranList as $ag)
                                     <option value="{{ $ag->id }}" @selected(old('rkat_anggaran_id') == $ag->id)>
-                                        {{ $ag->kode_kegiatan }} — {{ $ag->nama_kegiatan }}
+                                        {{ $ag->kode_kegiatan }} — {{ $ag->coa_pos }} ({{ $ag->nama_kegiatan }})
                                     </option>
                                 @endforeach
                             </select>
@@ -259,8 +271,19 @@
                             <input type="date" name="tanggal" class="form-control" value="{{ old('tanggal', date('Y-m-d')) }}" required>
                         </div>
                         <div class="col-12">
+                            <label class="form-label fw-semibold">Jenis <span class="text-danger">*</span></label>
+                            <select name="jenis" class="form-select" required>
+                                <option value="">-- Pilih Jenis --</option>
+                                <option value="keluar" @selected(old('jenis') === 'keluar')>Keluar (Pengeluaran)</option>
+                                <option value="masuk" @selected(old('jenis') === 'masuk')>Masuk (Penerimaan/PNBP)</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
                             <label class="form-label fw-semibold">Jumlah (Rp) <span class="text-danger">*</span></label>
-                            <input type="number" name="jumlah" class="form-control" value="{{ old('jumlah') }}" min="1" step="1000" placeholder="0" required>
+                            <input type="text" name="jumlah" class="form-control rupiah-input"
+                                   value="{{ old('jumlah') ? number_format((int)old('jumlah'), 0, ',', '.') : '' }}"
+                                   placeholder="0" inputmode="numeric" required
+                                   oninput="formatRupiah(this)">
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold">Deskripsi</label>
@@ -278,13 +301,104 @@
 </div>
 @endif
 
+{{-- ──────────── MODAL EDIT REALISASI ──────────── --}}
+@if ($anggaranList->isNotEmpty())
+<div class="modal fade" id="modalEditRealisasi" tabindex="-1" aria-labelledby="modalEditRealisasiLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <form method="POST" id="formEditRealisasi" action="">
+            @csrf @method('PUT')
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalEditRealisasiLabel">
+                        <i class="fas fa-edit me-2 text-warning"></i>Edit Realisasi Anggaran
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Pos Anggaran <span class="text-danger">*</span></label>
+                            <select name="rkat_anggaran_id" id="editRealisasiAnggaranId" class="form-select" required>
+                                <option value="">-- Pilih Pos Anggaran --</option>
+                                @foreach ($anggaranList as $ag)
+                                    <option value="{{ $ag->id }}">
+                                        {{ $ag->kode_kegiatan }} — {{ $ag->coa_pos }} ({{ $ag->nama_kegiatan }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Tanggal <span class="text-danger">*</span></label>
+                            <input type="date" name="tanggal" id="editRealisasiTanggal" class="form-control" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Jenis <span class="text-danger">*</span></label>
+                            <select name="jenis" id="editRealisasiJenis" class="form-select" required>
+                                <option value="keluar">Keluar (Pengeluaran)</option>
+                                <option value="masuk">Masuk (Penerimaan/PNBP)</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Jumlah (Rp) <span class="text-danger">*</span></label>
+                            <input type="text" name="jumlah" id="editRealisasiJumlah" class="form-control rupiah-input"
+                                   placeholder="0" inputmode="numeric" required
+                                   oninput="formatRupiah(this)">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Deskripsi</label>
+                            <textarea name="deskripsi" id="editRealisasiDeskripsi" class="form-control" rows="2" maxlength="500" placeholder="Keterangan singkat realisasi..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-warning text-white"><i class="fas fa-save me-1"></i> Perbarui</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+@endif
+
 <script>
+// ── Format ribuan ──────────────────────────────────────────────────────────
+function formatRupiah(input) {
+    const pos    = input.selectionStart;
+    const before = input.value.length;
+    const raw    = input.value.replace(/\D/g, '');
+    input.value  = raw ? parseInt(raw, 10).toLocaleString('id-ID') : '';
+    const diff   = input.value.length - before;
+    try { input.setSelectionRange(pos + diff, pos + diff); } catch(_) {}
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('form').forEach(f => {
+        f.addEventListener('submit', () => {
+            f.querySelectorAll('.rupiah-input').forEach(el => {
+                el.value = el.value.replace(/\./g, '');
+            });
+        });
+    });
+});
+
 document.getElementById('searchRealisasi').addEventListener('input', function () {
     const q = this.value.toLowerCase();
     document.querySelectorAll('#tabelRealisasi tbody tr[data-search]').forEach(tr => {
         tr.style.display = (tr.dataset.search || '').includes(q) ? '' : 'none';
     });
 });
+
+function bukaEditRealisasi(btn) {
+    const d = btn.dataset;
+    document.getElementById('formEditRealisasi').action = '/riwayat-realisasi/' + d.id;
+    document.getElementById('editRealisasiAnggaranId').value = d.anggaranId;
+    document.getElementById('editRealisasiTanggal').value = d.tanggal;
+    document.getElementById('editRealisasiJenis').value = d.jenis;
+    const jumlahRaw = parseInt(d.jumlah || 0);
+    document.getElementById('editRealisasiJumlah').value = jumlahRaw ? jumlahRaw.toLocaleString('id-ID') : '';
+    document.getElementById('editRealisasiDeskripsi').value = d.deskripsi || '';
+    new bootstrap.Modal(document.getElementById('modalEditRealisasi')).show();
+}
 
 @if ($errors->any())
     document.addEventListener('DOMContentLoaded', () => {

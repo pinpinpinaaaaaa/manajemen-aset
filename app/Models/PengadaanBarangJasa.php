@@ -27,7 +27,8 @@ class PengadaanBarangJasa extends BaseModel
         'status',
         'decided_by',
         'decided_at',
-        'catatan'
+        'catatan',
+        'rkat_anggaran_id',
     ];
 
     protected $casts = [
@@ -56,6 +57,11 @@ class PengadaanBarangJasa extends BaseModel
     public function getTotalBiayaHitungAttribute()
     {
         return $this->details()->sum('subtotal');
+    }
+
+    public function rkatAnggaran()
+    {
+        return $this->belongsTo(RkatAnggaran::class, 'rkat_anggaran_id');
     }
 
 }

@@ -16,6 +16,7 @@ class PermintaanKendaraanDetail extends Model
         'jam_mulai',
         'jam_selesai',
         'keperluan',
+        'jenis_perjalanan',
         'tempat_jemput',
         'tempat_tujuan',
         'catatan',

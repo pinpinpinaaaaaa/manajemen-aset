@@ -139,7 +139,14 @@
                     <tbody>
                         @forelse($data->details as $d)
                             <tr>
-                                <td>{{ $d->aset->nama_aset ?? '-' }}</td>
+                                <td>
+                                    @if($d->aset)
+                                        {{ $d->aset->nama_aset }}
+                                        <small class="text-muted">({{ $d->aset->kode_aset }})</small>
+                                    @else
+                                        -
+                                    @endif
+                                </td>
 
                                 <td>
                                     {{ $d->aset->gedung->nama_gedung ?? '-' }}

@@ -33,6 +33,7 @@ class LaporanPemusnahan extends BaseModel
         'lampiran',
         'pelaksana_type',
         'id_vendor',
+        'rkat_anggaran_id',
     ];
 
     protected $casts = [
@@ -70,6 +71,11 @@ class LaporanPemusnahan extends BaseModel
     public function decider()
     {
         return $this->belongsTo(User::class, 'decided_by', 'id_user');
+    }
+
+    public function rkatAnggaran()
+    {
+        return $this->belongsTo(RkatAnggaran::class, 'rkat_anggaran_id');
     }
 
 }

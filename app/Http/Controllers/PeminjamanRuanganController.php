@@ -483,6 +483,7 @@ class PeminjamanRuanganController extends Controller
 
                             if (
                                 empty($a['id_jenis_barang']) ||
+                                empty($a['nama_aset']) ||
                                 empty($a['jumlah'])
                             ) {
                                 continue;

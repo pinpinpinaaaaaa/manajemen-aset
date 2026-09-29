@@ -26,6 +26,7 @@ class Maintenance extends BaseModel
         'requested_by',
         'decided_by',
         'decided_at',
+        'rkat_anggaran_id',
     ];
 
     protected $casts = [
@@ -75,6 +76,11 @@ class Maintenance extends BaseModel
     public function pengaduan()
     {
         return $this->belongsTo(PengaduanKerusakan::class, 'id_pengaduan', 'id_pengaduan');
+    }
+
+    public function rkatAnggaran()
+    {
+        return $this->belongsTo(RkatAnggaran::class, 'rkat_anggaran_id');
     }
 
 }

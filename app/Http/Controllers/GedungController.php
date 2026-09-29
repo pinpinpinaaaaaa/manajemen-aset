@@ -176,6 +176,7 @@ class GedungController extends Controller
 
         // Hitung data aset
         $totalAset = $gedung->ruangan->flatMap->aset->where('jenisBarang.jenis', 'sarana')->count();
+        $totalNilaiAset = $gedung->ruangan->flatMap->aset->sum('nilai');
         $totalBiayaMaintenance = MaintenanceDetail::whereHas('aset.ruangan', function ($query) use ($id) {
             $query->where('id_gedung', $id);
         })->sum('biaya');
@@ -184,6 +185,7 @@ class GedungController extends Controller
             'gedung',
             'totalRuangan',
             'totalAset',
+            'totalNilaiAset',
             'totalBiayaMaintenance',
             'tersedia',
             'terpakai',

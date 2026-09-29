@@ -596,6 +596,23 @@
                                 Rp {{ number_format($transaksi->total_biaya, 0, ',', '.') }}
                             </p>
                         </div>
+                        @if ($transaksi->rkat_anggaran_id)
+                        <div class="info-item">
+                            <p>Pos Anggaran (RKAT)</p>
+                            <p>{{ optional($transaksi->rkatAnggaran)->kode_kegiatan }} — {{ optional($transaksi->rkatAnggaran)->nama_kegiatan }}</p>
+                        </div>
+                        @endif
+                        @if ($transaksi->struk)
+                        <div class="info-item">
+                            <p>Struk / Invoice</p>
+                            <p>
+                                <a href="{{ asset('storage/' . $transaksi->struk) }}" target="_blank"
+                                   style="color:#2563eb;text-decoration:underline;">
+                                    <i class="fas fa-file-alt me-1"></i> Lihat Dokumen
+                                </a>
+                            </p>
+                        </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -644,12 +661,36 @@
                         @endforeach
                     </tbody>
                     <tfoot>
+                        @php $totalBarang = $transaksi->details->sum('subtotal'); @endphp
+                        @if ($transaksi->charges->isNotEmpty())
                         <tr>
-                            <th colspan="5" style="text-align:right">Total Biaya</th>
-                            <th colspan="2">
+                            <td colspan="5" style="text-align:right;color:#6b7280;font-size:0.8125rem;">Total Barang</td>
+                            <td style="color:#6b7280;font-size:0.8125rem;">
+                                Rp {{ number_format($totalBarang, 0, ',', '.') }}
+                            </td>
+                        </tr>
+                        @foreach ($transaksi->charges as $charge)
+                        <tr>
+                            <td colspan="5" style="text-align:right;color:#6b7280;font-size:0.8125rem;">{{ $charge->nama }}</td>
+                            <td style="color:#6b7280;font-size:0.8125rem;">
+                                Rp {{ number_format($charge->jumlah, 0, ',', '.') }}
+                            </td>
+                        </tr>
+                        @endforeach
+                        <tr style="border-top:2px solid #ebca56;">
+                            <th colspan="5" style="text-align:right">Grand Total</th>
+                            <th>
                                 Rp {{ number_format($transaksi->total_biaya, 0, ',', '.') }}
                             </th>
                         </tr>
+                        @else
+                        <tr>
+                            <th colspan="5" style="text-align:right">Total Biaya</th>
+                            <th>
+                                Rp {{ number_format($transaksi->total_biaya, 0, ',', '.') }}
+                            </th>
+                        </tr>
+                        @endif
                     </tfoot>
                 </table>
 

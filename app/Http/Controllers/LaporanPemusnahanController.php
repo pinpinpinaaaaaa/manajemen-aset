@@ -12,6 +12,8 @@ use Carbon\Carbon;
 use App\Services\AsetLogService;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
+use App\Models\RkatAnggaran;
+use App\Models\RkatRealisasi;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\PemusnahanExport;
@@ -93,12 +95,15 @@ class LaporanPemusnahanController extends Controller
         ->orderBy('tanggal_pemusnahan','desc')
         ->paginate($perPage);
 
-        $vendors = Vendor::orderBy('nama_perusahaan')
-            ->get();
+        $vendors = Vendor::orderBy('nama_perusahaan')->get();
+
+        $anggaranList = RkatAnggaran::where('tahun', now()->year)
+            ->orderBy('kode_kegiatan')
+            ->get(['id', 'kode_kegiatan', 'coa_pos', 'nama_kegiatan']);
 
         return view(
             'laporan_pemusnahan.index',
-            compact('pemusnahan','vendors','perPage')
+            compact('pemusnahan', 'vendors', 'perPage', 'anggaranList')
         );
     }
 
@@ -334,22 +339,30 @@ class LaporanPemusnahanController extends Controller
     {
         $laporan = LaporanPemusnahan::with('aset')->findOrFail($id);
 
-        if ($laporan->aset) {
-            $laporan->aset->update([
-                'status' => 'tersedia',
-                'kelayakan' => 1,
-                'keterangan_kelayakan' => 'Layak'
-            ]);
+        DB::transaction(function () use ($laporan) {
 
-            AsetLogService::log(
-                $laporan->id_aset,
-                'rollback_pemusnahan',
-                $laporan->id_pemusnahan,
-                'Laporan pemusnahan dihapus, aset diaktifkan kembali'
-            );
-        }
+            // Hapus semua realisasi terkait (keluar + masuk) sebelum hapus laporan
+            RkatRealisasi::where('sumber_type', LaporanPemusnahan::class)
+                ->where('sumber_id', $laporan->id_pemusnahan)
+                ->delete();
 
-        $laporan->delete();
+            if ($laporan->aset) {
+                $laporan->aset->update([
+                    'status'               => 'tersedia',
+                    'kelayakan'            => 1,
+                    'keterangan_kelayakan' => 'Layak',
+                ]);
+
+                AsetLogService::log(
+                    $laporan->id_aset,
+                    'rollback_pemusnahan',
+                    $laporan->id_pemusnahan,
+                    'Laporan pemusnahan dihapus, aset diaktifkan kembali'
+                );
+            }
+
+            $laporan->delete();
+        });
 
         return redirect()
             ->route('laporan_pemusnahan.index')
@@ -387,85 +400,121 @@ class LaporanPemusnahanController extends Controller
 
     public function selesai(Request $request, $id)
     {
-        $laporan = LaporanPemusnahan::with(['aset','vendor'])
-            ->findOrFail($id);
+        $laporan = LaporanPemusnahan::with(['aset', 'vendor'])->findOrFail($id);
 
         if ($laporan->status !== 'Sedang Dimusnahkan') {
-            return back()->with('error','Belum dalam proses');
+            return back()->with('error', 'Belum dalam proses');
         }
 
         $request->validate([
-            'pelaksana_type' => 'required|in:internal,vendor',
-            'id_vendor'      => 'nullable',
-            'nilai_masuk'    => 'nullable|numeric|min:0',
+            'pelaksana_type'   => 'required|in:internal,vendor',
+            'id_vendor'        => 'nullable',
+            'nilai_masuk'      => 'nullable|numeric|min:0',
+            'rkat_anggaran_id' => 'required|exists:rkat_anggaran,id',
         ]);
 
-        $laporan->update([
-            'pelaksana_type' => $request->pelaksana_type,
-            'id_vendor'      => $request->pelaksana_type == 'vendor'
-                ? $request->id_vendor
-                : null,
-            'nilai_masuk'    => $request->nilai_masuk ?? 0,
-        ]);
-
-        if (!$laporan->pelaksana_type) {
-            return back()->with(
-                'error',
-                'Pilih pelaksana (Internal / Vendor) sebelum menyelesaikan!'
-            );
+        // Validasi manual pakai request (pra-transaksi, tidak menyentuh DB)
+        if ($request->pelaksana_type === 'vendor' && !$request->id_vendor) {
+            return back()->with('error', 'Vendor harus dipilih sebelum selesai!');
         }
 
-        if (
-            $laporan->pelaksana_type === 'vendor'
-            && !$laporan->id_vendor
-        ) {
-            return back()->with(
-                'error',
-                'Vendor harus dipilih sebelum selesai!'
-            );
+        $nilaiMasuk = (float) ($request->nilai_masuk ?? 0);
+
+        // Paksa 0 untuk metode non-jual — jangan percaya nilai dari form kalau metodenya bukan Lelang/Dijual
+        if (!in_array($laporan->metode, ['Lelang', 'Dijual'])) {
+            $nilaiMasuk = 0;
         }
 
-        if (
-            in_array($laporan->metode, ['Lelang','Dijual'])
-            && ($laporan->nilai_masuk <= 0)
-        ) {
-            return back()->with(
-                'error',
-                'Nilai hasil penjualan harus diisi sebelum selesai'
-            );
+        if (in_array($laporan->metode, ['Lelang', 'Dijual']) && $nilaiMasuk <= 0) {
+            return back()->with('error', 'Nilai hasil penjualan harus diisi sebelum selesai');
         }
 
-        $laporan->update([
-            'status' => 'Selesai'
-        ]);
+        DB::transaction(function () use ($laporan, $request, $nilaiMasuk) {
 
-        if ($laporan->aset) {
-            $laporan->aset->update([
-                'status' => 'non aktif',
-                'kelayakan' => 5,
-                'keterangan_kelayakan' => $laporan->metode,
+            $laporan->update([
+                'pelaksana_type'   => $request->pelaksana_type,
+                'id_vendor'        => $request->pelaksana_type === 'vendor' ? $request->id_vendor : null,
+                'nilai_masuk'      => $nilaiMasuk,
+                'status'           => 'Selesai',
+                'rkat_anggaran_id' => $request->rkat_anggaran_id,
             ]);
+
+            if ($laporan->aset) {
+                $laporan->aset->update([
+                    'status'               => 'non aktif',
+                    'kelayakan'            => 5,
+                    'keterangan_kelayakan' => $laporan->metode,
+                ]);
+
+                AsetLogService::log(
+                    $laporan->id_aset,
+                    'pemusnahan_selesai',
+                    $laporan->id_pemusnahan,
+                    'Aset selesai dimusnahkan'
+                );
+            }
+
+            $ket = $laporan->vendor
+                ? "Vendor: " . $laporan->vendor->nama_perusahaan
+                : $laporan->pelaksana_type;
 
             AsetLogService::log(
                 $laporan->id_aset,
-                'pemusnahan_selesai',
+                'pelaksana_pemusnahan',
                 $laporan->id_pemusnahan,
-                'Aset selesai dimusnahkan'
+                "Dilaksanakan oleh {$ket}"
             );
-        }
 
-        $ket = $laporan->vendor
-            ? "Vendor: ".$laporan->vendor->nama_perusahaan
-            : $laporan->pelaksana_type;
+            // Catat realisasi — dua arah, conditional (jangan simpan Rp 0)
+            if ($laporan->biaya_keluar > 0) {
+                RkatRealisasi::updateOrCreate(
+                    [
+                        'sumber_type' => LaporanPemusnahan::class,
+                        'sumber_id'   => $laporan->id_pemusnahan,
+                        'jenis'       => 'keluar',
+                    ],
+                    [
+                        'rkat_anggaran_id' => $request->rkat_anggaran_id,
+                        'tanggal'          => now()->toDateString(),
+                        'jumlah'           => $laporan->biaya_keluar,
+                        'deskripsi'        => (function () use ($laporan) {
+                            $namaAset = optional($laporan->aset)->nama_aset ?? $laporan->id_aset;
+                            $pelaksana = $laporan->vendor
+                                ? "Vendor: {$laporan->vendor->nama_perusahaan}"
+                                : ucfirst($laporan->pelaksana_type ?? 'internal');
+                            return "Biaya Pemusnahan [{$laporan->id_pemusnahan}]"
+                                . " — Aset: {$namaAset}"
+                                . "; Metode: {$laporan->metode}"
+                                . "; Pelaksana: {$pelaksana}"
+                                . "; Biaya: Rp " . number_format($laporan->biaya_keluar, 0, ',', '.');
+                        })(),
+                    ]
+                );
+            }
 
-        AsetLogService::log(
-            $laporan->id_aset,
-            'pelaksana_pemusnahan',
-            $laporan->id_pemusnahan,
-            "Dilaksanakan oleh {$ket}"
-        );
+            if ($nilaiMasuk > 0) {
+                RkatRealisasi::updateOrCreate(
+                    [
+                        'sumber_type' => LaporanPemusnahan::class,
+                        'sumber_id'   => $laporan->id_pemusnahan,
+                        'jenis'       => 'masuk',
+                    ],
+                    [
+                        'rkat_anggaran_id' => $request->rkat_anggaran_id,
+                        'tanggal'          => now()->toDateString(),
+                        'jumlah'           => $nilaiMasuk,
+                        'deskripsi'        => (function () use ($laporan, $nilaiMasuk) {
+                            $namaAset = optional($laporan->aset)->nama_aset ?? $laporan->id_aset;
+                            return "PNBP Hasil {$laporan->metode} [{$laporan->id_pemusnahan}]"
+                                . " — Aset: {$namaAset}"
+                                . "; Nilai: Rp " . number_format($nilaiMasuk, 0, ',', '.');
+                        })(),
+                    ]
+                );
+            }
+        });
 
-        return back()->with('success','Pemusnahan selesai');
+        return back()->with('success', 'Pemusnahan selesai');
     }
 
 

@@ -453,6 +453,19 @@
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.4.1/dist/js/tom-select.complete.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
+    @php
+        $asetOptionsJson = json_encode(
+            $asetGrouped->map(fn($items, $kat) => $items->map(fn($it) => [
+                'id'    => $it['id_jenis_barang'],
+                'nama'  => $it['nama_aset'],
+                'jenis' => $it['jenis_barang'],
+                'stok'  => $it['total_unit'],
+                'kat'   => $kat,
+            ]))->flatten(1)->values(),
+            JSON_HEX_TAG | JSON_HEX_AMP
+        );
+    @endphp
+
     <script>
         document.addEventListener('change', function(e) {
 
@@ -467,13 +480,7 @@
         });
 
         // Embed aset options dari server agar tersedia di addItem() tanpa Blade
-        const asetGroupedOptions = @json($asetGrouped->map(fn($items, $kat) => $items->map(fn($it) => [
-            'id'    => $it['id_jenis_barang'],
-            'nama'  => $it['nama_aset'],
-            'jenis' => $it['jenis_barang'],
-            'stok'  => $it['total_unit'],
-            'kat'   => $kat,
-        ]))->flatten(1)->values());
+        const asetGroupedOptions = {!! $asetOptionsJson !!};
 
         function buildAsetOptions() {
             // Group by kategori

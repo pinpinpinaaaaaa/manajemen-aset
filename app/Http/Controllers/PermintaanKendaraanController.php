@@ -163,6 +163,7 @@ class PermintaanKendaraanController extends Controller
             ],
 
             'keperluan' => 'required',
+            'jenis_perjalanan' => 'required|in:penugasan,pribadi',
             'tempat_jemput' => 'required',
             'tempat_tujuan' => 'required',
 
@@ -267,6 +268,7 @@ class PermintaanKendaraanController extends Controller
                 'jam_selesai' => $request->jam_selesai,
 
                 'keperluan' => $request->keperluan,
+                'jenis_perjalanan' => $request->jenis_perjalanan,
                 'tempat_jemput' => $request->tempat_jemput,
                 'tempat_tujuan' => $request->tempat_tujuan,
 

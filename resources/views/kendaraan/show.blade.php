@@ -164,7 +164,7 @@
                     </div>
 
                     <div class="card-body">
-                        <p><b>Nama:</b> {{ $kendaraan->driver->nama }}</p>
+                        <p><b>Nama:</b> {{ $kendaraan->driver->name }}</p>
                         <p><b>ID:</b> {{ $kendaraan->driver->id_user }}</p>
                     </div>
                 </div>

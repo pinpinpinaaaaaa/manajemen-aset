@@ -11,6 +11,7 @@ class RkatRealisasi extends BaseModel
         'tanggal',
         'deskripsi',
         'jumlah',
+        'jenis',
         'sumber_type',
         'sumber_id',
     ];

@@ -942,9 +942,9 @@
 
         function setMaxJumlah(select) {
 
-            const max = parseInt(
-                select.options[select.selectedIndex].dataset.max || 0
-            );
+            const opt = select.options[select.selectedIndex];
+
+            const max = parseInt(opt.dataset.max || 0);
 
             const input =
                 select.parentElement.querySelector('input[type="number"]');
@@ -954,6 +954,9 @@
             input.placeholder = `Max ${max}`;
 
             input.value = '';
+
+            const namaInput = select.parentElement.querySelector('.nama-aset-input');
+            if (namaInput) namaInput.value = opt.dataset.nama || '';
         }
 
         function toggleKonsumsi(checkbox, idx) {
@@ -1169,15 +1172,20 @@
 
             });
 
+            let firstNamaAset = '';
+
             asetList.forEach(a => {
 
                 if (selectedAset.includes(a.id_jenis_barang)) {
                     return;
                 }
 
+                if (!firstNamaAset) firstNamaAset = a.nama_aset;
+
                 options += `
         <option value="${a.id_jenis_barang}"
-                data-max="${a.total_tersedia}">
+                data-max="${a.total_tersedia}"
+                data-nama="${a.nama_aset}">
             ${a.nama_aset}
             (${a.total_tersedia} tersedia)
         </option>
@@ -1194,6 +1202,11 @@
             ${options}
 
         </select>
+
+        <input type="hidden"
+            class="nama-aset-input"
+            name="ruangan[${idx}][aset][${key}][nama_aset]"
+            value="${firstNamaAset}">
 
         <input type="number"
             min="1"
@@ -1288,9 +1301,10 @@
 
         function setMaxJumlah(select) {
 
-            const originalMax = parseInt(
-                select.options[select.selectedIndex].dataset.max || 0
-            );
+            const opt = select.options[select.selectedIndex];
+
+            const originalMax = parseInt(opt.dataset.max || 0);
+
             const input =
                 select.parentElement.querySelector('input[type="number"]');
 
@@ -1301,6 +1315,9 @@
             if (parseInt(input.value || 0) > originalMax) {
                 input.value = originalMax;
             }
+
+            const namaInput = select.parentElement.querySelector('.nama-aset-input');
+            if (namaInput) namaInput.value = opt.dataset.nama || '';
 
             if (sameAsetAll) {
                 syncAsetFromFirst();
@@ -1350,9 +1367,13 @@
 
                     const jumlahInput = fi.querySelector('input[type="number"]');
 
+                    const namaAsetInput = fi.querySelector('.nama-aset-input');
+
                     const value = select.value;
 
                     const jumlah = parseInt(jumlahInput.value || 0);
+
+                    const namaAset = namaAsetInput ? namaAsetInput.value : '';
 
                     if (!value || jumlah <= 0) return;
 
@@ -1383,6 +1404,11 @@
                 <input type="hidden"
                     name="ruangan[${idx}][aset][${key}][id_jenis_barang]"
                     value="${value}">
+
+                <input type="hidden"
+                    class="nama-aset-input"
+                    name="ruangan[${idx}][aset][${key}][nama_aset]"
+                    value="${namaAset}">
 
                 <input type="number"
                     readonly

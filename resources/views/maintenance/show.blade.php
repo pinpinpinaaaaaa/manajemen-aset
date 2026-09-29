@@ -334,6 +334,25 @@
                                 <textarea name="catatan" class="form-control" rows="3"></textarea>
                             </div>
 
+                            <div class="alert alert-info py-2 small" id="lastDetailHint" style="display:none">
+                                Ini adalah detail terakhir — pilih pos anggaran untuk mencatat realisasi RKAT.
+                            </div>
+
+                            <div class="mb-3" id="rkatArea" style="display:none">
+                                <label>Pos Anggaran RKAT <span class="text-danger">*</span></label>
+                                <select name="rkat_anggaran_id" id="rkat_anggaran_id" class="form-control">
+                                    <option value="">-- Pilih Pos Anggaran --</option>
+                                    @foreach ($anggaranList as $a)
+                                        <option value="{{ $a->id }}">
+                                            {{ $a->kode_kegiatan }} — {{ $a->coa_pos }} ({{ $a->nama_kegiatan }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @if ($anggaranList->isEmpty())
+                                    <small class="text-muted">Belum ada pos anggaran tahun {{ now()->year }}.</small>
+                                @endif
+                            </div>
+
                         </div>
 
                         <div class="modal-footer">
@@ -368,6 +387,25 @@
 
                     document.getElementById('selesaiForm').action =
                         `/maintenance/detail/${id}/selesai`;
+
+                    // Apakah ini detail terakhir yang belum selesai?
+                    const totalBelumSelesai = document.querySelectorAll('.btnSelesaiDetail').length;
+                    const isLast = totalBelumSelesai === 1;
+
+                    const hint   = document.getElementById('lastDetailHint');
+                    const rkatArea = document.getElementById('rkatArea');
+                    const rkatSelect = document.getElementById('rkat_anggaran_id');
+
+                    if (isLast) {
+                        hint.style.display = 'block';
+                        rkatArea.style.display = 'block';
+                        rkatSelect.required = true;
+                    } else {
+                        hint.style.display = 'none';
+                        rkatArea.style.display = 'none';
+                        rkatSelect.required = false;
+                        rkatSelect.value = '';
+                    }
 
                     modal.show();
                 });

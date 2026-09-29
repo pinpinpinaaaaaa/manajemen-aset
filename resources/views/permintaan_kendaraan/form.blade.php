@@ -539,6 +539,16 @@
                         @error('keperluan')<span class="field-error">{{ $message }}</span>@enderror
                     </div>
 
+                    <div>
+                        <label>Jenis Perjalanan</label>
+                        <select name="jenis_perjalanan" class="{{ $errors->has('jenis_perjalanan') ? 'is-invalid' : '' }}" required>
+                            <option value="" disabled selected>— Pilih —</option>
+                            <option value="penugasan" {{ old('jenis_perjalanan') === 'penugasan' ? 'selected' : '' }}>Penugasan (Dinas)</option>
+                            <option value="pribadi"   {{ old('jenis_perjalanan') === 'pribadi'   ? 'selected' : '' }}>Pribadi</option>
+                        </select>
+                        @error('jenis_perjalanan')<span class="field-error">{{ $message }}</span>@enderror
+                    </div>
+
                 </div>
 
                 <div class="extra-barang">

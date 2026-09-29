@@ -15,6 +15,8 @@ use App\Models\Aset;
 use App\Models\Gedung;
 use App\Models\Ruangan;
 use App\Models\JenisBarang;
+use App\Models\RkatAnggaran;
+use App\Models\RkatRealisasi;
 
 class PengadaanBarangJasaController extends Controller
 {
@@ -119,12 +121,17 @@ class PengadaanBarangJasaController extends Controller
         $gedung = Gedung::orderBy('nama_gedung')->get();
         $ruangan = Ruangan::orderBy('nama_ruangan')->get();
 
+        $anggaranList = RkatAnggaran::where('tahun', now()->year)
+            ->orderBy('kode_kegiatan')
+            ->get(['id', 'kode_kegiatan', 'coa_pos', 'nama_kegiatan']);
+
         return view('pengadaan_barang.index', compact(
             'pengadaan',
             'jenisBarang',
             'gedung',
             'ruangan',
-            'perPage'
+            'perPage',
+            'anggaranList'
         ));
     }
 
@@ -438,7 +445,8 @@ class PengadaanBarangJasaController extends Controller
     {
         
         $request->validate([
-            'items' => 'required|array'
+            'items'            => 'nullable|array',
+            'rkat_anggaran_id' => 'required|exists:rkat_anggaran,id',
         ]);
 
         $pengadaan = PengadaanBarangJasa::with('details')
@@ -507,8 +515,35 @@ class PengadaanBarangJasaController extends Controller
             }
 
             $pengadaan->update([
-                'status' => 'Selesai'
+                'status'           => 'Selesai',
+                'rkat_anggaran_id' => $request->rkat_anggaran_id,
             ]);
+
+            $itemList = $pengadaan->details->map(fn($d) =>
+                ($d->jenis === 'jasa'
+                    ? ($d->kategori_jasa ?: 'Jasa')
+                    : ($d->nama_barang ?: '-'))
+                . ' (' . $d->jumlah . ')'
+            )->join(', ');
+
+            $deskripsiPengadaan = "Pengadaan Barang/Jasa [{$pengadaan->id_pengadaan}]"
+                . ($itemList ? " — {$itemList}" : '')
+                . "; Pengaju: {$pengadaan->nama_pengaju}"
+                . ($pengadaan->alasan ? "; Keperluan: {$pengadaan->alasan}" : '');
+
+            RkatRealisasi::updateOrCreate(
+                [
+                    'sumber_type' => \App\Models\PengadaanBarangJasa::class,
+                    'sumber_id'   => $pengadaan->id_pengadaan,
+                ],
+                [
+                    'rkat_anggaran_id' => $request->rkat_anggaran_id,
+                    'tanggal'          => now()->toDateString(),
+                    'jenis'            => 'keluar',
+                    'jumlah'           => $pengadaan->total_biaya_hitung,
+                    'deskripsi'        => $deskripsiPengadaan,
+                ]
+            );
         });
 
         return back()->with(

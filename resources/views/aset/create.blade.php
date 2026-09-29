@@ -184,7 +184,7 @@
                     </div>
 
                     <div class="form-group mb-3">
-                        <label class="form-label">Tahun Perolehan</label>
+                        <label class="form-label">Tahun Pembelian</label>
                         <input type="number" name="tahun_perolehan" value="{{ old('tahun_perolehan') }}"
                             class="form-control">
                         @error('tahun_perolehan')

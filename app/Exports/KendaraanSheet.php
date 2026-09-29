@@ -44,7 +44,7 @@ class KendaraanSheet implements
     public function query()
     {
         return Kendaraan::query()
-            ->with('driver:id,name')
+            ->with('driver:id_user,name')
             ->select([
                 'id_kendaraan',
                 'jenis_kendaraan',

@@ -170,9 +170,9 @@
     {{-- ROW 1 · 4 stat cards — pakai komponen existing               --}}
     {{-- ══════════════════════════════════════════════════════════════ --}}
     <div class="stat-cards-grid">
-        <x-stat-card label="Total Aset Aktif"  :value="number_format($totalAset)"       :href="route('aset.index')" />
-        <x-stat-card label="Tersedia"          :value="number_format($asetTersedia)"    :href="route('aset.index')" />
-        <x-stat-card label="Dalam Maintenance" :value="number_format($asetMaintenance)" :href="route('maintenance.index')" />
+        <x-stat-card label="Total Sarana Aktif" :value="number_format($totalAset) . ' unit'"  :href="route('aset.index')" />
+        <x-stat-card label="Sarana Tersedia"   :value="number_format($asetTersedia) . ' unit'" :href="route('aset.index')" />
+        <x-stat-card label="Dalam Maintenance" :value="number_format($asetMaintenance) . ' unit'" :href="route('maintenance.index')" />
         <x-stat-card label="Proses Pemusnahan" :value="number_format($sedangPemusnahan)" :href="route('laporan_pemusnahan.index')" />
     </div>
 
@@ -331,105 +331,134 @@
 
     const MONTHS = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
 
-    // warna dari sistem existing — sama dengan btn-primary, status badge, dll.
-    const YELLOW = '#ebca56';  // brand primary (btn-primary, stat-card border)
-    const BLUE   = '#2563eb';  // active/link colour
-    const GREEN  = '#16a34a';  // success/ok colour
-    const GRID   = '#e5e7eb';  // border colour used throughout styles.css
+    const YELLOW = '#ebca56';
+    const BLUE   = '#2563eb';
+    const GREEN  = '#16a34a';
+    const RED    = '#dc2626';
+    const GRID   = '#e5e7eb';
     const AXIS   = '#d1d5db';
     const MUTED  = '#9ca3af';
 
     const dMaintenance = @json(array_values($trendMaintenance));
     const dBarang      = @json(array_values($trendBarang));
     const dJasa        = @json(array_values($trendJasa));
+    const rencanaM     = @json($rencanaMaintenanceBulan);
+    const rencanaP     = @json($rencanaPengadaanBulan);
 
     const rupiahTick = {
-        callback: v => v === 0 ? '0' : 'Rp ' + Intl.NumberFormat('id-ID',{notation:'compact',maximumFractionDigits:1}).format(v)
+        callback: v => v === 0 ? '0' : 'Rp ' + Intl.NumberFormat('id-ID',{notation:'compact',maximumFractionDigits:1}).format(v)
     };
     const rupiahTooltip = {
-        callbacks: { label: ctx => ' Rp ' + Intl.NumberFormat('id-ID').format(ctx.parsed.y) }
+        callbacks: {
+            label: ctx => ' ' + ctx.dataset.label + ': Rp ' + Intl.NumberFormat('id-ID').format(ctx.parsed.y)
+        }
     };
     const sharedScales = {
         x: { grid:{color:GRID}, ticks:{color:MUTED,font:{size:11}}, border:{color:AXIS} },
         y: { grid:{color:GRID}, ticks:{...rupiahTick,color:MUTED,font:{size:11}}, border:{color:AXIS}, beginAtZero:true }
     };
+    const legendCfg = {
+        display: true,
+        position: 'top',
+        align: 'end',
+        labels: { usePointStyle:true, pointStyle:'circle', boxWidth:8, padding:16, color:MUTED, font:{size:12} }
+    };
 
-    // ── Maintenance (satu seri, warna brand kuning) ───────────────────
+    // Garis batas anggaran RKAT — putus-putus merah, tanpa titik
+    function budgetLine(data) {
+        return {
+            label: 'Batas Anggaran RKAT',
+            data: data,
+            borderColor: RED,
+            backgroundColor: 'transparent',
+            borderWidth: 1.5,
+            borderDash: [5, 4],
+            pointRadius: 0,
+            pointHoverRadius: 4,
+            pointBackgroundColor: RED,
+            pointBorderColor: RED,
+            fill: false,
+            tension: 0,
+            order: 0
+        };
+    }
+
+    // ── Maintenance ───────────────────────────────────────────────────
+    const datasetsM = [
+        {
+            label: 'Biaya Maintenance',
+            data: dMaintenance,
+            borderColor: YELLOW,
+            backgroundColor: 'rgba(235,202,86,.15)',
+            borderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            pointBackgroundColor: YELLOW,
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            fill: true,
+            tension: 0.3
+        }
+    ];
+    if (rencanaM) datasetsM.push(budgetLine(rencanaM));
+
     new Chart(document.getElementById('chartMaintenance'), {
         type: 'line',
-        data: {
-            labels: MONTHS,
-            datasets: [{
-                label: 'Biaya Maintenance',
-                data: dMaintenance,
-                borderColor: YELLOW,
-                backgroundColor: 'rgba(235,202,86,.15)',
-                borderWidth: 2,
-                pointRadius: 4,
-                pointHoverRadius: 6,
-                pointBackgroundColor: YELLOW,
-                pointBorderColor: '#fff',
-                pointBorderWidth: 2,
-                fill: true,
-                tension: 0.3
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: { mode:'index', intersect:false },
-            plugins: { legend:{ display:false }, tooltip: rupiahTooltip },
-            scales: sharedScales
-        }
-    });
-
-    // ── Pengadaan: Barang (biru) dan Jasa (hijau) ─────────────────────
-    new Chart(document.getElementById('chartPengadaan'), {
-        type: 'line',
-        data: {
-            labels: MONTHS,
-            datasets: [
-                {
-                    label: 'Barang',
-                    data: dBarang,
-                    borderColor: BLUE,
-                    backgroundColor: 'rgba(37,99,235,.10)',
-                    borderWidth: 2,
-                    pointRadius: 4,
-                    pointHoverRadius: 6,
-                    pointBackgroundColor: BLUE,
-                    pointBorderColor: '#fff',
-                    pointBorderWidth: 2,
-                    fill: false,
-                    tension: 0.3
-                },
-                {
-                    label: 'Jasa',
-                    data: dJasa,
-                    borderColor: GREEN,
-                    backgroundColor: 'rgba(22,163,74,.10)',
-                    borderWidth: 2,
-                    pointRadius: 4,
-                    pointHoverRadius: 6,
-                    pointBackgroundColor: GREEN,
-                    pointBorderColor: '#fff',
-                    pointBorderWidth: 2,
-                    fill: false,
-                    tension: 0.3
-                }
-            ]
-        },
+        data: { labels: MONTHS, datasets: datasetsM },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             interaction: { mode:'index', intersect:false },
             plugins: {
-                legend: {
-                    display: true,
-                    position: 'top',
-                    align: 'end',
-                    labels: { usePointStyle:true, pointStyle:'circle', boxWidth:8, padding:16, color:MUTED, font:{size:12} }
-                },
+                legend: rencanaM ? legendCfg : { display: false },
+                tooltip: rupiahTooltip
+            },
+            scales: sharedScales
+        }
+    });
+
+    // ── Pengadaan: Barang (biru) + Jasa (hijau) ───────────────────────
+    const datasetsP = [
+        {
+            label: 'Barang',
+            data: dBarang,
+            borderColor: BLUE,
+            backgroundColor: 'rgba(37,99,235,.10)',
+            borderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            pointBackgroundColor: BLUE,
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            fill: false,
+            tension: 0.3
+        },
+        {
+            label: 'Jasa',
+            data: dJasa,
+            borderColor: GREEN,
+            backgroundColor: 'rgba(22,163,74,.10)',
+            borderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            pointBackgroundColor: GREEN,
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            fill: false,
+            tension: 0.3
+        }
+    ];
+    if (rencanaP) datasetsP.push(budgetLine(rencanaP));
+
+    new Chart(document.getElementById('chartPengadaan'), {
+        type: 'line',
+        data: { labels: MONTHS, datasets: datasetsP },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode:'index', intersect:false },
+            plugins: {
+                legend: legendCfg,
                 tooltip: rupiahTooltip
             },
             scales: sharedScales

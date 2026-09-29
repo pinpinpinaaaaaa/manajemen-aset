@@ -7,6 +7,7 @@ use App\Models\LaporanPemusnahan;
 use App\Models\Maintenance;
 use App\Models\PengaduanKerusakan;
 use App\Models\PengadaanBarangJasa;
+use App\Models\RkatAnggaran;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
@@ -16,9 +17,13 @@ class DashboardController extends Controller
         $tahun = Carbon::now()->year;
 
         // ── ROW 1 · Stat cards (snapshot saat ini, tidak difilter tahun) ────
-        $totalAset        = Aset::whereIn('status', ['tersedia', 'dipinjam', 'maintenance'])->count();
-        $asetTersedia     = Aset::where('status', 'tersedia')->count();
-        $asetMaintenance  = Aset::where('status', 'maintenance')->count();
+        // Hanya hitung aset berkategori "sarana" (bukan inventaris/kendaraan/apar)
+        $totalAset        = Aset::whereHas('jenisBarang', fn($q) => $q->where('jenis', 'sarana'))
+                                ->whereIn('status', ['tersedia', 'dipinjam', 'maintenance'])->count();
+        $asetTersedia     = Aset::whereHas('jenisBarang', fn($q) => $q->where('jenis', 'sarana'))
+                                ->where('status', 'tersedia')->count();
+        $asetMaintenance  = Aset::whereHas('jenisBarang', fn($q) => $q->where('jenis', 'sarana'))
+                                ->where('status', 'maintenance')->count();
         $sedangPemusnahan = LaporanPemusnahan::whereIn('status', ['Belum Dimusnahkan', 'Sedang Dimusnahkan'])
             ->where('decision_status', '!=', 'ditolak')
             ->count();
@@ -51,6 +56,31 @@ class DashboardController extends Controller
         $totalBiayaPengadaan   = (float) PengadaanBarangJasa::whereYear('created_at', $tahun)->sum('total_biaya');
         $jumlahPengadaan       = PengadaanBarangJasa::whereYear('created_at', $tahun)->count();
 
+        // ── Referensi anggaran RKAT per bulan (untuk garis batas di grafik) ──
+        $rkatBulanKolom = [
+            'rencana_jan','rencana_feb','rencana_mar','rencana_apr',
+            'rencana_mei','rencana_jun','rencana_jul','rencana_agu',
+            'rencana_sep','rencana_okt','rencana_nov','rencana_des',
+        ];
+        $rkatReferensi = RkatAnggaran::where('tahun', $tahun)
+            ->whereIn('coa_pos', ['Maintenance', 'Pengadaan'])
+            ->get(array_merge(['coa_pos', 'anggaran'], $rkatBulanKolom));
+
+        $buildRencana = function (string $pos) use ($rkatReferensi, $rkatBulanKolom): ?array {
+            $rows = $rkatReferensi->where('coa_pos', $pos);
+            if ($rows->isEmpty()) return null;
+            $sums = [];
+            foreach ($rkatBulanKolom as $k) {
+                $sums[] = round((float) $rows->sum($k), 2);
+            }
+            if (array_sum($sums) > 0) return $sums;
+            $flat = round((float) $rows->sum('anggaran') / 12, 2);
+            return array_fill(0, 12, $flat);
+        };
+
+        $rencanaMaintenanceBulan = $buildRencana('Maintenance');
+        $rencanaPengadaanBulan   = $buildRencana('Pengadaan');
+
         // ── ROW 4 · Pengaduan kerusakan (tahun terpilih) ────────────────────
         // Status diturunkan (computed) dari relasi maintenance — eager-load untuk hindari N+1
         $allPengaduan = PengaduanKerusakan::with(['maintenances.details'])
@@ -78,6 +108,7 @@ class DashboardController extends Controller
             'trendMaintenance', 'trendBarang', 'trendJasa',
             'totalBiayaMaintenance', 'jumlahMaintenance',
             'totalBiayaPengadaan', 'jumlahPengadaan',
+            'rencanaMaintenanceBulan', 'rencanaPengadaanBulan',
             'pengaduanTotal', 'pengaduanBelumApprove', 'pengaduanSedangDiproses', 'pengaduanSelesai', 'pengaduanDitolak',
             'maintenanceBelumSelesai'
         ));

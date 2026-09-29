@@ -168,7 +168,7 @@
 
                         <p><b>Tipe / Model:</b> {{ $aset->tipe_model ?? '-' }}</p>
 
-                        <p><b>Tahun Perolehan:</b> {{ $aset->tahun_perolehan ?? '-' }}</p>
+                        <p><b>Tahun Pembelian:</b> {{ $aset->tahun_perolehan ?? '-' }}</p>
 
                         <p>
                             <b>Status:</b>

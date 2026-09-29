@@ -4,6 +4,10 @@
 
 @section('content')
     <style>
+        .stat-cards-grid .stat-card-unified {
+            max-width: 100%;
+            width: 100%;
+        }
         .dashboard-carousel {
             position: relative;
             width: 100%;
@@ -116,9 +120,10 @@
                     <div class="compact-text-info">
                         <h2>{{ $gedung->nama_gedung }}</h2>
 
-                        <div class="stat-cards-grid">
+                        <div class="stat-cards-grid" style="display:grid;grid-template-columns:1fr 1fr;">
                             <x-stat-card label="Total Ruangan" :value="$totalRuangan" />
                             <x-stat-card label="Total Aset Sarana" :value="$totalAset" />
+                            <x-stat-card label="Total Nilai Aset" :value="'Rp ' . number_format($totalNilaiAset, 0, ',', '.')" />
                             <x-stat-card label="Total Biaya Maintenance" :value="'Rp ' . number_format($totalBiayaMaintenance, 0, ',', '.')" />
                         </div>
                     </div>
