@@ -14,16 +14,18 @@ class DivisiSeeder extends Seeder
     public function run(): void
     {
         $divisi = [
-            'Pelatihan',
-            'Asesmen',
-            'Klaster',
+            'Training',
+            'Assesment',
+            'Cluster',
             'Pimpinan',
             'Sekretaris Lembaga',
             'Legal',
             'Komunikasi & IT',
             'Umum & Aset',
             'Keuangan',
-            'SDM Penelitian & Konsultasi'
+            'SDM',
+            'Penelitian & Konsultasi',
+            'Konsultan'
         ];
 
         $idNumber = 1;

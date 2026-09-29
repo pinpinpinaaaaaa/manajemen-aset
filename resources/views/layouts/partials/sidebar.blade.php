@@ -14,7 +14,9 @@
             </div>
         @endif
 
-        <div class="sidebar-section">Manajemen Aset</div>
+        @if (canMenu('gedung.index') || canMenu('ruangan.index') || canMenu('apar.index') || canMenu('aset.index') || canMenu('kendaraan.index') || canMenu('vendor.index') || canMenu('pemindahan_aset.index') || canMenu('laporan_pemusnahan.index') || canMenu('maintenance.index'))
+            <div class="sidebar-section">Manajemen Aset</div>
+        @endif
 
         @if (canMenu('gedung.index') || canMenu('ruangan.index') || canMenu('apar.index') || canMenu('aset.index'))
             <div class="nav-item">
@@ -122,7 +124,9 @@
             </div>
         @endif
 
-        <div class="sidebar-section">Manajemen Gudang</div>
+        @if (canMenu('gudang.index') || canMenu('gudang.transaksi') || canMenu('gudang.laporan_opname'))
+            <div class="sidebar-section">Manajemen Gudang</div>
+        @endif
 
         @if (canMenu('gudang.index') || canMenu('gudang.transaksi') || canMenu('gudang.laporan_opname'))
             @if (canMenu('gudang.index'))
@@ -307,7 +311,9 @@
             @endif
         @endif
 
-        <div class="sidebar-section">Manajemen Pengguna dan Sistem</div>
+        @if (canMenu('users.index') || canMenu('roles.index') || canMenu('jenis_barang.index') || canMenu('audit.logs'))
+            <div class="sidebar-section">Manajemen Pengguna dan Sistem</div>
+        @endif
 
         {{-- USER MANAGEMENT (SUBMENU) --}}
         @if (canMenu('users.index') || canMenu('roles.index'))
@@ -366,7 +372,7 @@
             </div>
         @endif
 
-        {{-- MANUAL PENGGUNA — muncul untuk semua user login, di luar canMenu() --}}
+        {{-- BANTUAN — muncul untuk semua user login --}}
         <div class="sidebar-section">Bantuan</div>
         <div class="nav-item">
             <a href="{{ asset('manual/Manual-SIMASTER.pdf') }}"
@@ -377,6 +383,20 @@
                 <span class="nav-label">Manual Pengguna</span>
             </a>
         </div>
+
+        {{-- BANTUAN IT — hanya untuk role IT (atur di /menus + /roles) --}}
+        @if (canMenu('bantuan-it'))
+            <div class="sidebar-section">Bantuan IT</div>
+            <div class="nav-item">
+                <a href="{{ asset('it/panduan-it.pdf') }}"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   class="nav-link">
+                    <i class="fas fa-file-pdf nav-icon"></i>
+                    <span class="nav-label">Panduan IT</span>
+                </a>
+            </div>
+        @endif
 
     </nav>
 </div>

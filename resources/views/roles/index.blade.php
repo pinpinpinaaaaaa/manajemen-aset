@@ -75,8 +75,10 @@
                                     @php
                                         if (is_null($r->menu)) {
                                             $menus = null; // FULL ACCESS
-                                        } else {
+                                        } elseif (is_array($r->menu) && count($r->menu) > 0) {
                                             $menus = \App\Models\Menu::whereIn('id', $r->menu)->get();
+                                        } else {
+                                            $menus = collect();
                                         }
                                     @endphp
 

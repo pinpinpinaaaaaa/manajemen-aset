@@ -1,6 +1,7 @@
 *.log
 .DS_Store
 .env
+/docs
 /database/database.sqlite
 CLAUDE.md
 /storage/app/public/apar/
