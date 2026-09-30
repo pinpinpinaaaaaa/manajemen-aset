@@ -28,7 +28,9 @@ class PeminjamanRuangan extends BaseModel
         'status',
         'decided_by',
         'decided_at',
-        'lampiran'
+        'lampiran',
+        'rkat_anggaran_id',
+        'biaya_konsumsi',
     ];
 
     // Relasi ke detail ruangan
@@ -52,5 +54,10 @@ class PeminjamanRuangan extends BaseModel
     public function approver()
     {
         return $this->belongsTo(User::class,'decided_by','id_user');
+    }
+
+    public function anggaran()
+    {
+        return $this->belongsTo(\App\Models\RkatAnggaran::class, 'rkat_anggaran_id');
     }
 }

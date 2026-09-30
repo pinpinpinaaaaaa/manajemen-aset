@@ -250,6 +250,34 @@
                             @endforeach
                         </tbody>
                     </table>
+
+                    @if ($data->biaya_konsumsi || $data->anggaran)
+                        <hr class="mt-3">
+                        <table class="show-detail-table mt-2">
+                            <tr>
+                                <th>Biaya Konsumsi</th>
+                                <td>
+                                    @if ($data->biaya_konsumsi)
+                                        <strong>Rp {{ number_format($data->biaya_konsumsi, 0, ',', '.') }}</strong>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Pos Anggaran</th>
+                                <td>
+                                    @if ($data->anggaran)
+                                        <span class="badge bg-warning text-dark">{{ $data->anggaran->kode_kegiatan }}</span>
+                                        {{ $data->anggaran->nama_kegiatan }}
+                                        <span class="text-muted small">({{ $data->anggaran->tahun }})</span>
+                                    @else
+                                        <span class="text-muted">Tidak dibebankan ke anggaran</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        </table>
+                    @endif
                 </div>
             @endif
 

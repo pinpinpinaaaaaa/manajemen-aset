@@ -11,6 +11,7 @@ use App\Models\EkspedisiDokumen;
 use App\Models\EkspedisiBarang;
 use App\Models\EkspedisiPengiriman;
 use App\Models\User;
+use App\Models\RkatRealisasi;
 
 
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -50,8 +51,9 @@ class EkspedisiController extends Controller
             ->paginate($perPage);
 
         $users = User::all();
+        $anggaranList = \App\Models\RkatAnggaran::orderByDesc('tahun')->orderBy('kode_kegiatan')->get();
 
-        return view('ekspedisi.index', compact('data', 'users', 'perPage'));
+        return view('ekspedisi.index', compact('data', 'users', 'perPage', 'anggaranList'));
     }
 
     public function riwayat(Request $request)
@@ -93,7 +95,7 @@ class EkspedisiController extends Controller
     }
     public function show($id)
     {
-        $data = Ekspedisi::with(['dokumen','barang','pengiriman'])
+        $data = Ekspedisi::with(['dokumen','barang','pengiriman','anggaran'])
             ->findOrFail($id);
 
         return view('ekspedisi.show', compact('data'));
@@ -371,36 +373,52 @@ class EkspedisiController extends Controller
     public function process(Request $request, $id)
     {
         $request->validate([
-            'jenis_kurir' => 'required|in:internal,eksternal',
-
-            'id_user_kurir' =>
-                'required_if:jenis_kurir,internal',
-
-            'nama_jasa_ekspedisi' =>
-                'required_if:jenis_kurir,eksternal',
-
-            'no_resi' =>
-                'required_if:jenis_kurir,eksternal',
+            'jenis_kurir'          => 'required|in:internal,eksternal',
+            'id_user_kurir'        => 'required_if:jenis_kurir,internal',
+            'nama_jasa_ekspedisi'  => 'required_if:jenis_kurir,eksternal',
+            'no_resi'              => 'required_if:jenis_kurir,eksternal',
+            'rkat_anggaran_id'     => 'nullable|exists:rkat_anggaran,id',
+            'biaya_pengiriman'     => 'nullable|numeric|min:0',
         ]);
 
-        $pengiriman = EkspedisiPengiriman::where(
-            'id_ekspedisi',
-            $id
-        )->firstOrFail();
+        $pengiriman = EkspedisiPengiriman::where('id_ekspedisi', $id)->firstOrFail();
 
         $pengiriman->update([
-            'jenis_kurir' => $request->jenis_kurir,
-            'id_kurir_internal' => $request->id_user_kurir,
-
-            'nama_jasa_ekspedisi' =>
-                $request->nama_jasa_ekspedisi,
-
-            'no_resi' => $request->no_resi,
-
-            'status_pengiriman' => 'dikirim',
-
-            'waktu_dikirim' => now(),
+            'jenis_kurir'          => $request->jenis_kurir,
+            'id_kurir_internal'    => $request->id_user_kurir,
+            'nama_jasa_ekspedisi'  => $request->nama_jasa_ekspedisi,
+            'no_resi'              => $request->no_resi,
+            'status_pengiriman'    => 'dikirim',
+            'waktu_dikirim'        => now(),
         ]);
+
+        $rkatId = $request->rkat_anggaran_id ?: null;
+        $biaya  = $request->biaya_pengiriman  ? (float) $request->biaya_pengiriman : null;
+
+        if ($rkatId || $biaya) {
+            $ekspedisi = Ekspedisi::findOrFail($id);
+            $ekspedisi->update([
+                'rkat_anggaran_id' => $rkatId,
+                'biaya_pengiriman' => $biaya,
+            ]);
+
+            if ($rkatId && $biaya > 0) {
+                $kurir = $request->jenis_kurir === 'eksternal'
+                    ? $request->nama_jasa_ekspedisi
+                    : 'Internal';
+
+                RkatRealisasi::updateOrCreate(
+                    ['sumber_type' => Ekspedisi::class, 'sumber_id' => $id],
+                    [
+                        'rkat_anggaran_id' => $rkatId,
+                        'tanggal'          => now()->toDateString(),
+                        'jumlah'           => $biaya,
+                        'jenis'            => 'keluar',
+                        'deskripsi'        => "Biaya pengiriman ekspedisi {$id} — {$ekspedisi->judul_kegiatan} | Penerima: {$ekspedisi->nama_penerima} ({$ekspedisi->instansi_penerima}) | Kurir: {$kurir}" . ($request->no_resi ? " | Resi: {$request->no_resi}" : ''),
+                    ]
+                );
+            }
+        }
 
         return back()->with('success', 'Paket dikirim');
     }

@@ -247,6 +247,30 @@
                         </td>
                     </tr>
 
+                    <tr>
+                        <th>Biaya Pengiriman</th>
+                        <td>
+                            @if ($data->biaya_pengiriman)
+                                <strong>Rp {{ number_format($data->biaya_pengiriman, 0, ',', '.') }}</strong>
+                            @else
+                                <span class="text-muted">-</span>
+                            @endif
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th>Pos Anggaran</th>
+                        <td>
+                            @if ($data->anggaran)
+                                <span class="badge bg-warning text-dark">{{ $data->anggaran->kode_kegiatan }}</span>
+                                {{ $data->anggaran->nama_kegiatan }}
+                                <span class="text-muted small">({{ $data->anggaran->tahun }})</span>
+                            @else
+                                <span class="text-muted">Tidak dibebankan ke anggaran</span>
+                            @endif
+                        </td>
+                    </tr>
+
                 </table>
             </div>
             {{-- APPROVAL --}} <div class="show-detail-card">

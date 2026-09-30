@@ -293,16 +293,11 @@
 
                                     {{-- SELESAI --}}
                                     @if ($p->status == 'Sudah Tersedia')
-                                        <form action="{{ route('peminjaman-ruangan.complete', $p->id_peminjaman) }}"
-                                            method="POST" style="display:inline;">
-                                            @csrf
-
-                                            <button type="submit" class="btn btn-sm btn-success"
-                                                onclick="return confirm('Selesaikan peminjaman ini?')">
-
-                                                Selesai
-                                            </button>
-                                        </form>
+                                        <button type="button" class="btn btn-sm btn-success"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#selesaiModal{{ $p->id_peminjaman }}">
+                                            Selesai
+                                        </button>
                                     @endif
 
                                 </td>
@@ -330,6 +325,91 @@
 
         </div>
         @foreach ($peminjaman as $p)
+
+            {{-- MODAL SELESAI (dengan biaya konsumsi opsional) --}}
+            @if ($p->status == 'Sudah Tersedia')
+                @php
+                    $adaMakanan = $p->konsumsi->whereIn('jenis_konsumsi', ['makanan_ringan', 'makanan_berat'])->count() > 0;
+                    $adaKonsumsi = $p->konsumsi->count() > 0;
+                @endphp
+                <div class="modal fade" id="selesaiModal{{ $p->id_peminjaman }}" tabindex="-1">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <form method="POST" action="{{ route('peminjaman-ruangan.complete', $p->id_peminjaman) }}">
+                                @csrf
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Selesaikan Peminjaman</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="mb-3 p-2 bg-light rounded small">
+                                        <div class="fw-semibold">{{ $p->nama_kegiatan ?: $p->jenis_kegiatan ?: 'Peminjaman Ruangan' }}</div>
+                                        <div class="text-muted">{{ $p->nama_pengaju }}{{ $p->divisi ? ' — ' . $p->divisi->nama_divisi : '' }}</div>
+                                    </div>
+
+                                    @if ($adaKonsumsi)
+                                        <div class="mb-3">
+                                            <label class="form-label fw-semibold small text-uppercase text-muted" style="letter-spacing:.04em">Konsumsi yang Diminta</label>
+                                            <ul class="list-unstyled small mb-0">
+                                                @foreach ($p->konsumsi as $k)
+                                                    <li class="d-flex gap-2 py-1 border-bottom">
+                                                        <i class="fas fa-utensils text-danger mt-1" style="font-size:.7rem"></i>
+                                                        <span>
+                                                            <strong>{{ ucfirst(str_replace('_', ' ', $k->jenis_konsumsi)) }}</strong>
+                                                            &times;{{ $k->jumlah }}
+                                                            @if ($k->catatan) <span class="text-muted">— {{ $k->catatan }}</span> @endif
+                                                        </span>
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                        </div>
+                                        <hr class="my-3">
+                                        <div class="mb-3">
+                                            <label class="form-label fw-semibold">
+                                                Pos Anggaran Konsumsi
+                                                @if (!$adaMakanan)
+                                                    <span class="text-muted fw-normal small">(opsional — hanya air mineral)</span>
+                                                @endif
+                                            </label>
+                                            <select name="rkat_anggaran_id" class="form-select form-select-sm"
+                                                {{ $adaMakanan ? 'required' : '' }}>
+                                                <option value="">— Tidak dibebankan ke anggaran —</option>
+                                                @foreach ($anggaranList as $ag)
+                                                    <option value="{{ $ag->id }}">
+                                                        [{{ $ag->tahun }}] {{ $ag->kode_kegiatan }} — {{ $ag->nama_kegiatan }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="mb-1">
+                                            <label class="form-label fw-semibold">
+                                                Total Biaya Konsumsi (Rp)
+                                                @if (!$adaMakanan)
+                                                    <span class="text-muted fw-normal small">(opsional)</span>
+                                                @endif
+                                            </label>
+                                            <input type="number" name="biaya_konsumsi" class="form-control form-control-sm"
+                                                placeholder="Contoh: 150000" min="0" step="500">
+                                        </div>
+                                    @else
+                                        <p class="text-muted small mb-0">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Tidak ada permintaan konsumsi. Klik <strong>Selesaikan</strong> untuk menutup peminjaman ini.
+                                        </p>
+                                    @endif
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                                    <button type="submit" class="btn btn-success btn-sm">
+                                        <i class="fas fa-check me-1"></i> Selesaikan
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             @if ($p->decision_status == 'menunggu_persetujuan')
                 <div class="modal fade" id="rejectModal{{ $p->id_peminjaman }}" tabindex="-1">
 

@@ -37,6 +37,8 @@ class Ekspedisi extends Model
         'decision_status',
         'approved_by',
         'approved_at',
+        'rkat_anggaran_id',
+        'biaya_pengiriman',
     ];
 
     protected $casts = [
@@ -92,5 +94,10 @@ class Ekspedisi extends Model
             'id_divisi_pengaju',
             'id_divisi'
         );
+    }
+
+    public function anggaran()
+    {
+        return $this->belongsTo(\App\Models\RkatAnggaran::class, 'rkat_anggaran_id');
     }
 }

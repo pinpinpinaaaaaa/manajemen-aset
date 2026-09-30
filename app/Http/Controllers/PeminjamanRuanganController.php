@@ -15,6 +15,7 @@ use App\Models\Aset;
 use App\Models\Gedung;
 use App\Models\Ruangan;
 use App\Models\JenisBarang;
+use App\Models\RkatRealisasi;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\PeminjamanRuanganExport;
@@ -327,13 +328,15 @@ class PeminjamanRuanganController extends Controller
         $perPage = (int) request('per_page', 50);
         if (!in_array($perPage, [50, 100, 200])) $perPage = 50;
 
-        $peminjaman = PeminjamanRuangan::with(['divisi', 'details'])
+        $peminjaman = PeminjamanRuangan::with(['divisi', 'details', 'konsumsi'])
             ->where('decision_status', '!=', 'ditolak')
             ->where('status', '!=', 'Selesai')
             ->latest()
             ->paginate($perPage);
 
-        return view('peminjaman_ruangan.index', compact('peminjaman', 'perPage'));
+        $anggaranList = \App\Models\RkatAnggaran::orderByDesc('tahun')->orderBy('kode_kegiatan')->get();
+
+        return view('peminjaman_ruangan.index', compact('peminjaman', 'perPage', 'anggaranList'));
     }
 
     public function create()
@@ -575,7 +578,8 @@ class PeminjamanRuanganController extends Controller
             'details.gedung',
             'details.aset.aset',
             'details.aset.gudangBarang',
-            'konsumsi'
+            'konsumsi',
+            'anggaran',
         ])->findOrFail($id);
 
         return view('peminjaman_ruangan.show', compact('data'));
@@ -987,43 +991,59 @@ class PeminjamanRuanganController extends Controller
 
         return back();
     }
-    public function complete($id)
+    public function complete(Request $request, $id)
     {
         $data = PeminjamanRuangan::findOrFail($id);
 
         if ($data->status !== 'Sudah Tersedia') {
             abort(403);
         }
-        DB::transaction(function () use ($id) {
+
+        $request->validate([
+            'rkat_anggaran_id' => 'nullable|exists:rkat_anggaran,id',
+            'biaya_konsumsi'   => 'nullable|numeric|min:0',
+        ]);
+
+        DB::transaction(function () use ($id, $request) {
 
             $data = PeminjamanRuangan::with([
                 'details',
-                'details.aset'
+                'details.aset',
+                'konsumsi',
             ])->findOrFail($id);
 
             foreach ($data->details as $detail) {
-
-                Ruangan::where(
-                    'id_ruangan',
-                    $detail->id_ruangan
-                )->update([
-                    'status' => 'tersedia'
-                ]);
-
+                Ruangan::where('id_ruangan', $detail->id_ruangan)->update(['status' => 'tersedia']);
                 foreach ($detail->aset as $aset) {
-
-                    Aset::where(
-                        'id_aset',
-                        $aset->id_aset
-                    )->update([
-                        'status' => 'tersedia'
-                    ]);
+                    Aset::where('id_aset', $aset->id_aset)->update(['status' => 'tersedia']);
                 }
             }
 
+            $rkatId  = $request->rkat_anggaran_id ?: null;
+            $biaya   = $request->biaya_konsumsi   ? (float) $request->biaya_konsumsi : null;
+
             $data->update([
-                'status' => 'Selesai'
+                'status'           => 'Selesai',
+                'rkat_anggaran_id' => $rkatId,
+                'biaya_konsumsi'   => $biaya,
             ]);
+
+            if ($rkatId && $biaya > 0) {
+                $jenisKonsumsi = $data->konsumsi->pluck('jenis_konsumsi')
+                    ->map(fn($j) => ucfirst(str_replace('_', ' ', $j)))
+                    ->join(', ');
+
+                RkatRealisasi::updateOrCreate(
+                    ['sumber_type' => PeminjamanRuangan::class, 'sumber_id' => $data->id_peminjaman],
+                    [
+                        'rkat_anggaran_id' => $rkatId,
+                        'tanggal'          => now()->toDateString(),
+                        'jumlah'           => $biaya,
+                        'jenis'            => 'keluar',
+                        'deskripsi'        => "Konsumsi peminjaman ruangan {$data->id_peminjaman} — {$data->nama_kegiatan} | Peserta: {$data->peserta_rapat} | Konsumsi: {$jenisKonsumsi} | Pengaju: {$data->nama_pengaju}",
+                    ]
+                );
+            }
         });
 
         return back();

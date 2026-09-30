@@ -37,3 +37,7 @@ CLAUDE.md
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Local files
+*.docx
+test-label.pdf

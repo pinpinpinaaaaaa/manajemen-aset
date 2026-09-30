@@ -423,6 +423,29 @@
 
                                         </div>
 
+                                        {{-- BIAYA PENGIRIMAN (opsional) --}}
+                                        <hr class="my-3">
+                                        <p class="text-muted small mb-3">
+                                            <i class="fas fa-coins me-1"></i>
+                                            Biaya pengiriman — opsional, isi jika dibebankan ke anggaran
+                                        </p>
+                                        <div class="mb-3">
+                                            <label class="form-label fw-semibold small">Pos Anggaran <span class="text-muted fw-normal">(opsional)</span></label>
+                                            <select name="rkat_anggaran_id" class="form-select form-select-sm">
+                                                <option value="">— Tidak dibebankan —</option>
+                                                @foreach ($anggaranList as $ag)
+                                                    <option value="{{ $ag->id }}">
+                                                        [{{ $ag->tahun }}] {{ $ag->kode_kegiatan }} — {{ $ag->nama_kegiatan }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="mb-4">
+                                            <label class="form-label fw-semibold small">Biaya Pengiriman (Rp) <span class="text-muted fw-normal">(opsional)</span></label>
+                                            <input type="number" name="biaya_pengiriman" class="form-control form-control-sm"
+                                                placeholder="Contoh: 50000" min="0" step="500">
+                                        </div>
+
                                         <div class="d-flex justify-content-end gap-2">
 
                                             <button type="button" class="btn btn-light rounded-pill px-4"
