@@ -156,8 +156,8 @@ class GedungController extends Controller
      */
     public function show($id)
     {
-        $gedung = Gedung::findOrFail($id);
-        return view('gedung.show', compact('gedung'));
+        // view gedung/show belum ada; dashboard sudah lengkap dan punya view
+        return redirect()->route('gedung.dashboard', $id);
     }
 
     public function dashboard($id)

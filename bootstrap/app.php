@@ -13,6 +13,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Percaya semua proxy (Nginx di depan, Cloudflare tunnel di depannya)
+        // agar IP nyata, scheme https, dan host benar di audit log & throttle.
+        $middleware->trustProxies(at: '*');
+
         $middleware->alias([
             'menu.access' => CheckMenuAccess::class,
         ]);

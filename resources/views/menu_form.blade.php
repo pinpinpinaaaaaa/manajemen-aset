@@ -266,7 +266,7 @@
                 <div class="menu-desc">Laporan fasilitas bermasalah</div>
             </div>
 
-            <div class="menu-card">
+            <div class="menu-card" onclick="window.location.href='{{ route('cek-status') }}'">
                 <div class="icon-box">
                     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24"
                         fill="none" stroke="#000" stroke-width="2" stroke-linecap="round"

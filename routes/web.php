@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
 use App\Http\Controllers\{
+    WelcomeController,
+    StatusLayananController,
     GedungController,
     GudangController,
     AparController,
@@ -32,11 +34,12 @@ use App\Http\Controllers\{
     AnggaranController
 };
 
-Route::get('/', fn() => view('welcome'));
+Route::get('/', [WelcomeController::class, 'index']);
 
-Route::get('/menu-form', function () {
-    return view('menu_form'); // halaman yang berisi list form publik
-})->name('menu.form');
+Route::get('/menu-form', [WelcomeController::class, 'menuForm'])->name('menu.form');
+
+// === CEK STATUS LAYANAN (publik) ===
+Route::get('/cek-status', [StatusLayananController::class, 'index'])->name('cek-status')->middleware('throttle:30,1');
 
 // === FORM PUBLIK PERMINTAAN KENDARAAN ===
 Route::get('/form-permintaan-kendaraan', [PermintaanKendaraanController::class, 'create'])->name('form-permintaan-kendaraan.create');

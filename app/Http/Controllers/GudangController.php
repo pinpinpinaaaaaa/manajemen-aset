@@ -7,8 +7,10 @@ use App\Models\GudangBarang;
 use App\Models\GudangTransaksi;
 use App\Models\GudangRekapBulanan;
 use App\Models\GudangTransaksiDetail;
-use App\Models\PermintaanBarangJasaDetail;
+use App\Models\PermintaanBarangGudangDetail;
 use App\Models\RkatAnggaran;
+use App\Services\PermintaanBarangGudangService;
+use App\Services\RekapGudangService;
 use App\Models\RkatRealisasi;
 use Carbon\Carbon;
 use DB;
@@ -219,18 +221,15 @@ class GudangController extends Controller
                 'keterangan' => $request->keterangan,
             ]);
 
-            //Kalau berasal dari permintaan custom
+            // Kalau berasal dari permintaan barang gudang yang butuh barang baru
             if ($request->permintaan_id && $request->detail_id) {
 
-                PermintaanBarangJasaDetail::where('id', $request->detail_id)
-                    ->update([
-                        'id_barang' => $newId
-                    ]);
+                PermintaanBarangGudangDetail::where('id', $request->detail_id)
+                    ->update(['id_barang' => $newId]);
+
+                app(PermintaanBarangGudangService::class)->complete($request->permintaan_id);
 
                 DB::commit();
-
-                app(\App\Http\Controllers\PermintaanBarangJasaController::class)
-                    ->complete($request->permintaan_id);
 
                 return redirect()
                     ->route('permintaan-barang.index')
@@ -242,7 +241,7 @@ class GudangController extends Controller
             return redirect()->route('gudang.index')
                 ->with('success', "Barang berhasil ditambahkan! ID: $newId");
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
 
             DB::rollBack();
             return back()->with('error', $e->getMessage());
@@ -304,68 +303,21 @@ class GudangController extends Controller
             ->with('success', 'Barang berhasil dihapus.');
     }
     
-    public function rekapBulanan(Request $request)
+    public function rekapBulanan(Request $request, RekapGudangService $service)
     {
         $request->validate([
             'bulan' => 'required|date_format:Y-m'
         ]);
 
-        $bulanDipilih = Carbon::createFromFormat('Y-m', $request->bulan)->startOfMonth();
-        $bulanSekarang = now()->startOfMonth();
-
-        if ($bulanDipilih->greaterThanOrEqualTo($bulanSekarang)) {
-            return back()->with(
-                'error',
-                'Rekap hanya bisa dilakukan untuk bulan yang sudah selesai'
-            );
-        }
-
-        $bulan = $bulanDipilih->month;
-        $tahun = $bulanDipilih->year;
-
-        if (GudangRekapBulanan::where('bulan', $bulan)
-            ->where('tahun', $tahun)
-            ->exists()) {
-
-            return back()->with(
-                'error',
-                'Rekap bulan ini sudah pernah dilakukan'
-            );
-        }
-
-        $barangList = GudangBarang::all();
-
-        foreach ($barangList as $barang) {
-
-            $idRekap = $this->generateIdRekapBulanan(
-                $tahun,
-                $bulan,
-                $barang->id_barang
-            );
-
-            GudangRekapBulanan::create([
-                'id_rekap'    => $idRekap,
-                'id_barang'   => $barang->id_barang,
-                'bulan'       => $bulan,
-                'tahun'       => $tahun,
-                'stok_awal'   => $barang->stok_awal,
-                'stok_masuk'  => $barang->stok_masuk,
-                'stok_keluar' => $barang->stok_keluar,
-                'stok_akhir'  => $barang->stok_akhir,
-            ]);
-
-            $barang->stok_awal   = $barang->stok_akhir;
-            $barang->stok_masuk  = 0;
-            $barang->stok_keluar = 0;
-            $barang->save();
+        try {
+            $service->rekap($request->bulan);
+        } catch (\InvalidArgumentException $e) {
+            return back()->with('error', $e->getMessage());
         }
 
         return redirect()
             ->route('gudang.index')
-            ->with(
-                'success',
-                'Rekap bulan ' . $request->bulan . ' berhasil diproses'
-            );
+            ->with('success', 'Rekap bulan ' . $request->bulan . ' berhasil diproses');
     }
 
     public function laporan_transaksi(Request $request)
