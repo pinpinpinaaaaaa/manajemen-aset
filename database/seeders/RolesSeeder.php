@@ -26,11 +26,23 @@ class RolesSeeder extends Seeder
 
         // ================= ROLES =================
 
-        // SUPERADMIN → FULL ACCESS
+        // Semua menu kecuali Panduan IT
+        $bantuanItId = Menu::where('route_name', 'bantuan-it')->value('id');
+        $allExceptIT = Menu::when($bantuanItId, fn($q) => $q->where('id', '!=', $bantuanItId))
+                           ->pluck('id')->toArray();
+
+        // SUPERADMIN → semua kecuali Panduan IT
         Role::create([
             'id_role'   => 'R001',
             'nama_role' => 'superadmin',
-            'menu'      => null, // null = FULL ACCESS
+            'menu'      => $allExceptIT,
+        ]);
+
+        // IT → FULL ACCESS tanpa batasan
+        Role::create([
+            'id_role'   => 'R005',
+            'nama_role' => 'IT',
+            'menu'      => null,
         ]);
 
         // GUDANG
@@ -43,6 +55,12 @@ class RolesSeeder extends Seeder
                 'gudang.index',
                 'gudang.laporan_transaksi',
                 'gudang.laporan_opname',
+                'gudang.transaksi.index',
+                'gudang.stok_opname.index',
+                'permintaan-barang.index',
+                'kendaraan.index',
+                'ekspedisi.index',
+                'permintaan-kendaraan.index',
             ]),
         ]);
 
@@ -53,6 +71,18 @@ class RolesSeeder extends Seeder
             'menu'      => $menuIds([
                 'dashboard',
                 'kendaraan.index',
+                'permintaan-kendaraan.index',
+            ]),
+        ]);
+
+        // EKSPEDISI
+        Role::create([
+            'id_role'   => 'R006',
+            'nama_role' => 'ekspedisi',
+            'menu'      => $menuIds([
+                'dashboard',
+                'kendaraan.index',
+                'ekspedisi.index',
             ]),
         ]);
 
@@ -89,6 +119,15 @@ class RolesSeeder extends Seeder
             'email'   => 'kendaraan@gmail.com',
             'password'=> Hash::make('password'),
             'id_role' => 'R003',
+            'menu'    => null,
+        ]);
+
+        User::create([
+            'id_user' => 'U005',
+            'name'    => 'Staff IT',
+            'email'   => 'it@gmail.com',
+            'password'=> Hash::make('password'),
+            'id_role' => 'R005',
             'menu'    => null,
         ]);
 

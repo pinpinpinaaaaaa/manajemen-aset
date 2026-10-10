@@ -32,7 +32,7 @@ class UserObserver
             'id_user'   => Auth::id(),
             'action'    => 'update',
             'table_name'=> 'users',
-            'record_id' => $user->id,
+            'record_id' => $user->getKey(),
             'old_data'  => array_intersect_key(
                 $user->getOriginal(),
                 $changes

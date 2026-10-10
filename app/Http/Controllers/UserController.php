@@ -75,7 +75,7 @@ class UserController extends Controller
             'name'    => 'required|max:100',
             'email'   => 'required|email|unique:users,email,' . $id . ',id_user',
             'id_role' => 'required|exists:roles,id_role',
-            'password'=> 'nullable|min:6',
+            'password'=> 'nullable|min:6|confirmed',
             'menu'    => 'nullable|array',
         ]);
 
