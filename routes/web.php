@@ -37,6 +37,7 @@ use App\Http\Controllers\{
 Route::get('/', [WelcomeController::class, 'index']);
 
 Route::get('/menu-form', [WelcomeController::class, 'menuForm'])->name('menu.form');
+Route::get('/form-sukses', [WelcomeController::class, 'sukses'])->name('form.sukses');
 
 // === CEK STATUS LAYANAN (publik) ===
 Route::get('/cek-status', [StatusLayananController::class, 'index'])->name('cek-status')->middleware('throttle:30,1');

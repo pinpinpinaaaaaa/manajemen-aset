@@ -198,9 +198,11 @@ class PengaduanKerusakanController extends Controller
             'items.*.foto.mimes'                  => 'Foto harus berformat JPG atau PNG.',
         ]);
 
-        DB::transaction(function() use($request){
+        $generatedId = null;
+        DB::transaction(function() use($request, &$generatedId){
 
             $id=$this->generatePengaduanId();
+            $generatedId = $id;
 
             $firstItem = $request->items[0];
 
@@ -248,12 +250,10 @@ class PengaduanKerusakanController extends Controller
 
         });
 
-        return redirect()
-            ->route('form-pengaduan-kerusakan.create')
-            ->with(
-                'success',
-                'Pengaduan berhasil diajukan'
-            );
+        return redirect()->route('form.sukses', [
+            'id'    => $generatedId,
+            'modul' => 'Pengaduan Kerusakan',
+        ]);
     }
 
 

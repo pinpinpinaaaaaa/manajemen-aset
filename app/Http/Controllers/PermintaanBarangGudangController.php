@@ -225,9 +225,11 @@ class PermintaanBarangGudangController extends Controller
             'items.*.jumlah.min'             => 'Jumlah minimal 1.',
         ]);
 
-        DB::transaction(function () use ($request) {
+        $generatedId = null;
+        DB::transaction(function () use ($request, &$generatedId) {
 
             $id = $this->generatePermintaanId();
+            $generatedId = $id;
 
             $permintaan = PermintaanBarangGudang::create([
                 'id_permintaan' => $id,
@@ -268,8 +270,10 @@ class PermintaanBarangGudangController extends Controller
             }
         });
 
-        return redirect()->route('form-permintaan-barang.create')
-            ->with('success', 'Permintaan berhasil diajukan.');
+        return redirect()->route('form.sukses', [
+            'id'    => $generatedId,
+            'modul' => 'Permintaan Barang Gudang',
+        ]);
     }
 
     public function create()

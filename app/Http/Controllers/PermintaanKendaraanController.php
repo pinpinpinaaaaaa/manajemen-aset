@@ -189,7 +189,8 @@ class PermintaanKendaraanController extends Controller
             'jumlah.min'                       => 'Jumlah kendaraan minimal 1.',
         ]);
 
-        DB::transaction(function () use ($request) {
+        $generatedId = null;
+        DB::transaction(function () use ($request, &$generatedId) {
 
             $buffer = 2;
 
@@ -249,6 +250,7 @@ class PermintaanKendaraanController extends Controller
             }
 
             $id = $this->generateId();
+            $generatedId = $id;
 
             PermintaanKendaraan::create([
                 'id_permohonan' => $id,
@@ -278,12 +280,10 @@ class PermintaanKendaraanController extends Controller
             ]);
         });
 
-        return redirect()
-            ->route('form-permintaan-kendaraan.create')
-            ->with(
-                'success',
-                'Permintaan kendaraan berhasil diajukan'
-            );
+        return redirect()->route('form.sukses', [
+            'id'    => $generatedId,
+            'modul' => 'Permintaan Kendaraan',
+        ]);
     }
 
     public function approve(Request $request, $id)

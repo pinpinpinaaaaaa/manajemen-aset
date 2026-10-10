@@ -409,9 +409,11 @@ class PeminjamanRuanganController extends Controller
 
         try {
 
-            DB::transaction(function () use ($request, &$excludeAsetIds) {
+            $generatedId = null;
+            DB::transaction(function () use ($request, &$excludeAsetIds, &$generatedId) {
 
                 $id = $this->generateId();
+                $generatedId = $id;
 
                 $header = PeminjamanRuangan::create([
                     'id_peminjaman'   => $id,
@@ -557,10 +559,10 @@ class PeminjamanRuanganController extends Controller
 
             });
 
-            return back()->with(
-                'success',
-                'Peminjaman berhasil diajukan.'
-            );
+            return redirect()->route('form.sukses', [
+                'id'    => $generatedId,
+                'modul' => 'Peminjaman Ruangan',
+            ]);
 
         } catch (\Exception $e) {
 

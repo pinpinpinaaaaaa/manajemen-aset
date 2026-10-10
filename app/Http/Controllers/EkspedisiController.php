@@ -164,9 +164,11 @@ class EkspedisiController extends Controller
             'items.*.files.*.max'         => 'Ukuran file item maksimal 5 MB.',
         ]);
 
-        DB::transaction(function () use ($request) {
+        $generatedId = null;
+        DB::transaction(function () use ($request, &$generatedId) {
 
             $idEkspedisi = $this->generateEkspedisiId();
+            $generatedId = $idEkspedisi;
            $ekspedisi = Ekspedisi::create([
                 'id_ekspedisi' => $idEkspedisi,
 
@@ -241,9 +243,10 @@ class EkspedisiController extends Controller
             }
         });
 
-        return redirect()
-            ->back()
-            ->with('success', 'Permintaan ekspedisi berhasil dikirim');
+        return redirect()->route('form.sukses', [
+            'id'    => $generatedId,
+            'modul' => 'Ekspedisi',
+        ]);
     }
     public function edit($id)
     {

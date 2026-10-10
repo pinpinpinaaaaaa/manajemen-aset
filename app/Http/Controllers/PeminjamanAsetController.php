@@ -187,9 +187,11 @@ class PeminjamanAsetController extends Controller
             'items.*.tanggal_jatuh_tempo.after_or_equal' => 'Tanggal kembali tidak boleh sebelum tanggal pinjam.',
         ]);
 
-        DB::transaction(function() use ($request){
+        $generatedId = null;
+        DB::transaction(function() use ($request, &$generatedId){
 
             $id = $this->generateId();
+            $generatedId = $id;
 
             PeminjamanAset::create([
                 'id_peminjaman' => $id,
@@ -249,8 +251,10 @@ class PeminjamanAsetController extends Controller
 
         });
 
-        return redirect()->route('form_peminjaman_aset.create')
-            ->with('success','Peminjaman berhasil diajukan');
+        return redirect()->route('form.sukses', [
+            'id'    => $generatedId,
+            'modul' => 'Peminjaman Aset Kantor',
+        ]);
     }
 
     public function edit($id)

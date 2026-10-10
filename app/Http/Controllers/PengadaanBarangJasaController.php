@@ -197,9 +197,11 @@ class PengadaanBarangJasaController extends Controller
             'items.*.files.*.max'         => 'Ukuran file maksimal 2MB.',
         ]);
 
-        DB::transaction(function () use ($request) {
+        $generatedId = null;
+        DB::transaction(function () use ($request, &$generatedId) {
 
             $id = $this->generateId();
+            $generatedId = $id;
 
             $pengadaan = PengadaanBarangJasa::create([
                 'id_pengadaan' => $id,
@@ -265,7 +267,10 @@ class PengadaanBarangJasaController extends Controller
             $pengadaan->update(['total_biaya' => $total]);
         });
 
-        return back()->with('success', 'Pengadaan berhasil diajukan');
+        return redirect()->route('form.sukses', [
+            'id'    => $generatedId,
+            'modul' => 'Pengadaan Barang & Jasa',
+        ]);
     }
 
     public function edit($id)
