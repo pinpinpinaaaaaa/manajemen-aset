@@ -26,7 +26,7 @@ class UserController extends Controller
     {
         return view('users.create', [
             'roles' => Role::all(),
-            'menus' => Menu::orderBy('order')->get(),
+            'menus' => Menu::with('parent')->where('type', 'file')->where('is_active', true)->orderBy('order')->get(),
         ]);
     }
 
@@ -35,7 +35,7 @@ class UserController extends Controller
         $request->validate([
             'name'    => 'required|max:100',
             'email'   => 'required|email|unique:users',
-            'password'=> 'required|min:6',
+            'password'=> 'required|min:6|confirmed',
             'id_role' => 'required|exists:roles,id_role',
             'menu'    => 'nullable|array',
         ]);
@@ -63,7 +63,7 @@ class UserController extends Controller
         return view('users.edit', [
             'user'  => User::findOrFail($id),
             'roles' => Role::all(),
-            'menus' => Menu::orderBy('order')->get(),
+            'menus' => Menu::with('parent')->where('type', 'file')->where('is_active', true)->orderBy('order')->get(),
         ]);
     }
 

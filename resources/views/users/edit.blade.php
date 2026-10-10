@@ -147,6 +147,9 @@
                                         {{ in_array($menu->id, $selectedMenus) ? 'checked' : '' }}>
 
                                     <span>
+                                        @if ($menu->parent)
+                                            <small class="text-muted">{{ $menu->parent->name }} /</small><br>
+                                        @endif
                                         {{ $menu->name }}
                                     </span>
 

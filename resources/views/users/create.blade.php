@@ -106,7 +106,12 @@
                                     <input type="checkbox" name="menu[]" value="{{ $menu->id }}"
                                         {{ is_array(old('menu')) && in_array($menu->id, old('menu')) ? 'checked' : '' }}>
 
-                                    <span>{{ $menu->name }}</span>
+                                    <span>
+                                        @if ($menu->parent)
+                                            <small class="text-muted">{{ $menu->parent->name }} /</small><br>
+                                        @endif
+                                        {{ $menu->name }}
+                                    </span>
                                 </label>
                             @endforeach
 
