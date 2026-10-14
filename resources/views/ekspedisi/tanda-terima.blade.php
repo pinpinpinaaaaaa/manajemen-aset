@@ -1,168 +1,206 @@
 @extends('pdf.layout-surat')
 
 @section('content')
-    <div style="text-align:center; margin-bottom:20px;">
-        <h2 style="margin:0;">TANDA TERIMA EKSPEDISI</h2>
+<style>
+    body { font-size: 12px; font-family: 'Aptos', sans-serif; }
 
-        <p style="font-size:12px; margin-top:5px;">
-            ID Ekspedisi :
-            <strong>{{ $data->id_ekspedisi }}</strong>
-        </p>
-    </div>
+    .outer-border {
+        border: 1.5px solid #000;
+        padding: 0;
+    }
 
-    <table width="100%" cellpadding="6" cellspacing="0" style="font-size:12px; margin-bottom:20px;">
+    .title-row {
+        text-align: center;
+        border-bottom: 1.5px solid #000;
+        padding: 8px 0;
+        font-size: 14px;
+        font-weight: bold;
+        letter-spacing: 2px;
+    }
 
+    .info-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .info-table td {
+        padding: 8px 12px;
+        vertical-align: top;
+        border-bottom: 1px solid #ccc;
+        font-size: 12px;
+    }
+
+    .info-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .label-col {
+        width: 22%;
+        white-space: nowrap;
+    }
+
+    .colon-col {
+        width: 3%;
+        text-align: center;
+    }
+
+    .value-col {
+        width: 75%;
+    }
+
+    .sign-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 0;
+    }
+
+    .sign-table td {
+        padding: 12px;
+        vertical-align: top;
+        font-size: 12px;
+    }
+
+    .stamp-box {
+        border: 1.5px solid #000;
+        width: 90px;
+        height: 90px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        font-weight: bold;
+        font-size: 13px;
+        letter-spacing: 2px;
+        margin-top: 10px;
+    }
+
+    .dotted-line {
+        border-bottom: 1px dotted #000;
+        display: inline-block;
+        min-width: 40px;
+    }
+</style>
+
+<div class="outer-border">
+
+    {{-- JUDUL --}}
+    <div class="title-row">TANDA TERIMA</div>
+
+    {{-- TABEL INFO --}}
+    <table class="info-table">
+
+        {{-- TELAH DITERIMA DARI --}}
         <tr>
-            <td width="25%"><strong>Tanggal</strong></td>
-            <td width="75%">
-                {{ now()->format('d M Y') }}
+            <td class="label-col">Telah diterima dari</td>
+            <td class="colon-col">:</td>
+            <td class="value-col">
+                {{ $data->nama_pengirim }}<br>
+                {{ optional($data->divisi_pengirim)->nama_divisi ?? '' }}
             </td>
         </tr>
 
+        {{-- DITUJUKAN KEPADA --}}
         <tr>
-            <td><strong>Pengirim</strong></td>
-            <td>
-                {{ $data->nama_pengirim }}
-                -
-                {{ optional($data->divisi_pengirim)->nama_divisi ?? '-' }}
+            <td class="label-col">Ditujukan kepada</td>
+            <td class="colon-col">:</td>
+            <td class="value-col">
+                <strong>Kepada Yth.</strong><br>
+                <strong>{{ $data->nama_penerima }}</strong><br>
+                @if ($data->instansi_penerima)
+                    <strong>{{ $data->instansi_penerima }}</strong><br>
+                @endif
+                @if ($data->alamat_penerima)
+                    <strong>{{ $data->alamat_penerima }}</strong><br>
+                @endif
             </td>
         </tr>
 
+        {{-- BERUPA --}}
         <tr>
-            <td><strong>Instansi Tujuan</strong></td>
-            <td>{{ $data->instansi_penerima }}</td>
+            <td class="label-col">Berupa</td>
+            <td class="colon-col">:</td>
+            <td class="value-col">
+                @php
+                    $no = 1;
+                    $items = [];
+                    foreach ($data->dokumen as $d) {
+                        $items[] = $d->nama_dokumen . ($d->jumlah > 1 ? ' (' . $d->jumlah . ' lembar)' : '');
+                    }
+                    foreach ($data->barang as $b) {
+                        $items[] = $b->nama_barang . ' — ' . $b->jumlah . ' ' . ($b->satuan ?? 'pcs');
+                    }
+                @endphp
+
+                @foreach ($items as $item)
+                    {{ $loop->iteration }}. {{ $item }}<br>
+                @endforeach
+
+                @if ($data->keterangan)
+                    <br><em>{{ $data->keterangan }}</em>
+                @endif
+            </td>
         </tr>
 
-        <tr>
-            <td><strong>Penerima</strong></td>
-            <td>{{ $data->nama_penerima }}</td>
-        </tr>
-
-        <tr>
-            <td><strong>Alamat</strong></td>
-            <td>{{ $data->alamat_penerima }}</td>
-        </tr>
-
-        <tr>
-            <td><strong>Judul Kegiatan</strong></td>
-            <td>{{ $data->judul_kegiatan }}</td>
-        </tr>
     </table>
 
-    {{-- ===================== ISI ===================== --}}
-    <h4 style="margin-bottom:10px;">Isi Kiriman</h4>
-
-    <table width="100%" border="1" cellspacing="0" cellpadding="6" style="border-collapse: collapse; font-size:11px;">
-
-        <thead style="background:#f0f0f0;">
-            <tr>
-                <th width="5%">No</th>
-                <th width="20%">Jenis</th>
-                <th width="45%">Nama</th>
-                <th width="10%">Jumlah</th>
-                <th width="20%">Keterangan</th>
-            </tr>
-        </thead>
-
-        <tbody>
-
-            @php $no = 1; @endphp
-
-            {{-- DOKUMEN --}}
-            @foreach ($data->dokumen as $d)
-                <tr>
-                    <td align="center">{{ $no++ }}</td>
-                    <td>Dokumen</td>
-                    <td>{{ $d->nama_dokumen }}</td>
-                    <td align="center">1</td>
-                    <td>{{ $d->jenis_dokumen ?? '-' }}</td>
-                </tr>
-            @endforeach
-
-            {{-- BARANG --}}
-            @foreach ($data->barang as $b)
-                <tr>
-                    <td align="center">{{ $no++ }}</td>
-                    <td>Barang</td>
-                    <td>{{ $b->nama_barang }}</td>
-                    <td align="center">{{ $b->jumlah }}</td>
-                    <td>
-                        {{ $b->berat ?? '-' }}
-                        {{ $b->satuan ?? '' }}
-                    </td>
-                </tr>
-            @endforeach
-
-        </tbody>
-    </table>
-
-    {{-- ===================== TTD ===================== --}}
-    <table width="100%" style="margin-top:50px; font-size:12px;">
-
+    {{-- AREA TTD --}}
+    <table class="sign-table" style="border-top: 1.5px solid #000;">
         <tr>
 
-            {{-- PENGIRIM --}}
-            <td width="50%" align="center">
-
-                Pengirim
-
-                <br><br><br><br>
-
-                <strong>
-                    {{ $data->nama_pengirim }}
-                </strong>
-
+            {{-- STAMP KEUANGAN --}}
+            <td width="30%" align="center" valign="middle" style="border-right: 1px solid #ccc;">
+                <table border="1" cellpadding="12" cellspacing="0"
+                    style="border-collapse:collapse; border-color:#000; margin: 10px auto;">
+                    <tr>
+                        <td style="font-weight:bold; font-size:13px; letter-spacing:3px; text-align:center; width:90px; height:70px; vertical-align:middle;">
+                            KEUANGAN
+                        </td>
+                    </tr>
+                </table>
             </td>
 
-            {{-- PENERIMA --}}
-            <td width="50%" align="center" valign="top">
+            {{-- TANDA TANGAN PENERIMA --}}
+            <td width="70%" valign="top" style="padding: 12px 20px;">
 
-                <div style="text-align:center; font-size:12px;">
+                <span>
+                    ............,
+                    @php
+                        $tgl = optional($data->pengiriman)->waktu_diterima
+                            ? \Carbon\Carbon::parse($data->pengiriman->waktu_diterima)
+                            : now();
+                    @endphp
+                    {{ $tgl->translatedFormat('d') }}-{{ $tgl->translatedFormat('m') }}-{{ $tgl->format('Y') }}
+                </span>
 
-                    Diterima tanggal
-                    <br>
+                <br><br>
 
-                    <strong>
-                        {{ optional($data->pengiriman)->waktu_diterima
-                            ? \Carbon\Carbon::parse($data->pengiriman->waktu_diterima)->format('d M Y H:i')
-                            : now()->format('d M Y H:i') }}
-                    </strong>
+                <span>Diterima oleh :</span>
 
-                    <br>
-                    oleh
+                <br><br>
 
-                    <br><br>
+                @if (optional($data->pengiriman)->jenis_ttd == 'digital' && optional($data->pengiriman)->ttd_digital)
+                    <img src="{{ $data->pengiriman->ttd_digital }}"
+                        style="width:110px; height:auto; margin: 4px 0;">
+                @else
+                    <div style="height: 60px;"></div>
+                @endif
 
-                    {{-- =========================
-                     TTD DIGITAL
-                ========================== --}}
-                    @if (optional($data->pengiriman)->jenis_ttd == 'digital' && optional($data->pengiriman)->ttd_digital)
-                        <img src="{{ $data->pengiriman->ttd_digital }}"
-                            style="
-                            width:120px;
-                            height:auto;
-                            margin-top:5px;
-                            margin-bottom:10px;
-                        ">
-
-                        {{-- =========================
-                     TTD KOSONG
-                ========================== --}}
-                    @else
-                        <div style="height:80px;"></div>
-                    @endif
-
-                    <br>
-
-                    <strong>
-                        {{ optional($data->pengiriman)->nama_penerima_ttd ?? '(....................)' }}
-                    </strong>
-
+                <div style="border-top: 1px solid #000; display: inline-block; min-width: 160px; padding-top: 4px;">
+                    {{ optional($data->pengiriman)->nama_penerima_ttd ?? '' }}
                 </div>
 
+                <br>
+                <span style="font-size:11px; color:#333;">Nama Jelas</span>
+
+                <br><br>
+
+                <span>Jam &nbsp;&nbsp;: ........................................</span><br>
+                <span>Telp &nbsp;: ........................................</span>
+
             </td>
 
         </tr>
-
     </table>
+
+</div>
 @endsection
