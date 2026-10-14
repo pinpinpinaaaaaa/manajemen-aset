@@ -577,7 +577,7 @@
             <label>Catatan (Opsional)</label>
             <textarea name="catatan">{{ old('catatan') }}</textarea>
 
-            <button type="submit">Kirim Pengadaan</button>
+            <button type="submit">Kirim Permintaan</button>
         </form>
 
     </div>
