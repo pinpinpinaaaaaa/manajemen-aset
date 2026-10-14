@@ -93,8 +93,16 @@
                         <td>{{ $data->email_pengirim ?? '-' }}</td>
                     </tr>
                     <tr>
+                        <th>No. HP Pengirim</th>
+                        <td>{{ $data->no_hp_pengirim ?? '-' }}</td>
+                    </tr>
+                    <tr>
                         <th>Penerima</th>
                         <td>{{ $data->nama_penerima }}</td>
+                    </tr>
+                    <tr>
+                        <th>No. HP Penerima</th>
+                        <td>{{ $data->no_hp_penerima ?? '-' }}</td>
                     </tr>
                     <tr>
                         <th>Instansi</th>
