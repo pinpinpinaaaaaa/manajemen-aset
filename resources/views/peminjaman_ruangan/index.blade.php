@@ -56,7 +56,7 @@
 
                             <th class="d-none d-md-table-cell">No</th>
 
-                            <th class="filterable d-none d-lg-table-cell" data-key="id">
+                            <th class="filterable" data-key="id">
                                 ID
                                 <i class="fas fa-filter filter-icon"></i>
                             </th>
@@ -143,7 +143,7 @@
                                 data-tanggal_kebutuhan="{{ $p->details->count() ? \Carbon\Carbon::parse($p->details->first()->tanggal_mulai)->format('Y-m-d') : '' }}">
                                 <td class="d-none d-md-table-cell">{{ $index + 1 }}</td>
 
-                                <td class="d-none d-lg-table-cell">
+                                <td>
                                     {{ $p->id_peminjaman }}
                                 </td>
 

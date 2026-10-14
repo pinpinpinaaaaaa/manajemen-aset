@@ -54,7 +54,7 @@
 
                         <tr>
                             <th class="d-none d-md-table-cell">No</th>
-                            <th class="d-none d-lg-table-cell">ID</th>
+                            <th>ID</th>
 
                             <th class="filterable" data-key="nama">
                                 Nama <i class="fas fa-filter filter-icon"></i>
@@ -122,7 +122,7 @@
                                 data-status="{{ strtolower($p->status) }}">
 
                                 <td class="d-none d-md-table-cell">{{ $i + 1 }}</td>
-                                <td class="d-none d-lg-table-cell">{{ $p->id_permohonan }}</td>
+                                <td>{{ $p->id_permohonan }}</td>
                                 <td>{{ $p->nama }}</td>
                                 <td class="d-none d-md-table-cell">{{ $p->divisi->nama_divisi ?? '-' }}</td>
 

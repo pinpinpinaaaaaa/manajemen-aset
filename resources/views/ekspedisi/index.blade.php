@@ -86,7 +86,7 @@
                     <thead>
                         <tr>
                             <th class="d-none d-md-table-cell">No</th>
-                            <th class="d-none d-lg-table-cell">ID</th>
+                            <th>ID</th>
 
                             <th class="filterable" data-key="pengirim">
                                 Pengirim <i class="fas fa-filter filter-icon"></i>
@@ -119,7 +119,7 @@
                                 data-pengiriman="{{ strtolower(optional($e->pengiriman)->status_pengiriman ?? '') }}">
 
                                 <td class="d-none d-md-table-cell">{{ $i + 1 }}</td>
-                                <td class="d-none d-lg-table-cell">
+                                <td>
                                     <div class="table-id">
                                         {{ $e->id_ekspedisi }}
                                     </div>

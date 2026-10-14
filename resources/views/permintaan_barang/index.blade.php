@@ -44,7 +44,7 @@
                     <thead>
                         <tr>
                             <th class="d-none d-md-table-cell">No</th>
-                            <th class="d-none d-lg-table-cell">ID</th>
+                            <th>ID</th>
 
                             <th class="filterable" data-key="pengaju">
                                 Pengaju <i class="fas fa-filter filter-icon"></i>
@@ -90,7 +90,7 @@
                                 data-status="{{ strtolower($p->status) }}"
                                 data-approval="{{ strtolower($p->decision_status) }}">
                                 <td class="d-none d-md-table-cell">{{ $i + 1 }}</td>
-                                <td class="d-none d-lg-table-cell">{{ $p->id_permintaan }}</td>
+                                <td>{{ $p->id_permintaan }}</td>
                                 <td>{{ $p->nama_pengaju }}</td>
                                 <td class="d-none d-md-table-cell">{{ $p->divisi->nama_divisi ?? '-' }}</td>
 
