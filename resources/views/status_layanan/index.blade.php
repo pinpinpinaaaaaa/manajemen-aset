@@ -314,6 +314,7 @@
                                 <th>Status Persetujuan</th>
                                 <th>Status Proses</th>
                                 <th>Tanggal</th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -363,6 +364,15 @@
                                 </td>
                                 <td style="white-space:nowrap;color:#555">
                                     {{ $row['tanggal'] ? \Carbon\Carbon::parse($row['tanggal'])->format('d M Y') : '—' }}
+                                </td>
+                                <td>
+                                    @if (!empty($row['tanda_terima']))
+                                        <a href="{{ route('ekspedisi.tanda-terima', $row['id']) }}" target="_blank"
+                                            style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:8px;background:#16a34a;color:#fff;font-size:.78rem;font-weight:600;text-decoration:none;white-space:nowrap;">
+                                            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                            Tanda Terima
+                                        </a>
+                                    @endif
                                 </td>
                             </tr>
                             @endforeach

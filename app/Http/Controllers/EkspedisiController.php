@@ -600,7 +600,8 @@ class EkspedisiController extends Controller
             'dokumen',
             'barang',
             'pengiriman',
-            'divisi_pengirim'
+            'divisi_pengirim',
+            'divisi_pengaju',
         ])->findOrFail($id);
 
         $pengiriman = $data->pengiriman;

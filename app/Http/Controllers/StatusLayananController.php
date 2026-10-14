@@ -78,18 +78,27 @@ class StatusLayananController extends Controller
             });
 
         // Ekspedisi
-        Ekspedisi::where('id_ekspedisi', $cari)
+        Ekspedisi::with('pengiriman')
+            ->where('id_ekspedisi', $cari)
             ->orWhere('email_pengaju', $cari)
             ->get(['id_ekspedisi', 'nama_pengirim', 'email_pengaju', 'decision_status', 'created_at'])
             ->each(function ($r) use (&$rows) {
+                $statusPengiriman = $r->pengiriman?->status_pengiriman;
                 $rows[] = [
                     'modul'   => 'Ekspedisi',
                     'id'      => $r->id_ekspedisi,
                     'nama'    => $r->nama_pengirim,
                     'email'   => $r->email_pengaju,
                     'approval'=> $r->decision_status,
-                    'status'  => null,
+                    'status'  => match($statusPengiriman) {
+                        'belum_dikirim' => 'Belum Diproses',
+                        'dikirim'       => 'Sedang Dikirim',
+                        'diterima'      => 'Sedang Diproses',
+                        'selesai'       => 'Selesai',
+                        default         => null,
+                    },
                     'tanggal' => $r->created_at,
+                    'tanda_terima' => true,
                 ];
             });
 

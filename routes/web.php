@@ -49,6 +49,7 @@ Route::post('/form-permintaan-kendaraan', [PermintaanKendaraanController::class,
 // === FORM PUBLIK EKSPEDISI ===
 Route::get('/form-ekspedisi', [EkspedisiController::class, 'create'])->name('form-ekspedisi.create');
 Route::post('/form-ekspedisi', [EkspedisiController::class, 'store'])->name('form-ekspedisi.store')->middleware('throttle:20,1');
+Route::get('/ekspedisi/{id}/tanda-terima', [EkspedisiController::class, 'printTandaTerima'])->name('ekspedisi.tanda-terima');
 
 // === FORM PUBLIK PENGADUAN KERUSAKAN ===
 Route::get('/form-pengaduan-kerusakan', [PengaduanKerusakanController::class, 'create'])->name('form-pengaduan-kerusakan.create');
@@ -233,7 +234,6 @@ Route::middleware(['auth', 'menu.access'])->group(function () {
     Route::post('/ekspedisi/{id}/received',[EkspedisiController::class, 'received'])->name('ekspedisi.received');
     Route::post('/ekspedisi/{id}/complete',[EkspedisiController::class, 'complete'])->name('ekspedisi.complete');
     Route::get('/ekspedisi/{id}/label',[EkspedisiController::class, 'printLabel'])->name('ekspedisi.label');
-    Route::get('/ekspedisi/{id}/tanda-terima',[EkspedisiController::class, 'printTandaTerima'])->name('ekspedisi.tanda-terima');
     Route::get('/ekspedisi/riwayat/export-pdf',[EkspedisiController::class, 'exportPdfRiwayat'])->name('ekspedisi.riwayat.pdf');
     Route::get('/ekspedisi/riwayat/export-excel',[EkspedisiController::class, 'exportExcelRiwayat'])->name('ekspedisi.riwayat.excel');
 
