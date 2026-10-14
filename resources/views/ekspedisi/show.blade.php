@@ -97,6 +97,14 @@
                         <td>{{ $data->no_hp_pengirim ?? '-' }}</td>
                     </tr>
                     <tr>
+                        <th>Instansi Pengirim</th>
+                        <td>{{ $data->instansi_pengirim ?? '-' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Alamat Pengirim</th>
+                        <td>{{ $data->alamat_pengirim ?? '-' }}</td>
+                    </tr>
+                    <tr>
                         <th>Penerima</th>
                         <td>{{ $data->nama_penerima }}</td>
                     </tr>

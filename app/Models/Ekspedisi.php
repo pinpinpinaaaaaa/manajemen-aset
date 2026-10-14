@@ -24,6 +24,8 @@ class Ekspedisi extends Model
         'email_pengirim',
         'no_hp_pengirim',
         'id_divisi_pengirim',
+        'instansi_pengirim',
+        'alamat_pengirim',
 
         'nama_penerima',
         'email_penerima',

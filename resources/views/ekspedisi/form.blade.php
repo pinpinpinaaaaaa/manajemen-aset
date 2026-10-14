@@ -568,42 +568,60 @@
                 </label>
             </div>
 
-            <h4 style="margin-bottom:10px;">Data Pengirim</h4>
-            <div class="form-grid">
-                <div>
-                    <label>Nama Pengirim</label>
-                    <input type="text" id="nama_pengirim" name="nama_pengirim" required
-                        value="{{ old('nama_pengirim') }}"
-                        class="{{ $errors->has('nama_pengirim') ? 'is-invalid' : '' }}">
-                    @error('nama_pengirim') <span class="field-error">{{ $message }}</span> @enderror
-                </div>
-                <div>
-                    <label>Divisi Pengirim</label>
-                    <select id="divisi_pengirim" name="id_divisi_pengirim" required
-                        class="{{ $errors->has('id_divisi_pengirim') ? 'is-invalid' : '' }}">
-                        <option value="">-- Pilih Divisi --</option>
-                        @foreach ($divisi as $d)
-                            <option value="{{ $d->id_divisi }}" {{ old('id_divisi_pengirim') == $d->id_divisi ? 'selected' : '' }}>{{ $d->nama_divisi }}</option>
-                        @endforeach
-                    </select>
-                    @error('id_divisi_pengirim') <span class="field-error">{{ $message }}</span> @enderror
-                </div>
-            </div>
+            {{-- DATA PENGIRIM --}}
+            <div class="item-card">
+                <span class="label-section"><i class="fa-solid fa-user" style="color:#ebca56;margin-right:8px;"></i>Data Pengirim</span>
 
-            <div class="form-grid">
-                <div>
-                    <label>Email Pengirim</label>
-                    <input type="email" id="email_pengirim" name="email_pengirim" required
-                        value="{{ old('email_pengirim') }}"
-                        class="{{ $errors->has('email_pengirim') ? 'is-invalid' : '' }}">
-                    @error('email_pengirim') <span class="field-error">{{ $message }}</span> @enderror
+                <div class="form-grid">
+                    <div>
+                        <label>Nama Pengirim</label>
+                        <input type="text" id="nama_pengirim" name="nama_pengirim" required
+                            value="{{ old('nama_pengirim') }}"
+                            class="{{ $errors->has('nama_pengirim') ? 'is-invalid' : '' }}">
+                        @error('nama_pengirim') <span class="field-error">{{ $message }}</span> @enderror
+                    </div>
+                    <div>
+                        <label>Divisi Pengirim</label>
+                        <select id="divisi_pengirim" name="id_divisi_pengirim" required
+                            class="{{ $errors->has('id_divisi_pengirim') ? 'is-invalid' : '' }}">
+                            <option value="">-- Pilih Divisi --</option>
+                            @foreach ($divisi as $d)
+                                <option value="{{ $d->id_divisi }}" {{ old('id_divisi_pengirim') == $d->id_divisi ? 'selected' : '' }}>{{ $d->nama_divisi }}</option>
+                            @endforeach
+                        </select>
+                        @error('id_divisi_pengirim') <span class="field-error">{{ $message }}</span> @enderror
+                    </div>
                 </div>
 
-                <div>
-                    <label>No HP Pengirim</label>
-                    <input type="text" id="no_hp_pengirim" name="no_hp_pengirim" placeholder="08xxxxxxxxxx"
-                        inputmode="numeric" pattern="[0-9]*" oninput="this.value = this.value.replace(/[^0-9]/g, '')"
-                        value="{{ old('no_hp_pengirim') }}">
+                <div class="form-grid">
+                    <div>
+                        <label>Email Pengirim</label>
+                        <input type="email" id="email_pengirim" name="email_pengirim" required
+                            value="{{ old('email_pengirim') }}"
+                            class="{{ $errors->has('email_pengirim') ? 'is-invalid' : '' }}">
+                        @error('email_pengirim') <span class="field-error">{{ $message }}</span> @enderror
+                    </div>
+                    <div>
+                        <label>No HP Pengirim</label>
+                        <input type="text" id="no_hp_pengirim" name="no_hp_pengirim" placeholder="08xxxxxxxxxx"
+                            inputmode="numeric" pattern="[0-9]*" oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                            value="{{ old('no_hp_pengirim') }}">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Instansi Pengirim</label>
+                    <input type="text" name="instansi_pengirim" placeholder="Nama instansi / unit kerja"
+                        value="{{ old('instansi_pengirim') }}"
+                        class="{{ $errors->has('instansi_pengirim') ? 'is-invalid' : '' }}">
+                    @error('instansi_pengirim') <span class="field-error">{{ $message }}</span> @enderror
+                </div>
+
+                <div class="form-group" style="margin-bottom:0;">
+                    <label>Alamat Pengirim</label>
+                    <textarea name="alamat_pengirim" placeholder="Alamat lengkap pengirim"
+                        class="{{ $errors->has('alamat_pengirim') ? 'is-invalid' : '' }}">{{ old('alamat_pengirim') }}</textarea>
+                    @error('alamat_pengirim') <span class="field-error">{{ $message }}</span> @enderror
                 </div>
             </div>
 
@@ -617,46 +635,49 @@
                 @error('judul_kegiatan') <span class="field-error">{{ $message }}</span> @enderror
             </div>
 
-            <h4 style="margin-bottom:10px;">Data Penerima</h4>
-            <div class="form-grid">
-                <div>
-                    <label>Instansi Tujuan</label>
-                    <input type="text" name="instansi_penerima" required
-                        value="{{ old('instansi_penerima') }}"
-                        class="{{ $errors->has('instansi_penerima') ? 'is-invalid' : '' }}">
-                    @error('instansi_penerima') <span class="field-error">{{ $message }}</span> @enderror
-                </div>
-                <div>
-                    <label>Nama Penerima</label>
-                    <input type="text" name="nama_penerima" required
-                        value="{{ old('nama_penerima') }}"
-                        class="{{ $errors->has('nama_penerima') ? 'is-invalid' : '' }}">
-                    @error('nama_penerima') <span class="field-error">{{ $message }}</span> @enderror
-                </div>
-            </div>
+            {{-- DATA PENERIMA --}}
+            <div class="item-card" style="margin-top:20px;">
+                <span class="label-section"><i class="fa-solid fa-location-dot" style="color:#ebca56;margin-right:8px;"></i>Data Penerima</span>
 
-            <div class="form-grid">
-                <div>
-                    <label>Email Penerima</label>
-                    <input type="email" name="email_penerima" placeholder="email@tujuan.com"
-                        value="{{ old('email_penerima') }}"
-                        class="{{ $errors->has('email_penerima') ? 'is-invalid' : '' }}">
-                    @error('email_penerima') <span class="field-error">{{ $message }}</span> @enderror
+                <div class="form-grid">
+                    <div>
+                        <label>Instansi Tujuan</label>
+                        <input type="text" name="instansi_penerima" required
+                            value="{{ old('instansi_penerima') }}"
+                            class="{{ $errors->has('instansi_penerima') ? 'is-invalid' : '' }}">
+                        @error('instansi_penerima') <span class="field-error">{{ $message }}</span> @enderror
+                    </div>
+                    <div>
+                        <label>Nama Penerima</label>
+                        <input type="text" name="nama_penerima" required
+                            value="{{ old('nama_penerima') }}"
+                            class="{{ $errors->has('nama_penerima') ? 'is-invalid' : '' }}">
+                        @error('nama_penerima') <span class="field-error">{{ $message }}</span> @enderror
+                    </div>
                 </div>
 
-                <div>
-                    <label>No HP Penerima</label>
-                    <input type="text" name="no_hp_penerima" placeholder="08xxxxxxxxxx" inputmode="numeric"
-                        pattern="[0-9]*" oninput="this.value = this.value.replace(/[^0-9]/g, '')"
-                        value="{{ old('no_hp_penerima') }}">
+                <div class="form-grid">
+                    <div>
+                        <label>Email Penerima</label>
+                        <input type="email" name="email_penerima" placeholder="email@tujuan.com"
+                            value="{{ old('email_penerima') }}"
+                            class="{{ $errors->has('email_penerima') ? 'is-invalid' : '' }}">
+                        @error('email_penerima') <span class="field-error">{{ $message }}</span> @enderror
+                    </div>
+                    <div>
+                        <label>No HP Penerima</label>
+                        <input type="text" name="no_hp_penerima" placeholder="08xxxxxxxxxx" inputmode="numeric"
+                            pattern="[0-9]*" oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                            value="{{ old('no_hp_penerima') }}">
+                    </div>
                 </div>
-            </div>
 
-            <div>
-                <label>Alamat Tujuan</label>
-                <textarea name="alamat_penerima" required
-                    class="{{ $errors->has('alamat_penerima') ? 'is-invalid' : '' }}">{{ old('alamat_penerima') }}</textarea>
-                @error('alamat_penerima') <span class="field-error">{{ $message }}</span> @enderror
+                <div style="margin-bottom:0;">
+                    <label>Alamat Tujuan</label>
+                    <textarea name="alamat_penerima" required
+                        class="{{ $errors->has('alamat_penerima') ? 'is-invalid' : '' }}">{{ old('alamat_penerima') }}</textarea>
+                    @error('alamat_penerima') <span class="field-error">{{ $message }}</span> @enderror
+                </div>
             </div>
 
             <label class="label-section">Isi Kiriman</label>

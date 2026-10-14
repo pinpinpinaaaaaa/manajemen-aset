@@ -120,6 +120,8 @@ class EkspedisiController extends Controller
             'email_pengirim' => 'required|email',
             'no_hp_pengirim' => 'nullable|string|max:13',
             'id_divisi_pengirim' => 'required|exists:divisi,id_divisi',
+            'instansi_pengirim' => 'nullable|string|max:255',
+            'alamat_pengirim' => 'nullable|string',
 
             // penerima
             'instansi_penerima' => 'required|string|max:255',
@@ -180,6 +182,8 @@ class EkspedisiController extends Controller
                 'email_pengirim' => $request->email_pengirim,
                 'no_hp_pengirim' => $request->no_hp_pengirim,
                 'id_divisi_pengirim' => $request->id_divisi_pengirim,
+                'instansi_pengirim' => $request->instansi_pengirim,
+                'alamat_pengirim' => $request->alamat_pengirim,
 
                 'instansi_penerima' => $request->instansi_penerima,
                 'nama_penerima' => $request->nama_penerima,

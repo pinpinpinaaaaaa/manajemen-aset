@@ -95,7 +95,14 @@
             <td class="colon-col">:</td>
             <td class="value-col">
                 {{ $data->nama_pengirim }}<br>
-                {{ optional($data->divisi_pengirim)->nama_divisi ?? '' }}
+                @if ($data->instansi_pengirim)
+                    {{ $data->instansi_pengirim }}<br>
+                @endif
+                @if ($data->alamat_pengirim)
+                    {{ $data->alamat_pengirim }}<br>
+                @else
+                    {{ optional($data->divisi_pengirim)->nama_divisi ?? '' }}
+                @endif
             </td>
         </tr>
 
