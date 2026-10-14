@@ -69,13 +69,19 @@
                         $statusKirim = optional($data->pengiriman)->status_pengiriman;
                         $pcolor = match ($statusKirim) {
                             'belum_dikirim' => 'show-badge-secondary',
-                            'dikirim' => 'show-badge-info',
-                            'diterima' => 'show-badge-warning',
-                            'selesai' => 'show-badge-success',
-                            default => 'show-badge-secondary',
+                            'dikirim'       => 'show-badge-info',
+                            'diterima'      => 'show-badge-warning',
+                            'selesai'       => 'show-badge-success',
+                            default         => 'show-badge-secondary',
                         };
-                    @endphp <div class="mt-2"> <span
-                            class="show-badge {{ $pcolor }}"> {{ $statusKirim ?? '-' }} </span> </div>
+                        $statusKirimLabel = match ($statusKirim) {
+                            'belum_dikirim' => 'Belum Dikirim',
+                            'dikirim'       => 'Dikirim',
+                            'diterima'      => 'Diterima',
+                            'selesai'       => 'Selesai',
+                            default         => '-',
+                        };
+                    @endphp <span class="show-badge {{ $pcolor }}">{{ $statusKirimLabel }}</span>
                 </div>
             </div> {{-- INFORMASI --}} <div class="show-detail-card">
                 <h5 class="fw-bold mb-3"> <i class="fas fa-info-circle text-primary"></i> Informasi Ekspedisi </h5>

@@ -2022,9 +2022,22 @@ input[type='file']:hover {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 1rem;
+    flex-wrap: nowrap;
     border-left: 5px solid #2563eb;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
     margin-bottom: 1.5rem;
+}
+.show-info-left {
+    flex: 1;
+    min-width: 0;
+}
+.show-info-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    flex-shrink: 0;
 }
 .show-info-title {
     font-size: 1.4rem;
@@ -2051,6 +2064,14 @@ input[type='file']:hover {
 }
 .show-badge-danger {
     background: #dc2626;
+    color: #fff;
+}
+.show-badge-secondary {
+    background: #6b7280;
+    color: #fff;
+}
+.show-badge-info {
+    background: #0891b2;
     color: #fff;
 }
 
@@ -2119,9 +2140,15 @@ input[type='file']:hover {
 /* Responsive */
 @media (max-width: 768px) {
     .show-info-card {
-        flex-direction: column;
         align-items: flex-start;
-        gap: 1rem;
+        padding: 1.25rem 1.5rem;
+    }
+    .show-info-title {
+        font-size: 1.15rem;
+    }
+    .show-badge {
+        font-size: 0.78rem;
+        padding: 4px 9px;
     }
     .show-foto-row {
         flex-direction: column;
@@ -2165,6 +2192,13 @@ input[type='file']:hover {
     }
     .show-info-card {
         padding: 1rem;
+    }
+    .show-info-title {
+        font-size: 1rem;
+    }
+    .show-badge {
+        font-size: 0.7rem;
+        padding: 3px 7px;
     }
 }
 
