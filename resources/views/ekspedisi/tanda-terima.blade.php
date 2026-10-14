@@ -127,19 +127,22 @@
             <td class="label-col">Berupa</td>
             <td class="colon-col">:</td>
             <td class="value-col">
-                @php
-                    $no = 1;
-                    $items = [];
-                    foreach ($data->dokumen as $d) {
-                        $items[] = $d->nama_dokumen . ($d->jumlah > 1 ? ' (' . $d->jumlah . ' lembar)' : '');
-                    }
-                    foreach ($data->barang as $b) {
-                        $items[] = $b->nama_barang . ' — ' . $b->jumlah . ' ' . ($b->satuan ?? 'pcs');
-                    }
-                @endphp
+                @php $no = 1; @endphp
 
-                @foreach ($items as $item)
-                    {{ $loop->iteration }}. {{ $item }}<br>
+                @foreach ($data->dokumen as $d)
+                    {{ $no }}. {{ $d->nama_dokumen }} ({{ $d->jumlah }})<br>
+                    @if ($d->jenis_dokumen)
+                        <span style="font-size:11px;color:#555;padding-left:14px;">{{ $d->jenis_dokumen }}</span><br>
+                    @endif
+                    @php $no++ @endphp
+                @endforeach
+
+                @foreach ($data->barang as $b)
+                    {{ $no }}. {{ $b->nama_barang }} ({{ $b->jumlah }} {{ $b->satuan ?? 'pcs' }})<br>
+                    @if ($b->keterangan)
+                        <span style="font-size:11px;color:#555;padding-left:14px;">{{ $b->keterangan }}</span><br>
+                    @endif
+                    @php $no++ @endphp
                 @endforeach
 
                 @if ($data->keterangan)
@@ -159,8 +162,8 @@
                 <table border="1" cellpadding="12" cellspacing="0"
                     style="border-collapse:collapse; border-color:#000; margin: 10px auto;">
                     <tr>
-                        <td style="font-weight:bold; font-size:13px; letter-spacing:3px; text-align:center; width:90px; height:70px; vertical-align:middle;">
-                            KEUANGAN
+                        <td style="font-weight:bold; font-size:11px; letter-spacing:1px; text-align:center; width:90px; height:70px; vertical-align:middle; word-break:break-word; line-height:1.4;">
+                            {{ strtoupper(optional($data->divisi_pengaju)->nama_divisi ?? '') }}
                         </td>
                     </tr>
                 </table>
@@ -197,7 +200,7 @@
                 </div>
 
                 <br>
-                <span style="font-size:11px; color:#333;">Nama Jelas</span>
+                <span style="font-size:11px; color:#333;">Nama Penerima</span>
 
                 <br><br>
 
