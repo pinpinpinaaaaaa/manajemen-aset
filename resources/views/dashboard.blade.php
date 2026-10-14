@@ -170,8 +170,8 @@
     {{-- ROW 1 · 4 stat cards — pakai komponen existing               --}}
     {{-- ══════════════════════════════════════════════════════════════ --}}
     <div class="stat-cards-grid">
-        <x-stat-card label="Total Sarana Aktif" :value="number_format($totalAset) . ' unit'"  :href="route('aset.index')" />
-        <x-stat-card label="Sarana Tersedia"   :value="number_format($asetTersedia) . ' unit'" :href="route('aset.index')" />
+        <x-stat-card label="Total Sarana Aktif" :value="number_format($totalAset) . ' unit'"  :href="route('aset.index', ['jenis' => 'sarana'])" />
+        <x-stat-card label="Sarana Tersedia"   :value="number_format($asetTersedia) . ' unit'" :href="route('aset.index', ['jenis' => 'sarana'])" />
         <x-stat-card label="Dalam Maintenance" :value="number_format($asetMaintenance) . ' unit'" :href="route('maintenance.index')" />
         <x-stat-card label="Proses Pemusnahan" :value="number_format($sedangPemusnahan)" :href="route('laporan_pemusnahan.index')" />
     </div>
