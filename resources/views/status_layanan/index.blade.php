@@ -224,10 +224,78 @@
             color: #374151;
         }
 
+        /* Result cards */
+        .result-list { padding: .75rem 1rem; display: flex; flex-direction: column; gap: .625rem; }
+
+        .result-card {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: .75rem;
+            background: #fff;
+            border: 1px solid #f0f0f0;
+            border-left: 3px solid #ebca56;
+            border-radius: .625rem;
+            padding: .875rem 1rem;
+        }
+        .result-card:hover { background: #fffdf0; }
+
+        .result-left { flex: 1; min-width: 0; }
+        .result-name {
+            font-size: .9375rem;
+            font-weight: 700;
+            color: #1E2226;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .result-sub {
+            font-size: .8125rem;
+            color: #666;
+            margin-top: 1px;
+        }
+        .result-meta {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            margin-top: .375rem;
+            flex-wrap: wrap;
+        }
+        .result-date { font-size: .75rem; color: #999; }
+
+        .result-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: .375rem;
+            flex-shrink: 0;
+        }
+        .result-badges { display: flex; gap: .375rem; flex-wrap: wrap; justify-content: flex-end; }
+
+        .btn-tt {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: #16a34a;
+            color: #fff;
+            font-size: .72rem;
+            font-weight: 600;
+            text-decoration: none;
+            white-space: nowrap;
+            margin-top: 2px;
+        }
+        .btn-tt:hover { background: #15803d; }
+
         @media (max-width: 600px) {
             .header-card { padding: 1.5rem 1.25rem; }
             .search-card { padding: 1.25rem; }
             .header-card h1 { font-size: 1.375rem; }
+            .result-name { font-size: .875rem; }
+            .result-sub { font-size: .75rem; }
+            .badge { font-size: .68rem; padding: .15rem .45rem; }
+            .modul-chip { font-size: .68rem; }
         }
     </style>
 </head>
@@ -304,80 +372,58 @@
                     </p>
                 </div>
             @else
-                <div class="table-wrap">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Modul</th>
-                                <th>ID Permohonan</th>
-                                <th>Nama</th>
-                                <th>Status Persetujuan</th>
-                                <th>Status Proses</th>
-                                <th>Tanggal</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($hasil as $row)
-                            <tr>
-                                <td><span class="modul-chip">{{ $row['modul'] }}</span></td>
-                                <td><span class="id-code">{{ $row['id'] }}</span></td>
-                                <td>{{ $row['nama'] }}</td>
-                                <td>
-                                    @php
-                                        $ap = $row['approval'];
-                                        $apClass = match($ap) {
-                                            'disetujui'               => 'badge-disetujui',
-                                            'ditolak'                 => 'badge-ditolak',
-                                            'menunggu_persetujuan'    => 'badge-menunggu',
-                                            default                   => 'badge-belum',
-                                        };
-                                        $apLabel = match($ap) {
-                                            'disetujui'               => 'Disetujui',
-                                            'ditolak'                 => 'Ditolak',
-                                            'menunggu_persetujuan'    => 'Menunggu',
-                                            null                      => '—',
-                                            default                   => ucwords(str_replace('_', ' ', $ap)),
-                                        };
-                                    @endphp
-                                    @if ($ap !== null)
-                                        <span class="badge {{ $apClass }}">{{ $apLabel }}</span>
-                                    @else
-                                        <span style="color:#999;font-size:.8125rem">—</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    @php
-                                        $st = $row['status'];
-                                        $stClass = match(true) {
-                                            str_contains($st ?? '', 'Selesai')         => 'badge-selesai',
-                                            str_contains($st ?? '', 'Sedang')          => 'badge-proses',
-                                            str_contains($st ?? '', 'Diproses')        => 'badge-proses',
-                                            default                                     => 'badge-belum',
-                                        };
-                                    @endphp
-                                    @if ($st)
-                                        <span class="badge {{ $stClass }}">{{ $st }}</span>
-                                    @else
-                                        <span style="color:#999;font-size:.8125rem">—</span>
-                                    @endif
-                                </td>
-                                <td style="white-space:nowrap;color:#555">
-                                    {{ $row['tanggal'] ? \Carbon\Carbon::parse($row['tanggal'])->format('d M Y') : '—' }}
-                                </td>
-                                <td>
-                                    @if (!empty($row['tanda_terima']))
-                                        <a href="{{ route('ekspedisi.tanda-terima', $row['id']) }}" target="_blank"
-                                            style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:8px;background:#16a34a;color:#fff;font-size:.78rem;font-weight:600;text-decoration:none;white-space:nowrap;">
-                                            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                                            Tanda Terima
-                                        </a>
-                                    @endif
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                <div class="result-list">
+                    @foreach ($hasil as $row)
+                    @php
+                        $ap = $row['approval'];
+                        $apClass = match($ap) {
+                            'disetujui'            => 'badge-disetujui',
+                            'ditolak'              => 'badge-ditolak',
+                            'menunggu_persetujuan' => 'badge-menunggu',
+                            default                => 'badge-belum',
+                        };
+                        $apLabel = match($ap) {
+                            'disetujui'            => 'Disetujui',
+                            'ditolak'              => 'Ditolak',
+                            'menunggu_persetujuan' => 'Menunggu',
+                            null                   => null,
+                            default                => ucwords(str_replace('_', ' ', $ap)),
+                        };
+                        $st = $row['status'];
+                        $stClass = match(true) {
+                            str_contains($st ?? '', 'Selesai') => 'badge-selesai',
+                            str_contains($st ?? '', 'Sedang')  => 'badge-proses',
+                            default                             => 'badge-belum',
+                        };
+                    @endphp
+                    <div class="result-card">
+                        <div class="result-left">
+                            <div class="result-name">{{ $row['nama'] }}</div>
+                            <div class="result-sub">{{ $row['email'] }}</div>
+                            <div class="result-meta">
+                                <span class="modul-chip">{{ $row['modul'] }}</span>
+                                <span class="id-code">{{ $row['id'] }}</span>
+                                <span class="result-date">{{ $row['tanggal'] ? \Carbon\Carbon::parse($row['tanggal'])->format('d M Y') : '' }}</span>
+                            </div>
+                        </div>
+                        <div class="result-right">
+                            <div class="result-badges">
+                                @if ($apLabel)
+                                    <span class="badge {{ $apClass }}">{{ $apLabel }}</span>
+                                @endif
+                                @if ($st)
+                                    <span class="badge {{ $stClass }}">{{ $st }}</span>
+                                @endif
+                            </div>
+                            @if (!empty($row['tanda_terima']))
+                                <a href="{{ route('ekspedisi.tanda-terima', $row['id']) }}" target="_blank" class="btn-tt">
+                                    <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                    Tanda Terima
+                                </a>
+                            @endif
+                        </div>
+                    </div>
+                    @endforeach
                 </div>
             @endif
         </div>
