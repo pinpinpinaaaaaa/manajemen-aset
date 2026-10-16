@@ -357,7 +357,7 @@ class PeminjamanRuanganController extends Controller
 
         $request->validate([
             'nama_pengaju'     => 'required',
-            'email_pengaju'    => 'required|email',
+            'email_pengaju'    => 'nullable|email',
             'id_divisi'        => 'required|exists:divisi,id_divisi',
             'jenis_kegiatan'   => 'required',
 
@@ -622,7 +622,7 @@ class PeminjamanRuanganController extends Controller
     {
         $request->validate([
             'nama_pengaju'   => 'required',
-            'email_pengaju'  => 'required|email',
+            'email_pengaju'  => 'nullable|email',
             'id_divisi'      => 'required|exists:divisi,id_divisi',
             'jenis_kegiatan' => 'required',
             'ruangan'        => 'nullable|array',
@@ -928,6 +928,7 @@ class PeminjamanRuanganController extends Controller
         $data->update([
             'decision_status' => 'ditolak',
             'status' => 'Selesai',
+            'catatan' => $request->catatan,
             'decided_by' => auth()->user()->id_user ?? null,
             'decided_at' => now(),
         ]);

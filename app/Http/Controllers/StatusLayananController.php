@@ -32,48 +32,51 @@ class StatusLayananController extends Controller
         // PeminjamanRuangan
         PeminjamanRuangan::where('id_peminjaman', $cari)
             ->orWhere('email_pengaju', $cari)
-            ->get(['id_peminjaman', 'nama_pengaju', 'email_pengaju', 'decision_status', 'status', 'created_at'])
+            ->get(['id_peminjaman', 'nama_pengaju', 'email_pengaju', 'decision_status', 'status', 'catatan', 'created_at'])
             ->each(function ($r) use (&$rows) {
                 $rows[] = [
-                    'modul'   => 'Peminjaman Ruangan',
-                    'id'      => $r->id_peminjaman,
-                    'nama'    => $r->nama_pengaju,
-                    'email'   => $r->email_pengaju,
-                    'approval'=> $r->decision_status,
-                    'status'  => $r->status,
-                    'tanggal' => $r->created_at,
+                    'modul'    => 'Peminjaman Ruangan',
+                    'id'       => $r->id_peminjaman,
+                    'nama'     => $r->nama_pengaju,
+                    'email'    => $r->email_pengaju,
+                    'approval' => $r->decision_status,
+                    'status'   => $r->status,
+                    'tanggal'  => $r->created_at,
+                    'catatan'  => $r->decision_status === 'ditolak' ? $r->catatan : null,
                 ];
             });
 
         // PeminjamanAset
         PeminjamanAset::where('id_peminjaman', $cari)
             ->orWhere('email_pengaju', $cari)
-            ->get(['id_peminjaman', 'nama_pengaju', 'email_pengaju', 'decision_status', 'status', 'created_at'])
+            ->get(['id_peminjaman', 'nama_pengaju', 'email_pengaju', 'decision_status', 'status', 'catatan', 'created_at'])
             ->each(function ($r) use (&$rows) {
                 $rows[] = [
-                    'modul'   => 'Peminjaman Aset Kantor',
-                    'id'      => $r->id_peminjaman,
-                    'nama'    => $r->nama_pengaju,
-                    'email'   => $r->email_pengaju,
-                    'approval'=> $r->decision_status,
-                    'status'  => $r->status,
-                    'tanggal' => $r->created_at,
+                    'modul'    => 'Peminjaman Aset Kantor',
+                    'id'       => $r->id_peminjaman,
+                    'nama'     => $r->nama_pengaju,
+                    'email'    => $r->email_pengaju,
+                    'approval' => $r->decision_status,
+                    'status'   => $r->status,
+                    'tanggal'  => $r->created_at,
+                    'catatan'  => $r->decision_status === 'ditolak' ? $r->catatan : null,
                 ];
             });
 
         // PermintaanKendaraan
         PermintaanKendaraan::where('id_permohonan', $cari)
             ->orWhere('email', $cari)
-            ->get(['id_permohonan', 'nama', 'email', 'status', 'created_at'])
+            ->get(['id_permohonan', 'nama', 'email', 'status', 'catatan', 'created_at'])
             ->each(function ($r) use (&$rows) {
                 $rows[] = [
-                    'modul'   => 'Permintaan Kendaraan',
-                    'id'      => $r->id_permohonan,
-                    'nama'    => $r->nama,
-                    'email'   => $r->email,
-                    'approval'=> null,
-                    'status'  => $r->status,
-                    'tanggal' => $r->created_at,
+                    'modul'    => 'Permintaan Kendaraan',
+                    'id'       => $r->id_permohonan,
+                    'nama'     => $r->nama,
+                    'email'    => $r->email,
+                    'approval' => null,
+                    'status'   => $r->status,
+                    'tanggal'  => $r->created_at,
+                    'catatan'  => $r->status === 'ditolak' ? $r->catatan : null,
                 ];
             });
 
@@ -81,72 +84,77 @@ class StatusLayananController extends Controller
         Ekspedisi::with('pengiriman')
             ->where('id_ekspedisi', $cari)
             ->orWhere('email_pengaju', $cari)
-            ->get(['id_ekspedisi', 'nama_pengirim', 'email_pengaju', 'decision_status', 'created_at'])
+            ->get(['id_ekspedisi', 'nama_pengirim', 'email_pengaju', 'decision_status', 'keterangan', 'created_at'])
             ->each(function ($r) use (&$rows) {
                 $statusPengiriman = $r->pengiriman?->status_pengiriman;
                 $rows[] = [
-                    'modul'   => 'Ekspedisi',
-                    'id'      => $r->id_ekspedisi,
-                    'nama'    => $r->nama_pengirim,
-                    'email'   => $r->email_pengaju,
-                    'approval'=> $r->decision_status,
-                    'status'  => match($statusPengiriman) {
+                    'modul'    => 'Ekspedisi',
+                    'id'       => $r->id_ekspedisi,
+                    'nama'     => $r->nama_pengirim,
+                    'email'    => $r->email_pengaju,
+                    'approval' => $r->decision_status,
+                    'status'   => match($statusPengiriman) {
                         'belum_dikirim' => 'Belum Diproses',
                         'dikirim'       => 'Sedang Dikirim',
                         'diterima'      => 'Sedang Diproses',
                         'selesai'       => 'Selesai',
                         default         => null,
                     },
-                    'tanggal' => $r->created_at,
+                    'tanggal'      => $r->created_at,
                     'tanda_terima' => true,
+                    'label'        => true,
+                    'catatan'      => $r->decision_status === 'ditolak' ? $r->keterangan : null,
                 ];
             });
 
         // PengaduanKerusakan
         PengaduanKerusakan::where('id_pengaduan', $cari)
             ->orWhere('email_pelapor', $cari)
-            ->get(['id_pengaduan', 'nama_pelapor', 'email_pelapor', 'decision_status', 'created_at'])
+            ->get(['id_pengaduan', 'nama_pelapor', 'email_pelapor', 'decision_status', 'catatan', 'created_at'])
             ->each(function ($r) use (&$rows) {
                 $rows[] = [
-                    'modul'   => 'Pengaduan Kerusakan',
-                    'id'      => $r->id_pengaduan,
-                    'nama'    => $r->nama_pelapor,
-                    'email'   => $r->email_pelapor,
-                    'approval'=> $r->decision_status,
-                    'status'  => null,
-                    'tanggal' => $r->created_at,
+                    'modul'    => 'Pengaduan Kerusakan',
+                    'id'       => $r->id_pengaduan,
+                    'nama'     => $r->nama_pelapor,
+                    'email'    => $r->email_pelapor,
+                    'approval' => $r->decision_status,
+                    'status'   => null,
+                    'tanggal'  => $r->created_at,
+                    'catatan'  => $r->decision_status === 'ditolak' ? $r->catatan : null,
                 ];
             });
 
         // PermintaanBarangGudang
         PermintaanBarangGudang::where('id_permintaan', $cari)
             ->orWhere('email_pengaju', $cari)
-            ->get(['id_permintaan', 'nama_pengaju', 'email_pengaju', 'decision_status', 'status', 'created_at'])
+            ->get(['id_permintaan', 'nama_pengaju', 'email_pengaju', 'decision_status', 'status', 'catatan', 'created_at'])
             ->each(function ($r) use (&$rows) {
                 $rows[] = [
-                    'modul'   => 'Permintaan Barang Gudang',
-                    'id'      => $r->id_permintaan,
-                    'nama'    => $r->nama_pengaju,
-                    'email'   => $r->email_pengaju,
-                    'approval'=> $r->decision_status,
-                    'status'  => $r->status,
-                    'tanggal' => $r->created_at,
+                    'modul'    => 'Permintaan Barang Gudang',
+                    'id'       => $r->id_permintaan,
+                    'nama'     => $r->nama_pengaju,
+                    'email'    => $r->email_pengaju,
+                    'approval' => $r->decision_status,
+                    'status'   => $r->status,
+                    'tanggal'  => $r->created_at,
+                    'catatan'  => $r->decision_status === 'ditolak' ? $r->catatan : null,
                 ];
             });
 
         // PengadaanBarangJasa
         PengadaanBarangJasa::where('id_pengadaan', $cari)
             ->orWhere('email_pengaju', $cari)
-            ->get(['id_pengadaan', 'nama_pengaju', 'email_pengaju', 'decision_status', 'status', 'created_at'])
+            ->get(['id_pengadaan', 'nama_pengaju', 'email_pengaju', 'decision_status', 'status', 'catatan', 'created_at'])
             ->each(function ($r) use (&$rows) {
                 $rows[] = [
-                    'modul'   => 'Pengadaan Barang & Jasa',
-                    'id'      => $r->id_pengadaan,
-                    'nama'    => $r->nama_pengaju,
-                    'email'   => $r->email_pengaju,
-                    'approval'=> $r->decision_status,
-                    'status'  => $r->status,
-                    'tanggal' => $r->created_at,
+                    'modul'    => 'Pengadaan Barang & Jasa',
+                    'id'       => $r->id_pengadaan,
+                    'nama'     => $r->nama_pengaju,
+                    'email'    => $r->email_pengaju,
+                    'approval' => $r->decision_status,
+                    'status'   => $r->status,
+                    'tanggal'  => $r->created_at,
+                    'catatan'  => $r->decision_status === 'ditolak' ? $r->catatan : null,
                 ];
             });
 

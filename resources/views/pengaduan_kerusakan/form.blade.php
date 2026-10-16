@@ -351,6 +351,7 @@
 
         /* ================= ERROR DISPLAY ================= */
         .field-error { color:#dc2626; font-size:.8rem; display:block; margin-top:4px; }
+        .required-mark { color:#dc2626; margin-left:2px; font-size:.85em; }
         input.is-invalid, select.is-invalid, textarea.is-invalid {
             border-color:#f87171 !important;
             background:#fff5f5 !important;
@@ -414,7 +415,7 @@
 
             <div class="form-grid">
                 <div>
-                    <label>Nama Pelapor</label>
+                    <label>Nama Pelapor<span class="required-mark">*</span></label>
                     <input type="text" name="nama_pelapor" required
                            value="{{ old('nama_pelapor') }}"
                            class="{{ $errors->has('nama_pelapor') ? 'is-invalid' : '' }}">
@@ -423,7 +424,7 @@
                     @enderror
                 </div>
                 <div>
-                    <label>Divisi</label>
+                    <label>Divisi<span class="required-mark">*</span></label>
                     <select name="id_divisi" required
                             class="{{ $errors->has('id_divisi') ? 'is-invalid' : '' }}">
                         <option value="" {{ !old('id_divisi') ? 'selected' : '' }}>-- Pilih Divisi --</option>

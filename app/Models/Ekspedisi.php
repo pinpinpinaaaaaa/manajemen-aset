@@ -33,8 +33,10 @@ class Ekspedisi extends Model
         'instansi_penerima',
         'alamat_penerima',
 
+        'jenis_ekspedisi',
         'judul_kegiatan',
         'keterangan',
+        'cara_penyerahan',
 
         'decision_status',
         'approved_by',

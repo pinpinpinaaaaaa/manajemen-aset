@@ -111,11 +111,11 @@ class PermintaanBarangGudangController extends Controller
     {
         $request->validate([
             'nama_pengaju' => 'required|string|max:100',
-            'email_pengaju' => 'required|email|max:100',
+            'email_pengaju' => 'nullable|email|max:100',
             'id_divisi' => 'required|exists:divisi,id_divisi',
             'tanggal_kebutuhan' => 'required|date',
             'items' => 'required|array|min:1',
-            'catatan' => 'nullable|string|max:500',
+            'catatan' => 'nullable|string',
         ], [
             'id_divisi.exists' => 'Divisi yang dipilih tidak valid.',
         ]);
@@ -201,13 +201,13 @@ class PermintaanBarangGudangController extends Controller
     {
         $request->validate([
             'nama_pengaju' => 'required|string|max:100',
-            'email_pengaju' => 'required|email|max:100',
+            'email_pengaju' => 'nullable|email|max:100',
             'id_divisi' => 'required|exists:divisi,id_divisi',
             'tanggal_kebutuhan' => 'required|date',
             'items' => 'required|array|min:1',
             'items.*.id_barang' => 'required|exists:gudang_barang,id_barang',
             'items.*.jumlah' => 'required|numeric|min:1',
-            'catatan' => 'nullable|string|max:500',
+            'catatan' => 'nullable|string',
         ], [
             'nama_pengaju.required'          => 'Nama pengaju wajib diisi.',
             'email_pengaju.required'         => 'Email pengaju wajib diisi.',

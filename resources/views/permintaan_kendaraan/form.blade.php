@@ -371,6 +371,7 @@
             margin-top: 4px;
             display: block;
         }
+        .required-mark { color: #dc2626; margin-left: 2px; font-size: .85em; }
 
         input.is-invalid,
         select.is-invalid,
@@ -451,13 +452,13 @@
 
             <div class="form-grid">
                 <div>
-                    <label>Nama Pengaju</label>
+                    <label>Nama Pengaju<span class="required-mark">*</span></label>
                     <input type="text" name="nama_pengaju" value="{{ old('nama_pengaju') }}"
                            class="{{ $errors->has('nama_pengaju') ? 'is-invalid' : '' }}" required>
                     @error('nama_pengaju')<span class="field-error">{{ $message }}</span>@enderror
                 </div>
                 <div>
-                    <label>Divisi</label>
+                    <label>Divisi<span class="required-mark">*</span></label>
                     <select name="id_divisi" class="{{ $errors->has('id_divisi') ? 'is-invalid' : '' }}" required>
                         <option value="">-- Pilih Divisi --</option>
                         @foreach ($divisi as $d)
@@ -486,14 +487,14 @@
                     <div class="row-barang">
 
                         <div>
-                            <label>Tanggal Mulai</label>
+                            <label>Tanggal Mulai<span class="required-mark">*</span></label>
                             <input type="text" name="tanggal_mulai" class="tglMulai {{ $errors->has('tanggal_mulai') ? 'is-invalid' : '' }}"
                                    value="{{ old('tanggal_mulai') }}" required>
                             @error('tanggal_mulai')<span class="field-error">{{ $message }}</span>@enderror
                         </div>
 
                         <div>
-                            <label>Tanggal Selesai</label>
+                            <label>Tanggal Selesai<span class="required-mark">*</span></label>
                             <input type="text" name="tanggal_selesai" class="tglSelesai {{ $errors->has('tanggal_selesai') ? 'is-invalid' : '' }}"
                                    value="{{ old('tanggal_selesai') }}" required>
                             @error('tanggal_selesai')<span class="field-error">{{ $message }}</span>@enderror
@@ -505,14 +506,14 @@
                 <div class="row-bottom">
 
                     <div>
-                        <label>Jam Mulai</label>
+                        <label>Jam Berangkat<span class="required-mark">*</span></label>
                         <input type="time" name="jam_mulai" class="jamMulai {{ $errors->has('jam_mulai') ? 'is-invalid' : '' }}"
                                value="{{ old('jam_mulai') }}" required>
                         @error('jam_mulai')<span class="field-error">{{ $message }}</span>@enderror
                     </div>
 
                     <div>
-                        <label>Jam Selesai</label>
+                        <label>Jam Selesai<span class="required-mark">*</span></label>
                         <input type="time" name="jam_selesai" class="jamSelesai {{ $errors->has('jam_selesai') ? 'is-invalid' : '' }}"
                                value="{{ old('jam_selesai') }}" required>
                         @error('jam_selesai')<span class="field-error">{{ $message }}</span>@enderror
@@ -523,7 +524,7 @@
                 <div class="row-top">
 
                     <div>
-                        <label>Jumlah Kendaraan</label>
+                        <label>Jumlah Kendaraan<span class="required-mark">*</span></label>
 
                         <input type="number" name="jumlah" class="jumlahInput {{ $errors->has('jumlah') ? 'is-invalid' : '' }}"
                                min="1" value="{{ old('jumlah') }}" required>
@@ -533,14 +534,14 @@
                     </div>
 
                     <div>
-                        <label>Keperluan</label>
+                        <label>Keperluan<span class="required-mark">*</span></label>
                         <input type="text" name="keperluan" value="{{ old('keperluan') }}"
                                class="{{ $errors->has('keperluan') ? 'is-invalid' : '' }}" required>
                         @error('keperluan')<span class="field-error">{{ $message }}</span>@enderror
                     </div>
 
                     <div>
-                        <label>Jenis Perjalanan</label>
+                        <label>Jenis Perjalanan<span class="required-mark">*</span></label>
                         <select name="jenis_perjalanan" class="{{ $errors->has('jenis_perjalanan') ? 'is-invalid' : '' }}" required>
                             <option value="" disabled selected>— Pilih —</option>
                             <option value="penugasan" {{ old('jenis_perjalanan') === 'penugasan' ? 'selected' : '' }}>Penugasan (Dinas)</option>
@@ -556,14 +557,14 @@
                     <div class="row-barang">
 
                         <div>
-                            <label>Tempat Jemput</label>
+                            <label>Tempat Jemput<span class="required-mark">*</span></label>
                             <input type="text" name="tempat_jemput" value="{{ old('tempat_jemput') }}"
                                    class="{{ $errors->has('tempat_jemput') ? 'is-invalid' : '' }}" required>
                             @error('tempat_jemput')<span class="field-error">{{ $message }}</span>@enderror
                         </div>
 
                         <div>
-                            <label>Tempat Tujuan</label>
+                            <label>Tempat Tujuan<span class="required-mark">*</span></label>
                             <input type="text" name="tempat_tujuan" value="{{ old('tempat_tujuan') }}"
                                    class="{{ $errors->has('tempat_tujuan') ? 'is-invalid' : '' }}" required>
                             @error('tempat_tujuan')<span class="field-error">{{ $message }}</span>@enderror

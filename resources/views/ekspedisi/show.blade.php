@@ -54,7 +54,7 @@
             </div> {{-- INFO UTAMA --}} <div class="show-info-card">
                 <div class="show-info-left">
                     <h2 class="show-info-title">{{ $data->nama_pengirim }}</h2>
-                    <p class="show-info-subtitle"> {{ $data->divisi_pengirim->nama_divisi ?? '-' }} </p>
+                    <p class="show-info-subtitle"> {{ $data->divisi_pengirim->nama_divisi ?? ($data->instansi_pengirim ?? '-') }} </p>
                 </div>
                 <div class="show-info-right text-end"> {{-- STATUS APPROVAL --}} @php
                     $acolor = match ($data->decision_status) {
@@ -89,6 +89,16 @@
                     <tr>
                         <th>ID</th>
                         <td>{{ $data->id_ekspedisi }}</td>
+                    </tr>
+                    <tr>
+                        <th>Jenis</th>
+                        <td>
+                            @if($data->jenis_ekspedisi === 'mengambil')
+                                <span class="badge bg-primary">Mengambil</span>
+                            @else
+                                <span class="badge bg-warning text-dark">Mengantar</span>
+                            @endif
+                        </td>
                     </tr>
                     <tr>
                         <th>Pengirim</th>
@@ -126,8 +136,20 @@
                         <th>Alamat</th>
                         <td>{{ $data->alamat_penerima }}</td>
                     </tr>
+                    @if($data->jenis_ekspedisi !== 'mengambil' && $data->cara_penyerahan)
                     <tr>
-                        <th>Keterangan</th>
+                        <th>Diserahkan Kepada</th>
+                        <td>{{ match($data->cara_penyerahan) {
+                            'langsung' => 'Langsung ke penerima',
+                            'resepsionis' => 'Resepsionis',
+                            'satpam' => 'Satpam',
+                            'mailing_box' => 'Mailing Box',
+                            default => ucfirst($data->cara_penyerahan)
+                        } }}</td>
+                    </tr>
+                    @endif
+                    <tr>
+                        <th>{{ $data->decision_status === 'ditolak' ? 'Alasan Penolakan' : 'Keterangan' }}</th>
                         <td>{{ $data->keterangan ?? '-' }}</td>
                     </tr>
                 </table>

@@ -287,6 +287,7 @@
 
         /* ================= ERROR DISPLAY ================= */
         .field-error { color:#dc2626; font-size:.8rem; display:block; margin-top:4px; }
+        .required-mark { color:#dc2626; margin-left:2px; font-size:.85em; }
         input.is-invalid, select.is-invalid, textarea.is-invalid {
             border-color:#f87171 !important;
             background:#fff5f5 !important;
@@ -351,7 +352,7 @@
 
             <div class="form-grid">
                 <div>
-                    <label>Nama Peminjam</label>
+                    <label>Nama Peminjam<span class="required-mark">*</span></label>
                     <input type="text" name="nama_pengaju" required
                            value="{{ old('nama_pengaju') }}"
                            class="{{ $errors->has('nama_pengaju') ? 'is-invalid' : '' }}">
@@ -360,7 +361,7 @@
                     @enderror
                 </div>
                 <div>
-                    <label>Divisi</label>
+                    <label>Divisi<span class="required-mark">*</span></label>
                     <select name="id_divisi" required
                             class="{{ $errors->has('id_divisi') ? 'is-invalid' : '' }}">
                         <option value="" {{ !old('id_divisi') ? 'selected' : '' }}>-- Pilih Divisi --</option>
@@ -377,7 +378,7 @@
             </div>
 
             <label>Email Peminjam</label>
-            <input type="email" name="email_pengaju" required
+            <input type="email" name="email_pengaju"
                    value="{{ old('email_pengaju') }}"
                    class="{{ $errors->has('email_pengaju') ? 'is-invalid' : '' }}">
             @error('email_pengaju')
@@ -437,7 +438,7 @@
 
             <div class="btn-add" onclick="addItem()">+ Tambah Aset</div>
 
-            <label>Keperluan</label>
+            <label>Keperluan<span class="required-mark">*</span></label>
             <textarea name="alasan" required
                       class="{{ $errors->has('alasan') ? 'is-invalid' : '' }}">{{ old('alasan') }}</textarea>
             @error('alasan')

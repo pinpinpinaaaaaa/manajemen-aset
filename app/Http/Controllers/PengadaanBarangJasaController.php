@@ -175,7 +175,7 @@ class PengadaanBarangJasaController extends Controller
     {
         $request->validate([
             'nama_pengaju' => 'required',
-            'email_pengaju' => 'required|email',
+            'email_pengaju' => 'nullable|email',
             'id_divisi' => 'required|exists:divisi,id_divisi',
             'tanggal_kebutuhan' => 'required|date',
             'items' => 'required|array|min:1',

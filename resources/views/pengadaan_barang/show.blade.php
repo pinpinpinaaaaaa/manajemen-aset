@@ -121,7 +121,7 @@
                         <td>{{ $pengadaan->alasan }}</td>
                     </tr>
                     <tr>
-                        <th>Catatan</th>
+                        <th>{{ $pengadaan->decision_status === 'ditolak' ? 'Alasan Penolakan' : 'Catatan' }}</th>
                         <td>{{ $pengadaan->catatan ?? '-' }}</td>
                     </tr>
                 </table>
@@ -148,7 +148,26 @@
                             <tr>
 
                                 <td>
-                                    {{ $detail->jenis == 'barang' ? $detail->nama_barang : $detail->kategori_jasa }}
+                                    <div class="fw-semibold">{{ $detail->jenis == 'barang' ? $detail->nama_barang : $detail->kategori_jasa }}</div>
+                                    @if($detail->jenis == 'barang')
+                                        @if($detail->merk || $detail->tipe_model)
+                                            <div class="text-muted" style="font-size:.8rem;margin-top:.2rem;">
+                                                @if($detail->merk) <span>Merk: {{ $detail->merk }}</span> @endif
+                                                @if($detail->merk && $detail->tipe_model) &nbsp;·&nbsp; @endif
+                                                @if($detail->tipe_model) <span>Tipe: {{ $detail->tipe_model }}</span> @endif
+                                            </div>
+                                        @endif
+                                        @if($detail->spesifikasi)
+                                            <div class="text-muted" style="font-size:.8rem;margin-top:.15rem;">
+                                                Spesifikasi: {{ $detail->spesifikasi }}
+                                            </div>
+                                        @endif
+                                    @endif
+                                    @if($detail->catatan)
+                                        <div class="text-muted" style="font-size:.8rem;margin-top:.15rem;font-style:italic;">
+                                            Catatan: {{ $detail->catatan }}
+                                        </div>
+                                    @endif
                                 </td>
 
                                 <td>

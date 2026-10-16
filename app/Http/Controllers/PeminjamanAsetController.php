@@ -157,7 +157,7 @@ class PeminjamanAsetController extends Controller
         
         $request->validate([
             'nama_pengaju' => 'required',
-            'email_pengaju' => 'required|email',
+            'email_pengaju' => 'nullable|email',
             'id_divisi' => 'required|exists:divisi,id_divisi',
             'alasan' => 'required',
             'items' => 'required|array|min:1',
@@ -302,7 +302,7 @@ class PeminjamanAsetController extends Controller
     {
         $request->validate([
             'nama_pengaju' => 'required',
-            'email_pengaju' => 'required|email',
+            'email_pengaju' => 'nullable|email',
             'id_divisi' => 'required|exists:divisi,id_divisi',
             'alasan' => 'required',
             'items.*.id_jenis_barang' => 'required',

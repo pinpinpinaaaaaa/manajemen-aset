@@ -50,6 +50,7 @@ Route::post('/form-permintaan-kendaraan', [PermintaanKendaraanController::class,
 Route::get('/form-ekspedisi', [EkspedisiController::class, 'create'])->name('form-ekspedisi.create');
 Route::post('/form-ekspedisi', [EkspedisiController::class, 'store'])->name('form-ekspedisi.store')->middleware('throttle:20,1');
 Route::get('/ekspedisi/{id}/tanda-terima', [EkspedisiController::class, 'printTandaTerima'])->name('ekspedisi.tanda-terima');
+Route::get('/ekspedisi/{id}/label-publik', [EkspedisiController::class, 'printLabel'])->name('ekspedisi.label-publik');
 
 // === FORM PUBLIK PENGADUAN KERUSAKAN ===
 Route::get('/form-pengaduan-kerusakan', [PengaduanKerusakanController::class, 'create'])->name('form-pengaduan-kerusakan.create');

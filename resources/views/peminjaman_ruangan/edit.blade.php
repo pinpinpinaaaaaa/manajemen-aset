@@ -88,7 +88,7 @@
 
                             <option value="asasmen"
                                 {{ old('jenis_kegiatan', $peminjaman->jenis_kegiatan) == 'asasmen' ? 'selected' : '' }}>
-                                Asasmen
+                                Asesmen
                             </option>
 
                             <option value="lainnya"

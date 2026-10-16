@@ -437,7 +437,7 @@
                                     <div class="mb-3">
 
                                         <label class="form-label">
-                                            Catatan Penolakan
+                                            Alasan Penolakan
                                         </label>
 
                                         <textarea name="catatan" class="form-control" rows="4" required placeholder="Masukkan alasan penolakan..."></textarea>

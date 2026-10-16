@@ -135,7 +135,7 @@
                                     </div>
 
                                     <div class="table-subtext">
-                                        {{ $e->divisi_pengirim->nama_divisi ?? '-' }}
+                                        {{ $e->divisi_pengirim->nama_divisi ?? ($e->instansi_pengirim ?? '-') }}
                                     </div>
                                 </td>
 
@@ -659,7 +659,7 @@
                                         <div class="mb-3">
 
                                             <label class="form-label">
-                                                Catatan Penolakan
+                                                Alasan Penolakan
                                             </label>
 
                                             <textarea name="keterangan" class="form-control" rows="4" required placeholder="Masukkan alasan penolakan...">{{ $e->catatan ?? '' }}</textarea>

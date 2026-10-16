@@ -255,6 +255,7 @@
 
         /* ================= ERROR DISPLAY ================= */
         .field-error { color:#dc2626; font-size:.8rem; display:block; margin-top:4px; }
+        .required-mark { color:#dc2626; margin-left:2px; font-size:.85em; }
         input.is-invalid, select.is-invalid, textarea.is-invalid {
             border-color:#f87171 !important;
             background:#fff5f5 !important;
@@ -318,7 +319,7 @@
 
             <div class="form-grid">
                 <div>
-                    <label>Nama Pengaju</label>
+                    <label>Nama Pengaju<span class="required-mark">*</span></label>
                     <input type="text" name="nama_pengaju" required
                            value="{{ old('nama_pengaju') }}"
                            class="{{ $errors->has('nama_pengaju') ? 'is-invalid' : '' }}">
@@ -327,7 +328,7 @@
                     @enderror
                 </div>
                 <div>
-                    <label>Divisi</label>
+                    <label>Divisi<span class="required-mark">*</span></label>
                     <select name="id_divisi" required
                             class="{{ $errors->has('id_divisi') ? 'is-invalid' : '' }}">
                         <option value="" {{ !old('id_divisi') ? 'selected' : '' }} disabled>-- Pilih Divisi --</option>
@@ -346,7 +347,7 @@
             <div class="form-grid">
                 <div>
                     <label>Email Pengaju</label>
-                    <input type="email" name="email_pengaju" required
+                    <input type="email" name="email_pengaju"
                            value="{{ old('email_pengaju') }}"
                            class="{{ $errors->has('email_pengaju') ? 'is-invalid' : '' }}">
                     @error('email_pengaju')
@@ -354,7 +355,7 @@
                     @enderror
                 </div>
                 <div>
-                    <label>Tanggal Kebutuhan</label>
+                    <label>Tanggal Kebutuhan<span class="required-mark">*</span></label>
                     <input type="text" id="tanggal_kebutuhan" name="tanggal_kebutuhan" required
                            value="{{ old('tanggal_kebutuhan') }}"
                            class="{{ $errors->has('tanggal_kebutuhan') ? 'is-invalid' : '' }}">
@@ -393,7 +394,7 @@
                 <div class="btn-add" onclick="addItem()">+ Tambah Barang</div>
             </div>
 
-            <label>Alasan Pengajuan</label>
+            <label>Alasan Pengajuan<span class="required-mark">*</span></label>
             <textarea name="alasan" required
                       class="{{ $errors->has('alasan') ? 'is-invalid' : '' }}">{{ old('alasan') }}</textarea>
             @error('alasan')

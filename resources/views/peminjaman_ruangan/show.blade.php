@@ -133,7 +133,7 @@
                     </tr>
                     <tr>
                         <th>Jenis Kegiatan</th>
-                        <td>{{ ucfirst($data->jenis_kegiatan) }}</td>
+                        <td>{{ match($data->jenis_kegiatan) { 'asasmen' => 'Asesmen', default => ucfirst($data->jenis_kegiatan) } }}</td>
                     </tr>
                     <tr>
                         <th>Nama Kegiatan</th>
@@ -144,7 +144,7 @@
                         <td>{{ $data->peserta_rapat ?? '-' }}</td>
                     </tr>
                     <tr>
-                        <th>Catatan</th>
+                        <th>{{ $data->decision_status === 'ditolak' ? 'Alasan Penolakan' : 'Catatan' }}</th>
                         <td>{{ $data->catatan ?? '-' }}</td>
                     </tr>
                 </table>

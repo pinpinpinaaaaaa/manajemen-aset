@@ -420,6 +420,7 @@
 
         /* ================= ERROR DISPLAY ================= */
         .field-error { color:#dc2626; font-size:.8rem; display:block; margin-top:4px; }
+        .required-mark { color:#dc2626; margin-left:2px; font-size:.85em; }
         input.is-invalid, select.is-invalid, textarea.is-invalid {
             border-color:#f87171 !important;
             background:#fff5f5 !important;
@@ -487,7 +488,7 @@
 
             <div class="form-grid">
                 <div>
-                    <label>Nama Peminjam</label>
+                    <label>Nama Peminjam<span class="required-mark">*</span></label>
                     <input type="text" name="nama_pengaju" required
                            value="{{ old('nama_pengaju') }}"
                            class="{{ $errors->has('nama_pengaju') ? 'is-invalid' : '' }}">
@@ -496,7 +497,7 @@
                     @enderror
                 </div>
                 <div>
-                    <label>Divisi</label>
+                    <label>Divisi<span class="required-mark">*</span></label>
                     <select name="id_divisi" required
                             class="{{ $errors->has('id_divisi') ? 'is-invalid' : '' }}">
                         <option value="" {{ !old('id_divisi') ? 'selected' : '' }}>-- Pilih Divisi --</option>
@@ -514,7 +515,7 @@
 
             <div>
                 <label>Email</label>
-                <input type="email" name="email_pengaju" required
+                <input type="email" name="email_pengaju"
                        value="{{ old('email_pengaju') }}"
                        class="{{ $errors->has('email_pengaju') ? 'is-invalid' : '' }}">
                 @error('email_pengaju')
@@ -524,12 +525,12 @@
 
             <div class="form-grid">
                 <div>
-                    <label>Jenis Kegiatan</label>
+                    <label>Jenis Kegiatan<span class="required-mark">*</span></label>
                     <select name="jenis_kegiatan" id="jenis_kegiatan" required
                             class="{{ $errors->has('jenis_kegiatan') ? 'is-invalid' : '' }}">
                         <option value="rapat"     {{ old('jenis_kegiatan', 'rapat') === 'rapat'     ? 'selected' : '' }}>Rapat</option>
                         <option value="pelatihan" {{ old('jenis_kegiatan') === 'pelatihan' ? 'selected' : '' }}>Pelatihan</option>
-                        <option value="asasmen"   {{ old('jenis_kegiatan') === 'asasmen'   ? 'selected' : '' }}>Asasmen</option>
+                        <option value="asasmen"   {{ old('jenis_kegiatan') === 'asasmen'   ? 'selected' : '' }}>Asesmen</option>
                         <option value="lainnya"   {{ old('jenis_kegiatan') === 'lainnya'   ? 'selected' : '' }}>Lainnya</option>
                     </select>
                     @error('jenis_kegiatan')
@@ -538,7 +539,7 @@
                 </div>
 
                 <div>
-                    <label id="label_nama_kegiatan">Nama Kegiatan</label>
+                    <label id="label_nama_kegiatan">Nama Kegiatan<span class="required-mark">*</span></label>
                     {{-- name diubah secara dinamis oleh JS berdasarkan jenis_kegiatan --}}
                     <input type="text" name="nama_kegiatan" id="nama_kegiatan"
                            value="{{ old('peserta_rapat') ?? old('nama_kegiatan') }}"
@@ -672,11 +673,11 @@
 
         function updateLabelKegiatan() {
             if (jenisKegiatan.value === 'rapat') {
-                labelNamaKegiatan.textContent = 'Peserta Rapat';
+                labelNamaKegiatan.innerHTML = 'Peserta Rapat<span class="required-mark">*</span>';
                 // Ubah name agar field tersubmit sebagai 'peserta_rapat' (sesuai validasi controller)
                 namaKegiatanInput.name = 'peserta_rapat';
             } else {
-                labelNamaKegiatan.textContent = 'Nama Kegiatan';
+                labelNamaKegiatan.innerHTML = 'Nama Kegiatan<span class="required-mark">*</span>';
                 namaKegiatanInput.name = 'nama_kegiatan';
             }
         }
@@ -728,7 +729,7 @@
                 <div class="form-row">
 
                     <div>
-                        <label>Tanggal Mulai</label>
+                        <label>Tanggal Mulai<span class="required-mark">*</span></label>
 
                         <input type="text"
                             class="tanggal-mulai tanggal-mulai-${currentIndex}"
@@ -737,7 +738,7 @@
                     </div>
 
                     <div>
-                        <label>Jam Mulai</label>
+                        <label>Jam Mulai<span class="required-mark">*</span></label>
 
                         <input type="text"
                             class="jam-mulai jam-mulai-${currentIndex}"
@@ -750,7 +751,7 @@
                 <div class="form-row">
 
                     <div>
-                        <label>Tanggal Selesai</label>
+                        <label>Tanggal Selesai<span class="required-mark">*</span></label>
 
                         <input type="text"
                             class="tanggal-selesai tanggal-selesai-${currentIndex}"
@@ -759,7 +760,7 @@
                     </div>
 
                     <div>
-                        <label>Jam Selesai</label>
+                        <label>Jam Selesai<span class="required-mark">*</span></label>
 
                         <input type="text"
                             class="jam-selesai jam-selesai-${currentIndex}"
@@ -773,12 +774,11 @@
 
                     <div>
 
-                        <label>Gedung</label>
+                        <label>Gedung<span class="required-mark">*</span></label>
 
                         <select onchange="loadRuangan(this, ${currentIndex})"
                                 name="ruangan[${currentIndex}][id_gedung]"
                                 class="gedung-select-${currentIndex}"
-                                disabled
                                 required>
 
                             <option value="">Pilih Gedung</option>
@@ -795,7 +795,7 @@
 
                     <div>
 
-                        <label>Ruangan Tersedia</label>
+                        <label>Ruangan Tersedia<span class="required-mark">*</span></label>
 
                         <select name="ruangan[${currentIndex}][id_ruangan]"
                                 class="ruangan-select-${currentIndex}"
@@ -853,41 +853,39 @@
             refreshAllAsetLimit();
         }
 
-        function enableGedung(idx) {
-
-            const tanggalMulai = document.querySelector(`.tanggal-mulai-${idx}`).value;
-            const jamMulai = document.querySelector(`.jam-mulai-${idx}`).value;
-            const tanggalSelesai = document.querySelector(`.tanggal-selesai-${idx}`).value;
-            const jamSelesai = document.querySelector(`.jam-selesai-${idx}`).value;
-
+        function reloadRuanganIfGedungSelected(idx) {
             const gedungSelect = document.querySelector(`.gedung-select-${idx}`);
-
-            if (
-                tanggalMulai &&
-                jamMulai &&
-                tanggalSelesai &&
-                jamSelesai
-            ) {
-                gedungSelect.disabled = false;
+            if (gedungSelect && gedungSelect.value) {
+                loadRuangan(gedungSelect, idx);
             }
         }
 
         function loadRuangan(el, idx) {
 
+            const gedungId = el.value;
+            if (!gedungId) return;
+
             const tanggalMulai = document.querySelector(`.tanggal-mulai-${idx}`).value;
             const jamMulai = document.querySelector(`.jam-mulai-${idx}`).value;
             const tanggalSelesai = document.querySelector(`.tanggal-selesai-${idx}`).value;
             const jamSelesai = document.querySelector(`.jam-selesai-${idx}`).value;
 
-            const params = new URLSearchParams({
-                gedung: el.value,
-                tanggal_mulai: tanggalMulai,
-                jam_mulai: jamMulai,
-                tanggal_selesai: tanggalSelesai,
-                jam_selesai: jamSelesai
-            });
+            let url;
 
-            fetch(`/get-ruangan-available?${params}`)
+            if (tanggalMulai && jamMulai && tanggalSelesai && jamSelesai) {
+                const params = new URLSearchParams({
+                    gedung: gedungId,
+                    tanggal_mulai: tanggalMulai,
+                    jam_mulai: jamMulai,
+                    tanggal_selesai: tanggalSelesai,
+                    jam_selesai: jamSelesai
+                });
+                url = `/get-ruangan-available?${params}`;
+            } else {
+                url = `/get-ruangan/${gedungId}`;
+            }
+
+            fetch(url)
                 .then(res => res.json())
                 .then(data => {
 
@@ -1013,7 +1011,7 @@
 
         function handleTanggalJam(idx) {
 
-            enableGedung(idx);
+            reloadRuanganIfGedungSelected(idx);
 
             if (!sameScheduleAll) return;
 
@@ -1035,7 +1033,7 @@
                 document.querySelector(`.tanggal-selesai-${itemIdx}`).value = tanggalSelesai;
                 document.querySelector(`.jam-selesai-${itemIdx}`).value = jamSelesai;
 
-                enableGedung(itemIdx);
+                reloadRuanganIfGedungSelected(itemIdx);
 
             });
         }
@@ -1114,7 +1112,7 @@
             document.querySelector(`.jam-selesai-${idx}`).value =
                 document.querySelector(`.jam-selesai-${first}`).value;
 
-            enableGedung(idx);
+            reloadRuanganIfGedungSelected(idx);
         }
 
         function handleRuanganSelected(select, idx) {

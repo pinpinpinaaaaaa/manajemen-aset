@@ -109,47 +109,57 @@ class EkspedisiController extends Controller
     }
     public function store(Request $request)
     {
-        $request->validate([
+        $isMengantar = $request->input('jenis_ekspedisi', 'mengantar') === 'mengantar';
+
+        $rules = [
+            'jenis_ekspedisi'  => 'required|in:mengantar,mengambil',
+
             // pengaju
-            'nama_pengaju' => 'required|string|max:255',
-            'email_pengaju' => 'required|email',
+            'nama_pengaju'     => 'required|string|max:255',
+            'email_pengaju'    => 'nullable|email',
             'id_divisi_pengaju' => 'required|exists:divisi,id_divisi',
 
             // pengirim
-            'nama_pengirim' => 'required|string|max:255',
-            'email_pengirim' => 'required|email',
-            'no_hp_pengirim' => 'nullable|string|max:13',
-            'id_divisi_pengirim' => 'required|exists:divisi,id_divisi',
+            'nama_pengirim'    => 'required|string|max:255',
+            'email_pengirim'   => 'nullable|email',
+            'no_hp_pengirim'   => 'nullable|string|max:13',
             'instansi_pengirim' => 'nullable|string|max:255',
-            'alamat_pengirim' => 'nullable|string',
+            'alamat_pengirim'  => 'nullable|string',
 
             // penerima
             'instansi_penerima' => 'required|string|max:255',
-            'nama_penerima' => 'required|string|max:255',
-            'email_penerima' => 'nullable|email',
-            'no_hp_penerima' => 'nullable|string|max:13',
-            'alamat_penerima' => 'required',
+            'nama_penerima'    => 'required|string|max:255',
+            'email_penerima'   => 'nullable|email',
+            'no_hp_penerima'   => 'nullable|string|max:13',
+            'alamat_penerima'  => 'required|string',
 
             // kegiatan
-            'judul_kegiatan' => 'required|string|max:255',
+            'judul_kegiatan'   => 'required|string',
+            'cara_penyerahan'  => $isMengantar ? 'required|string' : 'nullable|string',
 
-            // item
-            'items' => 'required|array|min:1',
-            'items.*.jenis' => 'required|in:dokumen,barang',
-            'items.*.nama' => 'required|string|max:255',
-            'items.*.jumlah' => 'nullable|integer|min:1',
+            // items
+            'items'            => 'required|array|min:1',
+            'items.*.jenis'    => 'required|in:dokumen,barang',
+            'items.*.nama'     => 'required|string',
+            'items.*.jumlah'   => 'nullable|integer|min:1',
             'items.*.keterangan' => 'nullable|string',
+            'items.*.files'    => 'nullable|array|max:5',
+            'items.*.files.*'  => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+        ];
 
-            'items.*.files' => 'nullable|array|max:5',
-            'items.*.files.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
-        ], [
+        // divisi pengirim hanya wajib untuk mengantar (internal)
+        if ($isMengantar) {
+            $rules['id_divisi_pengirim'] = 'required|exists:divisi,id_divisi';
+        } else {
+            $rules['id_divisi_pengirim'] = 'nullable|exists:divisi,id_divisi';
+        }
+
+        $request->validate($rules, [
             'nama_pengaju.required'       => 'Nama pengaju wajib diisi.',
-            'email_pengaju.required'      => 'Email pengaju wajib diisi.',
             'email_pengaju.email'         => 'Format email pengaju tidak valid.',
             'id_divisi_pengaju.required'  => 'Divisi pengaju wajib dipilih.',
             'id_divisi_pengaju.exists'    => 'Divisi pengaju yang dipilih tidak valid.',
             'nama_pengirim.required'      => 'Nama pengirim wajib diisi.',
-            'email_pengirim.required'     => 'Email pengirim wajib diisi.',
             'email_pengirim.email'        => 'Format email pengirim tidak valid.',
             'id_divisi_pengirim.required' => 'Divisi pengirim wajib dipilih.',
             'id_divisi_pengirim.exists'   => 'Divisi pengirim yang dipilih tidak valid.',
@@ -158,6 +168,7 @@ class EkspedisiController extends Controller
             'email_penerima.email'        => 'Format email penerima tidak valid.',
             'alamat_penerima.required'    => 'Alamat tujuan wajib diisi.',
             'judul_kegiatan.required'     => 'Judul kegiatan wajib diisi.',
+            'cara_penyerahan.required'    => 'Cara penyerahan wajib dipilih.',
             'items.required'              => 'Minimal 1 item kiriman harus diisi.',
             'items.*.jenis.required'      => 'Jenis item wajib dipilih (Dokumen atau Barang).',
             'items.*.jenis.in'            => 'Jenis item harus Dokumen atau Barang.',
@@ -174,6 +185,8 @@ class EkspedisiController extends Controller
            $ekspedisi = Ekspedisi::create([
                 'id_ekspedisi' => $idEkspedisi,
 
+                'jenis_ekspedisi' => $request->jenis_ekspedisi,
+
                 'nama_pengaju' => $request->nama_pengaju,
                 'email_pengaju' => $request->email_pengaju,
                 'id_divisi_pengaju' => $request->id_divisi_pengaju,
@@ -181,7 +194,7 @@ class EkspedisiController extends Controller
                 'nama_pengirim' => $request->nama_pengirim,
                 'email_pengirim' => $request->email_pengirim,
                 'no_hp_pengirim' => $request->no_hp_pengirim,
-                'id_divisi_pengirim' => $request->id_divisi_pengirim,
+                'id_divisi_pengirim' => $request->id_divisi_pengirim ?: null,
                 'instansi_pengirim' => $request->instansi_pengirim,
                 'alamat_pengirim' => $request->alamat_pengirim,
 
@@ -193,6 +206,7 @@ class EkspedisiController extends Controller
 
                 'judul_kegiatan' => $request->judul_kegiatan,
                 'keterangan' => $request->keterangan,
+                'cara_penyerahan' => $request->cara_penyerahan,
 
                 'decision_status' => 'menunggu_persetujuan',
             ]);

@@ -145,7 +145,7 @@
                         <td>{{ $data->alasan }}</td>
                     </tr>
                     <tr>
-                        <th>Catatan</th>
+                        <th>{{ $data->decision_status === 'ditolak' ? 'Alasan Penolakan' : 'Catatan' }}</th>
                         <td>{{ $data->catatan ?? '-' }}</td>
                     </tr>
                 </table>

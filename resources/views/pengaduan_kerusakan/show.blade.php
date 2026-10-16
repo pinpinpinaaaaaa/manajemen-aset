@@ -198,6 +198,12 @@
                             {{ $data->decided_at ? \Carbon\Carbon::parse($data->decided_at)->format('d M Y H:i') : '-' }}
                         </td>
                     </tr>
+                    @if ($data->decision_status === 'ditolak')
+                    <tr>
+                        <th>Alasan Penolakan</th>
+                        <td>{{ $data->catatan ?? '-' }}</td>
+                    </tr>
+                    @endif
                 </table>
             </div>
 
